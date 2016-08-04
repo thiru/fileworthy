@@ -1,4 +1,4 @@
-# s3g
+# s3gen
 
 * A super-simple website generator
 

@@ -92,6 +92,13 @@
       * strip out the multi-line comment markers
       * indent all non multi-line comments as block-level markdown code
     * use one of several available markdown to HTML generators
+
+## Package Definition
+
+* We'll stick to using just a single package for this app
+  * named after the project itself
+
+* In good Common Lisp practice we define the package inside `cl-user`
 ||#
 
 (in-package :cl-user)
@@ -99,14 +106,50 @@
 (defpackage :s3gen
   (:use :alexandria :cl :glu :split-sequence)
   (:documentation "The sole package for this app.")
-  (:export :version :updated
-           :start))
+  (:export :version :updated :start))
 
 (in-package :s3gen)
 
-(defparameter version
-  (asdf::read-file-form (asdf:system-relative-pathname :s3gen "version")))
+#||
+## Globals
+
+* Not sure why I'm choosing to do this
+  * but lets define all global variables in a struct
+* Maybe this will make it easier for testing?
+||#
+
+(defstruct globals
+  "Contains global variables."
+  (version-file-path "")
+  (version ""))
+
+#||
+* There'll be a singleton instance of this struct
+* I'll take the liberty and simply name it `G`
+* My justification for this name is
+  * that it'll be used so often throughout the codebase
+  * so I'd like to type as little as possible
+* Maybe in the more extreme cases the length of a symbol
+  * should be inversely proportional to its frequency of use?
+||#
+
+(defparameter G nil)
+
+(defun load-globals ()
+  "Load global variables."
+  (let ((version-file-path (asdf:system-relative-pathname :s3gen "version")))
+    (make-globals :version-file-path version-file-path
+                  :version (asdf::read-file-form version-file-path))))
+
+#||
+## Startup
+
+* To launch the application we need only call `start`
+  * without any required parameters
+* This will show a brief message along with the current version of the app
+||#
 
 (defun start ()
   "Starts the app."
-  (format t "s3gen v~A started~%" version))
+  (setf G (load-globals))
+  (format t "Started s3gen ~A~%" (globals-version G)))

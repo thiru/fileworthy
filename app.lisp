@@ -96,8 +96,7 @@
 
 ## Package Definition
 
-* We'll stick to using just a single package for this app
-  * named after the project itself
+* We'll stick to using just a single package, named after the project
 
 * In good Common Lisp practice we define the package inside `cl-user`
 ||#
@@ -105,7 +104,7 @@
 (in-package :cl-user)
 
 (defpackage :s3gen
-  (:use :alexandria :cl :glu :split-sequence)
+  (:use :alexandria :cl :glu :local-time :split-sequence)
   (:documentation "The sole package for this app.")
   (:export :version :updated :start))
 
@@ -121,15 +120,16 @@
 
 (defstruct globals
   "Contains global variables."
-  (version-file-path "")
-  (version ""))
+  (version-file-path)
+  (app-version)
+  (app-updated))
 
 #||
 * There'll be a singleton instance of this struct
 * I'll take the liberty and simply name it `G`
-* My justification for this name is
-  * that it'll be used so often throughout the codebase
-  * so I'd like to type as little as possible
+* My justification for this name is that
+  * it'll be used so often throughout the codebase
+  * so I'd rather type as little as possible
 * Maybe in the more extreme cases the length of a symbol
   * should be inversely proportional to its frequency of use?
 ||#
@@ -140,7 +140,10 @@
   "Load global variables."
   (let ((version-file-path (asdf:system-relative-pathname :s3gen "version")))
     (make-globals :version-file-path version-file-path
-                  :version (asdf::read-file-form version-file-path))))
+                  :app-version (asdf::read-file-form version-file-path)
+                  :app-updated
+                  (universal-to-timestamp
+                   (file-write-date version-file-path)))))
 
 #||
 ## Startup
@@ -153,4 +156,4 @@
 (defun start ()
   "Starts the app."
   (setf G (load-globals))
-  (format t "Started s3gen ~A~%" (globals-version G)))
+  (format t "Started s3gen ~A~%" (globals-app-version G)))

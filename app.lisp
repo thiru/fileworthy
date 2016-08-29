@@ -7,7 +7,6 @@
 
 * This is a simple app that displays the contents of a directory as a website
 * Configuration is optional, with sensible defaults chosen
-  * the configuration syntax is YAML
 * It is written in Common Lisp in a quasi-[literate](http://www.literateprogramming.com/knuthweb.pdf) form
 
 ### Goals and Motivation

@@ -94,17 +94,19 @@
 
 ## Package Definition
 
-* We'll stick to using just a single package, named after the project
-
+* We'll stick to using just a single package
+  * named after the project
 * In good Common Lisp practice we define the package inside `cl-user`
+* I'm also choosing not to explicitly export any symbols since
+  * there will only be a single package
+  * this isn'nt intended to be used within other packages
 ||#
 
 (in-package :cl-user)
 
 (defpackage :fileworthy
   (:use :alexandria :cl :glu :local-time :split-sequence)
-  (:documentation "The sole package for this app.")
-  (:export :version :updated :start))
+  (:documentation "The sole package for this app."))
 
 (in-package :fileworthy)
 

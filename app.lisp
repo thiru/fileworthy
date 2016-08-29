@@ -1,5 +1,5 @@
 #||
-# Super-Simple Website Generator
+# FileWorthy
 
 ## Introduction
 
@@ -17,14 +17,13 @@
 * To this end I want a no fuss app that is able to simply point to a directory
   * and have all it's contents displayed as a website
 
-* Text files should be editable such that
-  * I can edit it from a website that's accessible wherever I am
+* Text files should be editable, and
+  * I should be able to edit them from a website that's accessible wherever I am
   * or right off my local file-system, in my favourite editor
 * Consequently, a system needs to be in-place
   * to keep the files on the website and my local computer in sync
-* I'm already using [syncthing](https://syncthing.net)
-  * to keep my files in sync across all my devices
-    * so I can just keep using that
+* I'm already using [syncthing](https://syncthing.net) to keep my files in sync across all my devices
+  * so I can just keep using that
   * the website simply becomes another device
 * I don't intend to roll syncthing into this app
   * It'll need to be setup separately
@@ -40,7 +39,7 @@
 * Any file can be downloaded
 * If the browser supports the file format
   * e.g. images, movies, etc.
-  * it will render it accordingly
+  * it will render it as is
 * Markdown files will be displayed as HTML
 * Directories will simply be links to other pages
 * Files and directories can be managed in the following ways:
@@ -103,12 +102,12 @@
 
 (in-package :cl-user)
 
-(defpackage :s3gen
+(defpackage :fileworthy
   (:use :alexandria :cl :glu :local-time :split-sequence)
   (:documentation "The sole package for this app.")
   (:export :version :updated :start))
 
-(in-package :s3gen)
+(in-package :fileworthy)
 
 #||
 ## Globals
@@ -138,7 +137,7 @@
 
 (defun load-globals ()
   "Load global variables."
-  (let ((version-file-path (asdf:system-relative-pathname :s3gen "version")))
+  (let ((version-file-path (asdf:system-relative-pathname :fileworthy "version")))
     (make-globals :version-file-path version-file-path
                   :app-version (asdf::read-file-form version-file-path)
                   :app-updated
@@ -156,4 +155,4 @@
 (defun start ()
   "Starts the app."
   (setf G (load-globals))
-  (format t "Started s3gen ~A~%" (globals-app-version G)))
+  (format t "Started FileWorthy ~A~%" (globals-app-version G)))

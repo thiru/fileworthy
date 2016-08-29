@@ -2,9 +2,9 @@
 
 (in-package :cl-user)
 
-(asdf:defsystem :s3gen
+(asdf:defsystem :fileworthy
   :version (:read-file-form "version")
-  :description "A super-simple website generator"
+  :description "A simple file-system-based website"
   :author "Thirushanth Thirunavukarasu <thiru0130@gmail.com>"
   :license "GPLv3"
   :serial t

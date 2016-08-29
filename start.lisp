@@ -1,3 +1,3 @@
-(ql:quickload :s3gen)
+(ql:quickload :fileworthy)
 
-(s3gen:start)
+(fileworthy:start)

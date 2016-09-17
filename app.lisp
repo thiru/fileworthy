@@ -105,7 +105,7 @@
 (in-package :cl-user)
 
 (defpackage :fileworthy
-  (:use :alexandria :cl :glu :local-time :split-sequence)
+  (:use :cl :glu :local-time :split-sequence :uiop)
   (:documentation "The sole package for this app."))
 
 (in-package :fileworthy)

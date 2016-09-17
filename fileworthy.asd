@@ -9,5 +9,5 @@
   :license "GPLv3"
   :serial t
   :depends-on (:alexandria :cl-json :cl-who :glu :hunchentoot :ironclad
-               :local-time :split-sequence)
+               :local-time :split-sequence :uiop)
   :components ((:file "app")))

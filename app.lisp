@@ -73,7 +73,7 @@
 * However I'd rather not go the traditional web/weave/tangle approach
 * Instead I want to take a quasi-literate approach where
   * all the explantory text and source code is in a single Common Lisp file
-    * i.e. [app.lisp](./app.lisp)
+    * i.e. [app.lisp](../app.lisp)
   * the explantory text will be written
     * within Common Lisp's [multi-line comments](http://clhs.lisp.se/Body/02_dhs.htm)
     * in (Github flavoured) markdown syntax
@@ -90,7 +90,7 @@
       * strip out the multi-line comment markers
       * wrap the code blocks within block-level code syntax
     * use one of several available markdown to HTML generators
-  * See [weave.ros](./weave.ros)
+  * See [weave.ros](../weave.ros)
 
 ## Package Definition
 

@@ -1,4 +1,4 @@
 *.FASL
 *.fasl
 *.lisp-temp
-app.lisp.*
+docs/app.lisp.*

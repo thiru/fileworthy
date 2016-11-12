@@ -95,14 +95,35 @@ exec ros -Q -- $0 "$@"
         (new-r :success "" (lisp-to-markdown lisp-file))
         cmd-res)))
 
+(defun file-string (path)
+  "Get file contents of `PATH`."
+  (with-open-file (stream path)
+    (let ((data (make-string (file-length stream))))
+      (read-sequence data stream)
+      data)))
+
 (defun write-html (input-file-name output-file-name)
   "Convert the given markdown file, `INPUT-FILE-NAME' to HTML using
    marked.js CLI, into the file `OUTPUT-FILE-NAME'."
-  (let ((cmd-res (run-cmd (sf "marked --gfm -o ~A ~A"
+  (let ((template-path "docs/template.html")
+        (html-from-md "")
+        (cmd-res (run-cmd (sf "marked --gfm -o ~A ~A"
                               output-file-name
                               input-file-name))))
     (if (failed? cmd-res)
         (return-from write-html cmd-res))
+    (setf html-from-md (file-string output-file-name))
+    (when (probe-file template-path)
+      (with-open-file (template-in template-path)
+        (with-open-file (template-out output-file-name
+                                      :direction :output
+                                      :if-exists :supersede
+                                      :if-does-not-exist :create)
+          (loop for line = (read-line template-in nil)
+                while line
+                do (if (string-equal "INJECTION POINT" (string-trim " " line))
+                     (format template-out "~A" html-from-md)
+                     (format template-out line)) ) )))
     (new-r :success
            (sf "updated ~A (~A)"
                output-file-name
@@ -112,8 +133,8 @@ exec ros -Q -- $0 "$@"
 (defun main (&rest argv)
   (declare (ignorable argv))
   (let* ((input-file (last1 argv))
-         (markdown-file (sf "~A.md" input-file))
-         (html-file (sf "~A.html" input-file)))
+         (markdown-file (sf "docs/~A.md" input-file))
+         (html-file (sf "docs/~A.html" input-file)))
     ;; Show help if no arguments were given or the help option was specified
     (when (or (empty? argv)
               (find "-h" argv :test #'string-equal)

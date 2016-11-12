@@ -89,7 +89,8 @@ exec ros -Q -- $0 "$@"
 (defun update-markdown-on-change (lisp-file)
   "Block until a modification to `LISP-FILE' is detected, then convert
    `LISP-FILE' to markdown."
-  (let ((cmd-res (run-cmd (sf "inotifywait -q -q -e modify ~A" lisp-file))))
+  (let ((cmd-res (run-cmd (sf "inotifywait -q -q -e modify,move,move_self ~A"
+                              lisp-file))))
     (if (succeeded? cmd-res)
         (new-r :success "" (lisp-to-markdown lisp-file))
         cmd-res)))
@@ -129,6 +130,8 @@ exec ros -Q -- $0 "$@"
       (if (or (find "-m" argv :test #'string-equal)
               (find "--monitor" argv :test #'string-equal))
           (loop
+            ;; TODO: Don't abort on error
+            ;; TODO: Try to update file even if error reported
             (setf cmd-res (update-markdown-on-change input-file))
             (when (succeeded? cmd-res)
               (dump-file (r-data cmd-res) markdown-file)

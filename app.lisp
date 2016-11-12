@@ -7,19 +7,17 @@
 
 * Fileworthy a simple app that displays the contents of a directory as a website
 * Configuration is optional, with sensible defaults
-* It is written in Common Lisp in a quasi-[literate](http://www.literateprogramming.com/knuthweb.pdf) form
+* It is written in Common Lisp, in a quasi-[literate](http://www.literateprogramming.com/knuthweb.pdf) form
 
 ### Goals and Motivation
 
 * **I want an easy way to view and edit my files and notes wherever I am**
-
 * To this end I want a no fuss app that is able to simply point to a directory
-  * and have all it's contents displayed as a website
-
-* Text files should be editable, and
+  * and have all of it's contents displayed as a website
+* Text files should be easily editable
   * I should be able to edit them from a website that's accessible wherever I am
-  * or right off my local file-system, in my favourite editor
-* Consequently, a system needs to be in-place to keep the files on the website and my local computer in sync
+  * or directly off my local file-system, in my favourite editor
+* Consequently, a system needs to be in-place to keep the files on the website, my local computer, and any other devices in sync
 * I'm already using [syncthing](https://syncthing.net) to keep my files in sync across all my devices
   * so I can just keep using that
   * the website simply becomes another device
@@ -31,9 +29,9 @@
 
 ### Solution
 
-* Create a web app that will show the contents of a directory
-  * this is either the directory from which the app is launched
-  * or one (or more) directories specified as command-line arguments
+* Create a web app that will display the contents of a directory as a regular website
+  * This directory can either be the current directory
+  * or a list of directories at arbitrary paths
 * Any file can be downloaded
 * If the browser supports the file format
   * e.g. images, movies, etc.
@@ -51,7 +49,6 @@
 * Configuration files are optional
   * i.e. use sensible defaults
   * of course this will be biased on *my* initial desires
-* Optional config file(s) to amend behaviour
 
 ### Non-Solutions
 
@@ -66,6 +63,8 @@
   * and so feel too heavy a dependency to manage
 * What about Dropbox, Google Drive, etc.?
   * None of these can be self-hosted
+* [Flatdoc](http://ricostacruz.com/flatdoc/) probably comes the closest to what I want
+  * But it still lacks lots of features I'd like
 
 ### Literate Programming
 
@@ -96,10 +95,10 @@
 
 * We'll stick to using just a single package
   * named after the project
-* In good Common Lisp practice we define the package inside `cl-user`
+* In good Common Lisp practice we define the package inside `CL-USER`
 * I'm also choosing not to explicitly export any symbols since
   * there will only be a single package
-  * this isn'nt intended to be used within other packages
+  * this isn'nt intended to be used *by* other packages
 ||#
 
 (in-package :cl-user)
@@ -114,7 +113,7 @@
 ## Globals
 
 * Not sure why I'm choosing to do this
-  * but lets define all global variables in a struct
+  * but we'll define all global variables in a struct
 * Maybe this will make it easier for testing?
 ||#
 
@@ -128,7 +127,7 @@
 * There will be a singleton instance of this struct
 * I'll take the liberty of simply naming it `G`
 * My justification for this name is that
-  * it'll be used so often throughout the codebase
+  * it'll be used quite often throughout the codebase
   * so I'd rather type as little as possible
 * Perhaps in the more extreme cases
   * the length of a symbol

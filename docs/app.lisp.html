@@ -1,0 +1,256 @@
+<!doctype html><html lang="en"><head>  <meta charset="utf-8">  <title>Fileworthy</title>  <link rel="stylesheet" href="highlightjs/styles/default.css">  <script src="highlightjs/highlight.pack.js"></script>  <script>hljs.initHighlightingOnLoad();</script></head><body><h1 id="fileworthy">Fileworthy</h1>
+<h2 id="introduction">Introduction</h2>
+<h3 id="tl-dr">TL;DR</h3>
+<ul>
+<li>Fileworthy a simple app that displays the contents of a directory as a website</li>
+<li>Configuration is optional, with sensible defaults</li>
+<li>It is written in Common Lisp, in a quasi-<a href="http://www.literateprogramming.com/knuthweb.pdf">literate</a> form</li>
+</ul>
+<h3 id="goals-and-motivation">Goals and Motivation</h3>
+<ul>
+<li><strong>I want an easy way to view and edit my files and notes wherever I am</strong></li>
+<li>To this end I want a no fuss app that is able to simply point to a directory<ul>
+<li>and have all of it&#39;s contents displayed as a website</li>
+</ul>
+</li>
+<li>Text files should be easily editable<ul>
+<li>I should be able to edit them from a website that&#39;s accessible wherever I am</li>
+<li>or directly off my local file-system, in my favourite editor</li>
+</ul>
+</li>
+<li>Consequently, a system needs to be in-place to keep the files on the website, my local computer, and any other devices in sync</li>
+<li>I&#39;m already using <a href="https://syncthing.net">syncthing</a> to keep my files in sync across all my devices<ul>
+<li>so I can just keep using that</li>
+<li>the website simply becomes another device</li>
+</ul>
+</li>
+<li>I don&#39;t intend to roll syncthing into this app<ul>
+<li>It&#39;ll need to be setup separately</li>
+<li>And in fact, using a file sync tool at all is optional</li>
+<li>It&#39;s only needed if you want to edit files locally<ul>
+<li>and not just from the website</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="solution">Solution</h3>
+<ul>
+<li>Create a web app that will display the contents of a directory as a regular website<ul>
+<li>This directory can either be the current directory</li>
+<li>or a list of directories at arbitrary paths</li>
+</ul>
+</li>
+<li>Any file can be downloaded</li>
+<li>If the browser supports the file format<ul>
+<li>e.g. images, movies, etc.</li>
+<li>it will render it as is</li>
+</ul>
+</li>
+<li>Markdown files will be displayed as HTML</li>
+<li>Directories will simply be links to other pages</li>
+<li>Files and directories can be managed in the following ways:<ul>
+<li>upload new files</li>
+<li>create new directories</li>
+<li>rename files/directories</li>
+<li>replace existing files</li>
+<li>edit text files right off the website</li>
+<li>edit source files from which an HTML page was generated</li>
+<li>delete files/directories</li>
+</ul>
+</li>
+<li>Configuration files are optional<ul>
+<li>i.e. use sensible defaults</li>
+<li>of course this will be biased on <em>my</em> initial desires</li>
+</ul>
+</li>
+</ul>
+<h3 id="non-solutions">Non-Solutions</h3>
+<ul>
+<li>You might be wondering why I don&#39;t just go with one of the many <strong><a href="https://www.staticgen.com/">static site generators</a></strong><ul>
+<li>or even <a href="https://nextcloud.com/">Nextcloud</a></li>
+</ul>
+</li>
+<li>The main reason is that none of them seem to be able to<ul>
+<li>simply point to a directory and generate a website<ul>
+<li>without configuration</li>
+</ul>
+</li>
+<li>and be able to directly edit source markdown files</li>
+</ul>
+</li>
+<li>These solutions also do a lot more than what I want<ul>
+<li>e.g. can serve as a blogging tool</li>
+<li>and so feel too heavy a dependency to manage</li>
+</ul>
+</li>
+<li>What about Dropbox, Google Drive, etc.?<ul>
+<li>None of these can be self-hosted</li>
+</ul>
+</li>
+<li><a href="http://ricostacruz.com/flatdoc/">Flatdoc</a> probably comes the closest to what I want<ul>
+<li>But it still lacks lots of features I&#39;d like</li>
+</ul>
+</li>
+</ul>
+<h3 id="literate-programming">Literate Programming</h3>
+<ul>
+<li>This will also serve as my first foray into <a href="http://www.literateprogramming.com/knuthweb.pdf">literate programming</a></li>
+<li>However I&#39;d rather not go the traditional web/weave/tangle approach</li>
+<li>Instead I want to take a quasi-literate approach where<ul>
+<li>all the explantory text and source code is in a single Common Lisp file<ul>
+<li>i.e. <a href="../app.lisp">app.lisp</a></li>
+</ul>
+</li>
+<li>the explantory text will be written<ul>
+<li>within Common Lisp&#39;s <a href="http://clhs.lisp.se/Body/02_dhs.htm">multi-line comments</a></li>
+<li>in (Github flavoured) markdown syntax</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Obviously there are drawbacks to this approach<ul>
+<li>with the biggest one potentially being that I can&#39;t really write this in
+a <em>stream of conciousness</em> flow</li>
+<li>instead I&#39;ll be taking a (mostly) top-down approach</li>
+</ul>
+</li>
+<li>But there are also considerable advantages:<ul>
+<li>The code is easily run, edited and debugged within your favourite editor<ul>
+<li>e.g. emacs or vim</li>
+</ul>
+</li>
+<li>There&#39;s no need for the tangle phase</li>
+<li>The explantory text can be easily generated by<ul>
+<li>slightly modifying the source file to be formatted as pure markdown, i.e.:<ul>
+<li>strip out the multi-line comment markers</li>
+<li>wrap the code blocks within block-level code syntax</li>
+</ul>
+</li>
+<li>use one of several available markdown to HTML generators</li>
+</ul>
+</li>
+<li>See <a href="../weave.ros">weave.ros</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="package-definition">Package Definition</h2>
+<ul>
+<li>We&#39;ll stick to using just a single package<ul>
+<li>named after the project</li>
+</ul>
+</li>
+<li>In good Common Lisp practice we define the package inside <code>CL-USER</code></li>
+<li>I&#39;m also choosing not to explicitly export any symbols since<ul>
+<li>there will only be a single package</li>
+<li>this isn&#39;nt intended to be used <em>by</em> other packages</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">
+(in-package :cl-user)
+
+(defpackage :fileworthy
+  (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
+  (:documentation &quot;The sole package for this app.&quot;)
+  (:import-from :lack.builder
+                :builder)
+  (:import-from :ppcre
+                :scan
+                :regex-replace))
+
+(in-package :fileworthy)
+</code></pre>
+<h2 id="globals">Globals</h2>
+<ul>
+<li>Not sure why I&#39;m choosing to do this<ul>
+<li>but we&#39;ll define all global variables in a struct</li>
+</ul>
+</li>
+<li>Maybe this will make it easier for testing?</li>
+<li>There will be a single instance of this struct</li>
+<li>I&#39;ll take the liberty of simply naming it <code>G</code></li>
+<li>My justification for this name is that<ul>
+<li>it&#39;ll be used quite often throughout the codebase</li>
+<li>so I&#39;d rather type as little as possible</li>
+</ul>
+</li>
+<li>Perhaps in the more extreme cases<ul>
+<li>the length of a symbol</li>
+<li>should be inversely proportional to its frequency of use?</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">
+(defstruct globals
+  &quot;Contains global variables.&quot;
+  (app-dir)
+  (app-version)
+  (app-updated)
+  (web-static-dir))
+</code></pre>
+<h2 id="startup-and-shutdown">Startup and Shutdown</h2>
+<ul>
+<li>To launch the application we need only call <code>start</code></li>
+<li>This will show a brief message along with the current version of the app</li>
+</ul>
+<pre><code class="lang-lisp">
+(defparameter G nil)
+(defvar *handler* nil)
+(defvar *web* (make-instance &#39;&lt;app&gt;))
+
+(defun load-globals ()
+  &quot;Load global variables.&quot;
+  (let ((base-dir (asdf:system-source-directory :fileworthy))
+        (version-file-path (asdf:system-relative-pathname
+                            :fileworthy
+                            &quot;version&quot;)))
+    (make-globals :app-dir base-dir 
+                  :app-version (asdf::read-file-form version-file-path)
+                  :app-updated
+                  (universal-to-timestamp
+                   (file-write-date version-file-path))
+                  :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir))))
+
+(defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
+  &quot;Starts the app.&quot;
+  (setf G (load-globals))
+
+  (when *handler*
+    (restart-case (error &quot;Server is already running.&quot;)
+      (restart-server ()
+        :report &quot;Restart the server&quot;
+        (stop))))
+
+  (setf *handler*
+        (clack:clackup
+          (builder
+            (:static
+              :path
+              (lambda (path)
+                (if (ppcre:scan
+                      &quot;^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)&quot;
+                      path)
+                  path
+                  nil))
+              :root (globals-web-static-dir g))
+            *web*)
+          :server server
+          :port port
+          :debug debug))
+
+  (format t &quot;Started Fileworthy ~A~%&quot; (globals-app-version G)))
+
+(defun stop ()
+  &quot;Stops the app.&quot;
+  (if *handler*
+   (prog1
+    (clack:stop *handler*)
+    (setf *handler* nil))))
+</code></pre>
+<h2 id="web-pages">Web Pages</h2>
+<pre><code class="lang-lisp">
+(setf (route *web* &quot;/&quot; :method :GET)
+      (html5 (:p &quot;TODO: home page&quot;)))
+</code></pre>
+</body></html>

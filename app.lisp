@@ -104,8 +104,13 @@
 (in-package :cl-user)
 
 (defpackage :fileworthy
-  (:use :cl :glu :local-time :split-sequence :uiop)
-  (:documentation "The sole package for this app."))
+  (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
+  (:documentation "The sole package for this app.")
+  (:import-from :lack.builder
+                :builder)
+  (:import-from :ppcre
+                :scan
+                :regex-replace))
 
 (in-package :fileworthy)
 
@@ -115,16 +120,7 @@
 * Not sure why I'm choosing to do this
   * but we'll define all global variables in a struct
 * Maybe this will make it easier for testing?
-||#
-
-(defstruct globals
-  "Contains global variables."
-  (version-file-path)
-  (app-version)
-  (app-updated))
-
-#||
-* There will be a singleton instance of this struct
+* There will be a single instance of this struct
 * I'll take the liberty of simply naming it `G`
 * My justification for this name is that
   * it'll be used quite often throughout the codebase
@@ -134,27 +130,76 @@
   * should be inversely proportional to its frequency of use?
 ||#
 
-(defparameter G nil)
-
-(defun load-globals ()
-  "Load global variables."
-  (let ((version-file-path (asdf:system-relative-pathname
-                            :fileworthy
-                            "version")))
-    (make-globals :version-file-path version-file-path
-                  :app-version (asdf::read-file-form version-file-path)
-                  :app-updated
-                  (universal-to-timestamp
-                   (file-write-date version-file-path)))))
+(defstruct globals
+  "Contains global variables."
+  (app-dir)
+  (app-version)
+  (app-updated)
+  (web-static-dir))
 
 #||
-## Startup
+## Startup and Shutdown
 
 * To launch the application we need only call `start`
 * This will show a brief message along with the current version of the app
 ||#
 
-(defun start ()
+(defparameter G nil)
+(defvar *handler* nil)
+(defvar *web* (make-instance '<app>))
+
+(defun load-globals ()
+  "Load global variables."
+  (let ((base-dir (asdf:system-source-directory :fileworthy))
+        (version-file-path (asdf:system-relative-pathname
+                            :fileworthy
+                            "version")))
+    (make-globals :app-dir base-dir 
+                  :app-version (asdf::read-file-form version-file-path)
+                  :app-updated
+                  (universal-to-timestamp
+                   (file-write-date version-file-path))
+                  :web-static-dir (merge-pathnames #P"static/" base-dir))))
+
+(defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
   (setf G (load-globals))
+
+  (when *handler*
+    (restart-case (error "Server is already running.")
+      (restart-server ()
+        :report "Restart the server"
+        (stop))))
+
+  (setf *handler*
+        (clack:clackup
+          (builder
+            (:static
+              :path
+              (lambda (path)
+                (if (ppcre:scan
+                      "^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)"
+                      path)
+                  path
+                  nil))
+              :root (globals-web-static-dir g))
+            *web*)
+          :server server
+          :port port
+          :debug debug))
+
   (format t "Started Fileworthy ~A~%" (globals-app-version G)))
+
+(defun stop ()
+  "Stops the app."
+  (if *handler*
+   (prog1
+    (clack:stop *handler*)
+    (setf *handler* nil))))
+
+#||
+## Web Pages
+||#
+
+(setf (route *web* "/" :method :GET)
+      (html5 (:p "TODO: home page")))

@@ -128,7 +128,9 @@
   (base-dir)
   (version)
   (last-updated)
-  (web-static-dir))
+  (web-static-dir)
+  (web-app)
+  (web-handler))
 
 (defun load-app-info ()
   "Load app info."
@@ -141,7 +143,8 @@
                    :last-updated
                    (universal-to-timestamp
                      (file-write-date version-file-path))
-                   :web-static-dir (merge-pathnames #P"static/" base-dir))))
+                   :web-static-dir (merge-pathnames #P"static/" base-dir)
+                   :web-app (make-instance '<app>))))
 
 #||
 ## Startup and Shutdown
@@ -151,20 +154,18 @@
 ||#
 
 (defparameter *app* nil)
-(defvar *handler* nil)
-(defvar *web* (make-instance '<app>))
 
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
   (setf *app* (load-app-info))
 
-  (when *handler*
+  (when (app-info-web-handler *app*)
     (restart-case (error "Server is already running.")
       (restart-server ()
         :report "Restart the server"
         (stop))))
 
-  (setf *handler*
+  (setf (app-info-web-handler *app*)
         (clack:clackup
           (builder
             (:static
@@ -176,23 +177,29 @@
                   path
                   nil))
               :root (app-info-web-static-dir *app*))
-            *web*)
+            (app-info-web-app *app*))
           :server server
           :port port
           :debug debug))
+
+  (define-routes)
 
   (format t "Started Fileworthy ~A~%" (app-info-version *app*)))
 
 (defun stop ()
   "Stops the app."
-  (if *handler*
+  (if (app-info-web-handler *app*)
    (prog1
-    (clack:stop *handler*)
-    (setf *handler* nil))))
+    (clack:stop (app-info-web-handler *app*))
+    (setf (app-info-web-handler *app*) nil))))
 
 #||
 ## Web Pages
 ||#
 
-(setf (route *web* "/" :method :GET)
-      (html5 (:p "TODO: home page")))
+(defun define-routes ()
+  "Define web routes."
+  (setf (route (app-info-web-app *app*) "/" :method :GET)
+        (html5 (:p "TODO: home page"))))
+
+   

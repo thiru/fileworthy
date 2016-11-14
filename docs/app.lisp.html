@@ -176,7 +176,9 @@ a <em>stream of conciousness</em> flow</li>
   (base-dir)
   (version)
   (last-updated)
-  (web-static-dir))
+  (web-static-dir)
+  (web-app)
+  (web-handler))
 
 (defun load-app-info ()
   &quot;Load app info.&quot;
@@ -189,7 +191,8 @@ a <em>stream of conciousness</em> flow</li>
                    :last-updated
                    (universal-to-timestamp
                      (file-write-date version-file-path))
-                   :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir))))
+                   :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir)
+                   :web-app (make-instance &#39;&lt;app&gt;))))
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
@@ -198,20 +201,18 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <pre><code class="lang-lisp">
 (defparameter *app* nil)
-(defvar *handler* nil)
-(defvar *web* (make-instance &#39;&lt;app&gt;))
 
 (defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
   &quot;Starts the app.&quot;
   (setf *app* (load-app-info))
 
-  (when *handler*
+  (when (app-info-web-handler *app*)
     (restart-case (error &quot;Server is already running.&quot;)
       (restart-server ()
         :report &quot;Restart the server&quot;
         (stop))))
 
-  (setf *handler*
+  (setf (app-info-web-handler *app*)
         (clack:clackup
           (builder
             (:static
@@ -223,23 +224,27 @@ a <em>stream of conciousness</em> flow</li>
                   path
                   nil))
               :root (app-info-web-static-dir *app*))
-            *web*)
+            (app-info-web-app *app*))
           :server server
           :port port
           :debug debug))
+
+  (define-routes)
 
   (format t &quot;Started Fileworthy ~A~%&quot; (app-info-version *app*)))
 
 (defun stop ()
   &quot;Stops the app.&quot;
-  (if *handler*
+  (if (app-info-web-handler *app*)
    (prog1
-    (clack:stop *handler*)
-    (setf *handler* nil))))
+    (clack:stop (app-info-web-handler *app*))
+    (setf (app-info-web-handler *app*) nil))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <pre><code class="lang-lisp">
-(setf (route *web* &quot;/&quot; :method :GET)
-      (html5 (:p &quot;TODO: home page&quot;)))
+(defun define-routes ()
+  &quot;Define web routes.&quot;
+  (setf (route (app-info-web-app *app*) &quot;/&quot; :method :GET)
+        (html5 (:p &quot;TODO: home page&quot;))))
 </code></pre>
 </body></html>

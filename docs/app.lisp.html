@@ -171,7 +171,7 @@ a <em>stream of conciousness</em> flow</li>
 <li>There will be a single instance of this struct</li>
 </ul>
 <pre><code class="lang-lisp">
-(defstruct app-info
+(defstruct app
   &quot;Contains high-level app details.&quot;
   (base-dir)
   (version)
@@ -180,13 +180,13 @@ a <em>stream of conciousness</em> flow</li>
   (web-app)
   (web-handler))
 
-(defun load-app-info ()
+(defun load-app ()
   &quot;Load app info.&quot;
   (let ((base-dir (asdf:system-source-directory :fileworthy))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             &quot;version&quot;)))
-    (make-app-info :base-dir base-dir 
+    (make-app :base-dir base-dir 
                    :version (asdf::read-file-form version-file-path)
                    :last-updated
                    (universal-to-timestamp
@@ -204,15 +204,15 @@ a <em>stream of conciousness</em> flow</li>
 
 (defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
   &quot;Starts the app.&quot;
-  (setf *app* (load-app-info))
+  (setf *app* (load-app))
 
-  (when (app-info-web-handler *app*)
+  (when (app-web-handler *app*)
     (restart-case (error &quot;Server is already running.&quot;)
       (restart-server ()
         :report &quot;Restart the server&quot;
         (stop))))
 
-  (setf (app-info-web-handler *app*)
+  (setf (app-web-handler *app*)
         (clack:clackup
           (builder
             (:static
@@ -223,28 +223,31 @@ a <em>stream of conciousness</em> flow</li>
                       path)
                   path
                   nil))
-              :root (app-info-web-static-dir *app*))
-            (app-info-web-app *app*))
+              :root (app-web-static-dir *app*))
+            (app-web-app *app*))
           :server server
           :port port
           :debug debug))
 
   (define-routes)
 
-  (format t &quot;Started Fileworthy ~A~%&quot; (app-info-version *app*)))
+  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
 
 (defun stop ()
   &quot;Stops the app.&quot;
-  (if (app-info-web-handler *app*)
+  (if (app-web-handler *app*)
    (prog1
-    (clack:stop (app-info-web-handler *app*))
-    (setf (app-info-web-handler *app*) nil))))
+    (clack:stop (app-web-handler *app*))
+    (setf (app-web-handler *app*) nil))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <pre><code class="lang-lisp">
 (defun define-routes ()
   &quot;Define web routes.&quot;
-  (setf (route (app-info-web-app *app*) &quot;/&quot; :method :GET)
+  (setf (route (app-web-app *app*) &quot;/&quot; :method :GET)
         (html5 (:p &quot;TODO: home page&quot;))))
 </code></pre>
+<p>:method :GET)
+        (html5 (:p &quot;TODO: home page&quot;))))</p>
+<p>```</p>
 </body></html>

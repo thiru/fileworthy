@@ -126,7 +126,7 @@
 
 ```lisp
 
-(defstruct app-info
+(defstruct app
   "Contains high-level app details."
   (base-dir)
   (version)
@@ -135,13 +135,13 @@
   (web-app)
   (web-handler))
 
-(defun load-app-info ()
+(defun load-app ()
   "Load app info."
   (let ((base-dir (asdf:system-source-directory :fileworthy))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             "version")))
-    (make-app-info :base-dir base-dir 
+    (make-app :base-dir base-dir 
                    :version (asdf::read-file-form version-file-path)
                    :last-updated
                    (universal-to-timestamp
@@ -163,15 +163,15 @@
 
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
-  (setf *app* (load-app-info))
+  (setf *app* (load-app))
 
-  (when (app-info-web-handler *app*)
+  (when (app-web-handler *app*)
     (restart-case (error "Server is already running.")
       (restart-server ()
         :report "Restart the server"
         (stop))))
 
-  (setf (app-info-web-handler *app*)
+  (setf (app-web-handler *app*)
         (clack:clackup
           (builder
             (:static
@@ -182,22 +182,22 @@
                       path)
                   path
                   nil))
-              :root (app-info-web-static-dir *app*))
-            (app-info-web-app *app*))
+              :root (app-web-static-dir *app*))
+            (app-web-app *app*))
           :server server
           :port port
           :debug debug))
 
   (define-routes)
 
-  (format t "Started Fileworthy ~A~%" (app-info-version *app*)))
+  (format t "Started Fileworthy ~A~%" (app-version *app*)))
 
 (defun stop ()
   "Stops the app."
-  (if (app-info-web-handler *app*)
+  (if (app-web-handler *app*)
    (prog1
-    (clack:stop (app-info-web-handler *app*))
-    (setf (app-info-web-handler *app*) nil))))
+    (clack:stop (app-web-handler *app*))
+    (setf (app-web-handler *app*) nil))))
 
 
 ```
@@ -208,7 +208,13 @@
 
 (defun define-routes ()
   "Define web routes."
-  (setf (route (app-info-web-app *app*) "/" :method :GET)
+  (setf (route (app-web-app *app*) "/" :method :GET)
+        (html5 (:p "TODO: home page"))))
+
+   
+
+```
+:method :GET)
         (html5 (:p "TODO: home page"))))
 
    

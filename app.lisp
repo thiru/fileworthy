@@ -146,6 +146,8 @@
                    :web-static-dir (merge-pathnames #P"static/" base-dir)
                    :web-app (make-instance '<app>))))
 
+(defparameter *app* nil)
+
 #||
 ## Startup and Shutdown
 
@@ -153,12 +155,11 @@
 * This will show a brief message along with the current version of the app
 ||#
 
-(defparameter *app* nil)
-
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
   (setf *app* (load-app))
 
+  ;; Prompt a restart if web application is already running
   (when (app-web-handler *app*)
     (restart-case (error "Server is already running.")
       (restart-server ()
@@ -166,7 +167,22 @@
         (stop))))
 
   (setf (app-web-handler *app*)
-        (clack:clackup
+        (create-web-handler server port debug))
+
+  (define-routes)
+
+  (format t "Started Fileworthy ~A~%" (app-version *app*)))
+
+(defun stop ()
+  "Stops the app."
+  (if (app-web-handler *app*)
+   (prog1
+    (clack:stop (app-web-handler *app*))
+    (setf (app-web-handler *app*) nil))))
+
+(defun create-web-handler (server port debug)
+  "Create the singleton web handler."
+  (clack:clackup
           (builder
             (:static
               :path
@@ -181,17 +197,6 @@
           :server server
           :port port
           :debug debug))
-
-  (define-routes)
-
-  (format t "Started Fileworthy ~A~%" (app-version *app*)))
-
-(defun stop ()
-  "Stops the app."
-  (if (app-web-handler *app*)
-   (prog1
-    (clack:stop (app-web-handler *app*))
-    (setf (app-web-handler *app*) nil))))
 
 #||
 ## Web Pages

@@ -193,6 +193,8 @@ a <em>stream of conciousness</em> flow</li>
                      (file-write-date version-file-path))
                    :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir)
                    :web-app (make-instance &#39;&lt;app&gt;))))
+
+(defparameter *app* nil)
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
@@ -200,12 +202,11 @@ a <em>stream of conciousness</em> flow</li>
 <li>This will show a brief message along with the current version of the app</li>
 </ul>
 <pre><code class="lang-lisp">
-(defparameter *app* nil)
-
 (defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
   &quot;Starts the app.&quot;
   (setf *app* (load-app))
 
+  ;; Prompt a restart if web application is already running
   (when (app-web-handler *app*)
     (restart-case (error &quot;Server is already running.&quot;)
       (restart-server ()
@@ -213,7 +214,22 @@ a <em>stream of conciousness</em> flow</li>
         (stop))))
 
   (setf (app-web-handler *app*)
-        (clack:clackup
+        (create-web-handler server port debug))
+
+  (define-routes)
+
+  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
+
+(defun stop ()
+  &quot;Stops the app.&quot;
+  (if (app-web-handler *app*)
+   (prog1
+    (clack:stop (app-web-handler *app*))
+    (setf (app-web-handler *app*) nil))))
+
+(defun create-web-handler (server port debug)
+  &quot;Create the singleton web handler.&quot;
+  (clack:clackup
           (builder
             (:static
               :path
@@ -228,17 +244,6 @@ a <em>stream of conciousness</em> flow</li>
           :server server
           :port port
           :debug debug))
-
-  (define-routes)
-
-  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
-
-(defun stop ()
-  &quot;Stops the app.&quot;
-  (if (app-web-handler *app*)
-   (prog1
-    (clack:stop (app-web-handler *app*))
-    (setf (app-web-handler *app*) nil))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <pre><code class="lang-lisp">
@@ -247,7 +252,4 @@ a <em>stream of conciousness</em> flow</li>
   (setf (route (app-web-app *app*) &quot;/&quot; :method :GET)
         (html5 (:p &quot;TODO: home page&quot;))))
 </code></pre>
-<p>:method :GET)
-        (html5 (:p &quot;TODO: home page&quot;))))</p>
-<p>```</p>
 </body></html>

@@ -121,49 +121,42 @@
   * but we'll define all global variables in a struct
 * Maybe this will make it easier for testing?
 * There will be a single instance of this struct
-* I'll take the liberty of simply naming it `G`
-* My justification for this name is that
-  * it'll be used quite often throughout the codebase
-  * so I'd rather type as little as possible
-* Perhaps in the more extreme cases
-  * the length of a symbol
-  * should be inversely proportional to its frequency of use?
 ||#
 
-(defstruct globals
-  "Contains global variables."
-  (app-dir)
-  (app-version)
-  (app-updated)
+(defstruct app-info
+  "Contains high-level app details."
+  (base-dir)
+  (version)
+  (last-updated)
   (web-static-dir))
 
-#||
-## Startup and Shutdown
-
-* To launch the application we need only call `start`
-* This will show a brief message along with the current version of the app
-||#
-
-(defparameter G nil)
-(defvar *handler* nil)
-(defvar *web* (make-instance '<app>))
-
-(defun load-globals ()
-  "Load global variables."
+(defun load-app-info ()
+  "Load app info."
   (let ((base-dir (asdf:system-source-directory :fileworthy))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             "version")))
-    (make-globals :app-dir base-dir 
-                  :app-version (asdf::read-file-form version-file-path)
-                  :app-updated
-                  (universal-to-timestamp
-                   (file-write-date version-file-path))
-                  :web-static-dir (merge-pathnames #P"static/" base-dir))))
+    (make-app-info :base-dir base-dir 
+                   :version (asdf::read-file-form version-file-path)
+                   :last-updated
+                   (universal-to-timestamp
+                     (file-write-date version-file-path))
+                   :web-static-dir (merge-pathnames #P"static/" base-dir))))
+
+#||
+## Startup and Shutdown
+
+* To launch the application we need only call `START`
+* This will show a brief message along with the current version of the app
+||#
+
+(defparameter *app* nil)
+(defvar *handler* nil)
+(defvar *web* (make-instance '<app>))
 
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
-  (setf G (load-globals))
+  (setf *app* (load-app-info))
 
   (when *handler*
     (restart-case (error "Server is already running.")
@@ -182,13 +175,13 @@
                       path)
                   path
                   nil))
-              :root (globals-web-static-dir g))
+              :root (app-info-web-static-dir *app*))
             *web*)
           :server server
           :port port
           :debug debug))
 
-  (format t "Started Fileworthy ~A~%" (globals-app-version G)))
+  (format t "Started Fileworthy ~A~%" (app-info-version *app*)))
 
 (defun stop ()
   "Stops the app."

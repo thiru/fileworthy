@@ -232,9 +232,8 @@ a <em>stream of conciousness</em> flow</li>
 (defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
   &quot;Starts the app.&quot;
 
-  ;; No need to reload the singleton app instance if it&#39;s already loaded
-  (if (null *app*)
-    (setf *app* (create-app)))
+  ;; Reload the singleton app instance even if it&#39;s already loaded
+  (setf *app* (create-app))
 
   ;; Prompt a restart if the web application is already running
   (when *handler*

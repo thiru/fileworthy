@@ -181,9 +181,8 @@ The `APP` struct will groups general, high-level app details including
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
 
-  ;; No need to reload the singleton app instance if it's already loaded
-  (if (null *app*)
-    (setf *app* (create-app)))
+  ;; Reload the singleton app instance even if it's already loaded
+  (setf *app* (create-app))
 
   ;; Prompt a restart if the web application is already running
   (when *handler*

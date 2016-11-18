@@ -191,6 +191,8 @@ a <em>stream of conciousness</em> flow</li>
 <li>based on the last write time of the <a href="../version">version file</a></li>
 </ul>
 </li>
+<li>The directory containing static web resources</li>
+<li>The regular expression defining static resources</li>
 </ul>
 <pre><code class="lang-lisp">
 (defstruct app
@@ -198,7 +200,9 @@ a <em>stream of conciousness</em> flow</li>
   (base-dir nil :type PATHNAME)
   (version &quot;0.0&quot; :type STRING)
   (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME))
+  (web-static-dir nil :type PATHNAME)
+  (web-static-regex &quot;^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)&quot;
+                    :read-only t))
 
 (defun create-app ()
   &quot;Create APP instance.&quot;
@@ -256,6 +260,11 @@ a <em>stream of conciousness</em> flow</li>
     (setf *handler* nil)
     (format t &quot;Stopped Fileworthy ~A~%&quot; (app-version *app*)))))
 
+(defun restart ()
+  &quot;Restart the app.&quot;
+  (stop)
+  (start))
+
 (defun create-web-handler (server port debug)
   &quot;Create the singleton web handler.&quot;
   (clack:clackup
@@ -266,9 +275,7 @@ a <em>stream of conciousness</em> flow</li>
         ;; Define the regex identifying static resources
         :path
         (lambda (path)
-          (if (ppcre:scan
-                &quot;^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)&quot;
-                path)
+          (if (scan (app-web-static-regex *app*) path)
             path
             nil))
         ;; Define the base directory for static resources
@@ -283,6 +290,39 @@ a <em>stream of conciousness</em> flow</li>
 (defun define-routes ()
   &quot;Define web resource routes.&quot;
   (setf (route *web* &quot;/&quot; :method :GET)
-        (html5 (:p &quot;TODO: home page&quot;))))
+        (page-home)))
+</code></pre>
+<h2 id="web-pages">Web Pages</h2>
+<pre><code class="lang-lisp">
+(defun page-template (title content)
+  &quot;Base template for all web pages.&quot;
+  (html5 :lang &quot;en&quot;
+         (:head
+           (:meta :charset &quot;utf-8&quot;)
+           (:meta :http-equiv &quot;X-UA-Compatible&quot;
+            :content &quot;IE=edge&quot;)
+           (:meta :name &quot;viewport&quot;
+            :content &quot;width=device-width, initial-scale=1&quot;)
+           (:meta :name &quot;theme-color&quot; :content &quot;#FFF&quot;)
+           (:title (sf &quot;~A - Fileworthy&quot; title))
+           (:link :rel &quot;manifest&quot; :href &quot;/manifest.json&quot;)
+           (:link :rel &quot;shortcut icon&quot;
+            :href &quot;/images/favicon.ico&quot;)
+           (:link
+             :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
+             :rel &quot;stylesheet&quot;
+             :type &quot;text/css&quot;)
+           (:link
+             :href &quot;/css/main.css&quot;
+             :rel &quot;stylesheet&quot;
+             :type &quot;text/css&quot;))
+         (:body
+           (:main
+             ;; Pages will be responsible for escaping their own HTML
+             (raw content)))))
+
+(defun page-home ()
+  &quot;Home page.&quot;
+  (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
 </body></html>

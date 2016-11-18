@@ -141,6 +141,8 @@ The `APP` struct will groups general, high-level app details including
 * The version of the app
 * The time the app was last updated
   * based on the last write time of the [version file](../version)
+* The directory containing static web resources
+* The regular expression defining static resources
 ||#
 
 (defstruct app
@@ -148,7 +150,9 @@ The `APP` struct will groups general, high-level app details including
   (base-dir nil :type PATHNAME)
   (version "0.0" :type STRING)
   (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME))
+  (web-static-dir nil :type PATHNAME)
+  (web-static-regex "^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)"
+                    :read-only t))
 
 (defun create-app ()
   "Create APP instance."
@@ -205,6 +209,11 @@ The `APP` struct will groups general, high-level app details including
     (setf *handler* nil)
     (format t "Stopped Fileworthy ~A~%" (app-version *app*)))))
 
+(defun restart ()
+  "Restart the app."
+  (stop)
+  (start))
+
 (defun create-web-handler (server port debug)
   "Create the singleton web handler."
   (clack:clackup
@@ -215,9 +224,7 @@ The `APP` struct will groups general, high-level app details including
         ;; Define the regex identifying static resources
         :path
         (lambda (path)
-          (if (ppcre:scan
-                "^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)"
-                path)
+          (if (scan (app-web-static-regex *app*) path)
             path
             nil))
         ;; Define the base directory for static resources
@@ -234,4 +241,39 @@ The `APP` struct will groups general, high-level app details including
 (defun define-routes ()
   "Define web resource routes."
   (setf (route *web* "/" :method :GET)
-        (html5 (:p "TODO: home page"))))
+        (page-home)))
+
+#||
+## Web Pages
+||#
+
+(defun page-template (title content)
+  "Base template for all web pages."
+  (html5 :lang "en"
+         (:head
+           (:meta :charset "utf-8")
+           (:meta :http-equiv "X-UA-Compatible"
+            :content "IE=edge")
+           (:meta :name "viewport"
+            :content "width=device-width, initial-scale=1")
+           (:meta :name "theme-color" :content "#FFF")
+           (:title (sf "~A - Fileworthy" title))
+           (:link :rel "manifest" :href "/manifest.json")
+           (:link :rel "shortcut icon"
+            :href "/images/favicon.ico")
+           (:link
+             :href "/deps/font-awesome/css/font-awesome.min.css"
+             :rel "stylesheet"
+             :type "text/css")
+           (:link
+             :href "/css/main.css"
+             :rel "stylesheet"
+             :type "text/css"))
+         (:body
+           (:main
+             ;; Pages will be responsible for escaping their own HTML
+             (raw content)))))
+
+(defun page-home ()
+  "Home page."
+  (page-template "Home" (markup (:p "TODO: Home page"))))

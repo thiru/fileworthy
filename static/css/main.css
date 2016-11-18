@@ -1,0 +1,77 @@
+/*******************************
+Global
+ *******************************/
+
+*
+{
+  box-sizing: border-box; /* Have element's width include border and padding: */
+  font-family: "Fira Sans", "Open Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body
+{
+  background: #FFF;
+  color: #555; /* VAR COMMON-TEXT-COLOUR */
+  margin: 0;
+  padding: 0;
+}
+
+@media screen and (max-width: 480px) {
+  main
+  {
+    font-size: 0.6em;
+  }
+}
+
+h2, h3, h4, h5, h6
+{
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.clear-fix
+{
+  clear: both;
+  display: block;
+}
+
+.comma:last-child
+{
+  display: none;
+}
+
+.success
+{
+  color: green;
+}
+.warning
+{
+  color: maroon;
+}
+.error, .fatal
+{
+  color: red;
+}
+
+.full-width
+{
+  width: 100%;
+}
+
+.col
+{
+  float: left;
+  padding: 5px; /* This is the gutter between columns */
+}
+.col-1 { width: 100%; }
+.col-2 { width: 50%; }
+.col-3 { width: 33.333%; }
+.col-4 { width: 25%; }
+.col-5 { width: 20%; }
+.col-10 { width: 10%; }
+
+.uppercase
+{
+  text-transform: uppercase;
+}

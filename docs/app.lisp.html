@@ -136,18 +136,22 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <h2 id="package-definition">Package Definition</h2>
 <ul>
-<li>We&#39;ll stick to using just a single package<ul>
-<li>named after the project</li>
+<li>Let&#39;s use a single package for the entire application<ul>
+<li>I&#39;m not sure if this is a good idea<ul>
+<li>just trying out a different approach</li>
 </ul>
 </li>
-<li>In good Common Lisp practice we define the package inside <code>CL-USER</code></li>
+<li>Let&#39;s see how it works out</li>
+</ul>
+</li>
 <li>I&#39;m also choosing not to explicitly export any symbols since<ul>
 <li>there will only be a single package</li>
-<li>this isn&#39;nt intended to be used <em>by</em> other packages</li>
+<li>this package isn&#39;t intended to be used <em>by</em> other packages</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">
+;; The community recommends defining the package within `CL-USER`
 (in-package :cl-user)
 
 (defpackage :fileworthy
@@ -163,93 +167,122 @@ a <em>stream of conciousness</em> flow</li>
 </code></pre>
 <h2 id="globals">Globals</h2>
 <ul>
-<li>Not sure why I&#39;m choosing to do this<ul>
-<li>but we&#39;ll define all global variables in a struct</li>
+<li>I&#39;m trying to keep the number of global objects as small as possible</li>
+<li>There will only be three:</li>
+</ul>
+<pre><code class="lang-lisp">
+(defvar *app*
+  nil
+  &quot;Singleton instance containing general app details.&quot;)
+
+(defvar *web*
+  (make-instance &#39;ningle:&lt;app&gt;)
+  &quot;Singleton Ningle web application instance.&quot;)
+
+(defvar *handler*
+  nil
+  &quot;Singleton Ningle web handler.&quot;)
+</code></pre>
+<p>The <code>APP</code> struct will groups general, high-level app details including</p>
+<ul>
+<li>The base directory of the app</li>
+<li>The version of the app</li>
+<li>The time the app was last updated<ul>
+<li>based on the last write time of the <a href="../version">version file</a></li>
 </ul>
 </li>
-<li>Maybe this will make it easier for testing?</li>
-<li>There will be a single instance of this struct</li>
 </ul>
 <pre><code class="lang-lisp">
 (defstruct app
-  &quot;Contains high-level app details.&quot;
-  (base-dir)
-  (version)
-  (last-updated)
-  (web-static-dir)
-  (web-app)
-  (web-handler))
+  &quot;Contains general, high-level app details.&quot;
+  (base-dir nil :type PATHNAME)
+  (version &quot;0.0&quot; :type STRING)
+  (last-updated nil :type TIMESTAMP)
+  (web-static-dir nil :type PATHNAME))
 
-(defun load-app ()
-  &quot;Load app info.&quot;
+(defun create-app ()
+  &quot;Create APP instance.&quot;
   (let ((base-dir (asdf:system-source-directory :fileworthy))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             &quot;version&quot;)))
     (make-app :base-dir base-dir 
-                   :version (asdf::read-file-form version-file-path)
-                   :last-updated
-                   (universal-to-timestamp
-                     (file-write-date version-file-path))
-                   :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir)
-                   :web-app (make-instance &#39;&lt;app&gt;))))
-
-(defparameter *app* nil)
+              :version (asdf::read-file-form version-file-path)
+              :last-updated
+              (universal-to-timestamp
+                (file-write-date version-file-path))
+              :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir))))
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
-<li>To launch the application we need only call <code>START</code></li>
-<li>This will show a brief message along with the current version of the app</li>
+<li>To launch the website with the default values we need only call <code>START</code></li>
+<li>The creator of <a href="https://github.com/fukamachi/ningle">Ningle</a> recommends using<ul>
+<li><a href="http://weitz.de/hunchentoot/">Hunchentoot</a> in <strong>development</strong></li>
+<li><a href="https://github.com/fukamachi/woo">Woo</a> in <strong>production</strong></li>
+<li>So I&#39;ve set the default value of the <code>server</code> parameter to Hunchentoot</li>
+</ul>
+</li>
+<li>The default web server port will be 9090 as this is Hunchentoot&#39;s default</li>
 </ul>
 <pre><code class="lang-lisp">
 (defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
   &quot;Starts the app.&quot;
-  (setf *app* (load-app))
 
-  ;; Prompt a restart if web application is already running
-  (when (app-web-handler *app*)
+  ;; No need to reload the singleton app instance if it&#39;s already loaded
+  (if (null *app*)
+    (setf *app* (create-app)))
+
+  ;; Prompt a restart if the web application is already running
+  (when *handler*
     (restart-case (error &quot;Server is already running.&quot;)
       (restart-server ()
         :report &quot;Restart the server&quot;
         (stop))))
 
-  (setf (app-web-handler *app*)
-        (create-web-handler server port debug))
+  ;; Set the singleton web handler
+  (setf *handler* (create-web-handler server port debug))
 
+  ;; Define/redefine web routes
   (define-routes)
 
+  ;; Print a friendly start message
   (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
 
 (defun stop ()
   &quot;Stops the app.&quot;
-  (if (app-web-handler *app*)
+  (if *handler*
    (prog1
-    (clack:stop (app-web-handler *app*))
-    (setf (app-web-handler *app*) nil))))
+    (clack:stop *handler*)
+    (setf *handler* nil)
+    (format t &quot;Stopped Fileworthy ~A~%&quot; (app-version *app*)))))
 
 (defun create-web-handler (server port debug)
   &quot;Create the singleton web handler.&quot;
   (clack:clackup
-          (builder
-            (:static
-              :path
-              (lambda (path)
-                (if (ppcre:scan
-                      &quot;^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)&quot;
-                      path)
-                  path
-                  nil))
-              :root (app-web-static-dir *app*))
-            (app-web-app *app*))
-          :server server
-          :port port
-          :debug debug))
+    ;; The BUILDER macro defines web middleware
+    (builder
+      ;; Static resources
+      (:static
+        ;; Define the regex identifying static resources
+        :path
+        (lambda (path)
+          (if (ppcre:scan
+                &quot;^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)&quot;
+                path)
+            path
+            nil))
+        ;; Define the base directory for static resources
+        :root (app-web-static-dir *app*))
+      *web*)
+    :server server
+    :port port
+    :debug debug))
 </code></pre>
-<h2 id="web-pages">Web Pages</h2>
+<h2 id="web-resource-routes">Web Resource Routes</h2>
 <pre><code class="lang-lisp">
 (defun define-routes ()
-  &quot;Define web routes.&quot;
-  (setf (route (app-web-app *app*) &quot;/&quot; :method :GET)
+  &quot;Define web resource routes.&quot;
+  (setf (route *web* &quot;/&quot; :method :GET)
         (html5 (:p &quot;TODO: home page&quot;))))
 </code></pre>
 </body></html>

@@ -92,15 +92,17 @@
 
 ## Package Definition
 
-* We'll stick to using just a single package
-  * named after the project
-* In good Common Lisp practice we define the package inside `CL-USER`
+* Let's use a single package for the entire application
+  * I'm not sure if this is a good idea
+    * just trying out a different approach
+  * Let's see how it works out
 * I'm also choosing not to explicitly export any symbols since
   * there will only be a single package
-  * this isn'nt intended to be used *by* other packages
+  * this package isn't intended to be used *by* other packages
 
 ```lisp
 
+;; The community recommends defining the package within `CL-USER`
 (in-package :cl-user)
 
 (defpackage :fileworthy
@@ -119,103 +121,131 @@
 
 ## Globals
 
-* Not sure why I'm choosing to do this
-  * but we'll define all global variables in a struct
-* Maybe this will make it easier for testing?
-* There will be a single instance of this struct
+* I'm trying to keep the number of global objects as small as possible
+* There will only be three:
+
+```lisp
+
+(defvar *app*
+  nil
+  "Singleton instance containing general app details.")
+
+(defvar *web*
+  (make-instance 'ningle:<app>)
+  "Singleton Ningle web application instance.")
+
+(defvar *handler*
+  nil
+  "Singleton Ningle web handler.")
+
+
+```
+
+The `APP` struct will groups general, high-level app details including
+* The base directory of the app
+* The version of the app
+* The time the app was last updated
+  * based on the last write time of the [version file](../version)
 
 ```lisp
 
 (defstruct app
-  "Contains high-level app details."
-  (base-dir)
-  (version)
-  (last-updated)
-  (web-static-dir)
-  (web-app)
-  (web-handler))
+  "Contains general, high-level app details."
+  (base-dir nil :type PATHNAME)
+  (version "0.0" :type STRING)
+  (last-updated nil :type TIMESTAMP)
+  (web-static-dir nil :type PATHNAME))
 
-(defun load-app ()
-  "Load app info."
+(defun create-app ()
+  "Create APP instance."
   (let ((base-dir (asdf:system-source-directory :fileworthy))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             "version")))
     (make-app :base-dir base-dir 
-                   :version (asdf::read-file-form version-file-path)
-                   :last-updated
-                   (universal-to-timestamp
-                     (file-write-date version-file-path))
-                   :web-static-dir (merge-pathnames #P"static/" base-dir)
-                   :web-app (make-instance '<app>))))
-
-(defparameter *app* nil)
+              :version (asdf::read-file-form version-file-path)
+              :last-updated
+              (universal-to-timestamp
+                (file-write-date version-file-path))
+              :web-static-dir (merge-pathnames #P"static/" base-dir))))
 
 
 ```
 
 ## Startup and Shutdown
 
-* To launch the application we need only call `START`
-* This will show a brief message along with the current version of the app
+* To launch the website with the default values we need only call `START`
+* The creator of [Ningle](https://github.com/fukamachi/ningle) recommends using
+  * [Hunchentoot](http://weitz.de/hunchentoot/) in **development**
+  * [Woo](https://github.com/fukamachi/woo) in **production**
+  * So I've set the default value of the `server` parameter to Hunchentoot
+* The default web server port will be 9090 as this is Hunchentoot's default
 
 ```lisp
 
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
-  (setf *app* (load-app))
 
-  ;; Prompt a restart if web application is already running
-  (when (app-web-handler *app*)
+  ;; No need to reload the singleton app instance if it's already loaded
+  (if (null *app*)
+    (setf *app* (create-app)))
+
+  ;; Prompt a restart if the web application is already running
+  (when *handler*
     (restart-case (error "Server is already running.")
       (restart-server ()
         :report "Restart the server"
         (stop))))
 
-  (setf (app-web-handler *app*)
-        (create-web-handler server port debug))
+  ;; Set the singleton web handler
+  (setf *handler* (create-web-handler server port debug))
 
+  ;; Define/redefine web routes
   (define-routes)
 
+  ;; Print a friendly start message
   (format t "Started Fileworthy ~A~%" (app-version *app*)))
 
 (defun stop ()
   "Stops the app."
-  (if (app-web-handler *app*)
+  (if *handler*
    (prog1
-    (clack:stop (app-web-handler *app*))
-    (setf (app-web-handler *app*) nil))))
+    (clack:stop *handler*)
+    (setf *handler* nil)
+    (format t "Stopped Fileworthy ~A~%" (app-version *app*)))))
 
 (defun create-web-handler (server port debug)
   "Create the singleton web handler."
   (clack:clackup
-          (builder
-            (:static
-              :path
-              (lambda (path)
-                (if (ppcre:scan
-                      "^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)"
-                      path)
-                  path
-                  nil))
-              :root (app-web-static-dir *app*))
-            (app-web-app *app*))
-          :server server
-          :port port
-          :debug debug))
+    ;; The BUILDER macro defines web middleware
+    (builder
+      ;; Static resources
+      (:static
+        ;; Define the regex identifying static resources
+        :path
+        (lambda (path)
+          (if (ppcre:scan
+                "^(?:/images/|/css/|/js/|/robot\\.txt$|/favicon\\.ico$)"
+                path)
+            path
+            nil))
+        ;; Define the base directory for static resources
+        :root (app-web-static-dir *app*))
+      *web*)
+    :server server
+    :port port
+    :debug debug))
 
 
 ```
 
-## Web Pages
+## Web Resource Routes
 
 ```lisp
 
 (defun define-routes ()
-  "Define web routes."
-  (setf (route (app-web-app *app*) "/" :method :GET)
+  "Define web resource routes."
+  (setf (route *web* "/" :method :GET)
         (html5 (:p "TODO: home page"))))
-
-   
 
 ```

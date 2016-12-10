@@ -133,8 +133,8 @@ exec ros -Q -- $0 "$@"
 (defun main (&rest argv)
   (declare (ignorable argv))
   (let* ((input-file (last1 argv))
-         (markdown-file (sf "docs/~A.md" input-file))
-         (html-file (sf "docs/~A.html" input-file)))
+         (markdown-file "docs/index.md")
+         (html-file "docs/index.html"))
     ;; Show help if no arguments were given or the help option was specified
     (when (or (empty? argv)
               (find "-h" argv :test #'string-equal)

@@ -1,0 +1,643 @@
+<!doctype html><html lang="en"><head>  <meta charset="utf-8">  <title>Fileworthy</title>  <link rel="stylesheet" href="highlightjs/styles/default.css">  <script src="highlightjs/highlight.pack.js"></script>  <script>hljs.initHighlightingOnLoad();</script></head><body><h1 id="fileworthy">Fileworthy</h1>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>Fileworthy is intended to facilitate easy management of files and notes across many devices</li>
+</ul>
+<h3 id="goals-and-motivation">Goals and Motivation</h3>
+<ul>
+<li>My primary, and preferred workflow is editing my files off my <strong>local</strong> drive in <a href="https://neovim.io/">Neovim</a><ul>
+<li>and I don&#39;t want this to change</li>
+</ul>
+</li>
+<li>But I&#39;d also like to be able to view all my files and directories as a website<ul>
+<li>especially when I&#39;m on the go</li>
+<li>and with a small mobile device</li>
+</ul>
+</li>
+<li>The website should basically be a simple reprentation of the contents of one or more directories</li>
+<li>The notes would ideally be written in a markup language such as <a href="https://guides.github.com/features/mastering-markdown/">Markdown</a> such that:<ul>
+<li>they can be easily transformed to other structured formats like HTML</li>
+<li>easily edited with any text editor</li>
+<li>easily manipulated by other tools<ul>
+<li>as we&#39;re just dealing with <strong>plain text</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The website should also support<ul>
+<li>editing of text files</li>
+<li>managing binary files</li>
+</ul>
+</li>
+<li>To keep the files on your local file-system and the website in sync<ul>
+<li>consider using a 3rd-party app like <a href="https://syncthing.net">Syncthing</a></li>
+</ul>
+</li>
+<li>Configuration should be optional, with sensible defaults chosen<ul>
+<li>i.e. you shouldn&#39;t have to structure your files in any particular way</li>
+<li>or include any special template files, etc.</li>
+<li>and least of all, require any complex setup</li>
+<li>though these options should be available if needed</li>
+</ul>
+</li>
+</ul>
+<h3 id="proposed-solution">Proposed Solution</h3>
+<ul>
+<li>Create an app that will display the contents of one or more directories as a regular website</li>
+<li>Any file can be downloaded</li>
+<li>If the browser natively supports the file format<ul>
+<li>e.g. plain text, images, movies, etc.</li>
+<li>it will render it as is</li>
+<li>and an option to specify additional file formats as plain text so they can be viewed as such</li>
+</ul>
+</li>
+<li>Markdown files will be transformed to HTML</li>
+<li>Directories will simply be links to other pages</li>
+<li>All files and directories can be further managed in the following ways:<ul>
+<li>create new files/folders</li>
+<li>upload files/folders</li>
+<li>rename existing files/folders</li>
+<li>edit text files through a web interface<ul>
+<li>including source (Markdown) files from which an HTML page was generated</li>
+</ul>
+</li>
+<li>delete files/folders</li>
+</ul>
+</li>
+<li>Configuration files are optional<ul>
+<li>i.e. use sensible defaults</li>
+<li>of course this will be biased on <em>my</em> initial desires</li>
+</ul>
+</li>
+</ul>
+<h3 id="point-form-grammar">Point-Form Grammar</h3>
+<ul>
+<li>You might&#39;ve noticed that just about everything is written in point-form</li>
+<li>I love point-form</li>
+<li>I kind of view this as a sort of grammar<ul>
+<li>where nested ideas are expressed as nested points</li>
+<li>without the need to use much punctuation</li>
+</ul>
+</li>
+<li>I&#39;m not sure if this is easier for casual, beginning-to-end reading<ul>
+<li>but I find it a lot easier for scanning and browsing</li>
+<li>and also to grasp complex ideas with lots of nesting</li>
+</ul>
+</li>
+<li>I&#39;ve been taking all my notes in this form for over a decade<ul>
+<li>and it&#39;s served me very well</li>
+</ul>
+</li>
+<li>But you may very well find this form annoying<ul>
+<li>so appologies in advance :)</li>
+</ul>
+</li>
+</ul>
+<h2 id="coding-choices">Coding Choices</h2>
+<h3 id="language-environment">Language &amp; Environment</h3>
+<ul>
+<li>The app will be written in Common Lisp</li>
+<li>I&#39;m primarily using <a href="http://www.sbcl.org/">SBCL</a><ul>
+<li>but the code should work in most modern Common Lisp implementations</li>
+<li>I&#39;m not explicitly choosing to depend on any features specific to SBCL<ul>
+<li>but I&#39;m not sure the same is true for all libraries used</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="literate-programming">Literate Programming</h3>
+<ul>
+<li>This will also serve as my first foray into <a href="http://www.literateprogramming.com/knuthweb.pdf">literate programming</a></li>
+<li>However I&#39;d rather not go the traditional web/weave/tangle approach</li>
+<li>Instead I want to take a quasi-literate approach where<ul>
+<li>all the explantory text/documention and source code is in a single Common Lisp file<ul>
+<li>i.e. <a href="../app.lisp">app.lisp</a></li>
+</ul>
+</li>
+<li>the explantory text will be exclusively written<ul>
+<li>within Common Lisp&#39;s <a href="http://clhs.lisp.se/Body/02_dhs.htm">multi-line comments</a></li>
+<li>in (Github flavoured) Markdown syntax</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Obviously there are drawbacks to this approach<ul>
+<li>with the biggest one potentially being that I can&#39;t really write this in
+a <em>stream of conciousness</em> flow</li>
+<li>instead I&#39;ll be taking a (mostly) top-down approach</li>
+</ul>
+</li>
+<li>But there are also considerable advantages:<ul>
+<li>The code is easily run, edited and debugged within your favourite editor</li>
+<li>There&#39;s no need for the tangle phase</li>
+<li>The documentation can be easily generated<ul>
+<li>see <a href="../weave.ros">weave.ros</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="code-conventions-style">Code Conventions &amp; Style</h3>
+<ul>
+<li>Many developers believe <strong>managing complexity</strong> to be the biggest challenge in software development<ul>
+<li>so the primary motivation behind the conventions and styles used here are to mitigate this</li>
+<li>i.e. the code must be as simple as possible for <strong>humans</strong> to <strong>read</strong> and <strong>maintain</strong></li>
+</ul>
+</li>
+<li>The code will generally follow a combination of functional and procedural programming, avoiding OOP<ul>
+<li>e.g. inheritance, polymorphism, etc.</li>
+<li>more and more, developers are finding these constructs<ul>
+<li>at least, as they are commonly implemented</li>
+<li>to make code even harder to understand</li>
+</ul>
+</li>
+<li>I particuarly like the pitfalls pointed out by the folks behind <a href="https://en.wikipedia.org/wiki/Data,_context_and_interaction">DCI</a><ul>
+<li>although I don&#39;t agree with many of their other ideals</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Structs are used throughout the codebase over classes since<ul>
+<li>they have a good default textual representation</li>
+<li>are far less complex</li>
+<li>still a good way to group a set of related data</li>
+</ul>
+</li>
+</ul>
+<h2 id="source-files">Source Files</h2>
+<ul>
+<li>What follows is a brief description of the main files and folders the compose this app:</li>
+<li><a href="../app.lisp">app.lisp</a><ul>
+<li>Contains <strong>all</strong> the code and documentation</li>
+</ul>
+</li>
+<li><a href="../docs">docs/</a><ul>
+<li><a href="index.html">index.html</a><ul>
+<li>The sole documentation file</li>
+<li>Generated from<ul>
+<li><a href="index.md">index.md</a></li>
+<li><a href="template.html">template.html</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="index.md">index.md</a><ul>
+<li>Generated from <a href="../app.lisp">app.lisp</a></li>
+</ul>
+</li>
+<li><a href="highlightjs/">highlightjs</a><ul>
+<li>Directory containing the syntax highlighting library used by the documentation:<ul>
+<li><a href="https://highlightjs.org/">highlight.js</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="template.html">template.html</a><ul>
+<li>HTML template for this file</li>
+<li>Basically contains everything outside the body tag</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="../EULA">EULA</a><ul>
+<li>End-user license agreement</li>
+</ul>
+</li>
+<li><a href="../fileworthy.asd">fileworthy.asd</a><ul>
+<li>ASDF system/build description</li>
+</ul>
+</li>
+<li><a href="../index.html">index.html</a><ul>
+<li>Simply redirects to the documentation</li>
+<li>This file is needed here to facilitate hosting from github.io</li>
+</ul>
+</li>
+<li><a href="../LICENSE">LICENSE</a><ul>
+<li>GPLv3 license</li>
+</ul>
+</li>
+<li><a href="../README.md">README.md</a><ul>
+<li>Basically contains the intro of this file</li>
+</ul>
+</li>
+<li><a href="../start.lisp">start.lisp</a><ul>
+<li>Common Lisp script to start the website with default options</li>
+</ul>
+</li>
+<li><a href="../start.sh">start.sh</a><ul>
+<li>Shell script to start the website within a GNU screen session</li>
+</ul>
+</li>
+<li><a href="../static/">static/</a><ul>
+<li>Contains static web resources such as images, Javascript, CSS, etc.</li>
+</ul>
+</li>
+<li><a href="../version">version</a><ul>
+<li>Version of the app</li>
+<li>The version will follow a simple MAJOR.MINOR form<ul>
+<li>A change to the major version indicates<ul>
+<li>significant changes</li>
+<li>or breaking changes</li>
+</ul>
+</li>
+<li>A change to the minor version indicates<ul>
+<li>non-major changes</li>
+<li>changes can be bug fixes and features</li>
+</ul>
+</li>
+<li>0.x version changes are considered alpha/beta<ul>
+<li>and so will regularly introduce breaking changes</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The version is quoted so we can easily read the file through a Common Lisp function as a string</li>
+</ul>
+</li>
+<li><a href="../weave.ros">weave.ros</a><ul>
+<li>Common Lisp script that transforms a Common Lisp source file into Markdown and HTML</li>
+<li>it can also monitor the source file for changes via <a href="https://github.com/rvoicilas/inotify-tools">inotify tools</a></li>
+<li><a href="https://github.com/roswell/roswell">Roswell</a> is needed to run this script, e.g.:<ul>
+<li><code>./weave.ros -m app.lisp</code></li>
+<li>This will monitor <em>app.lisp</em> and generate the following whenever it changes:<ul>
+<li><em>./docs/index.md</em></li>
+<li><em>./docs/index.html</em></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="libraries">Libraries</h2>
+<ul>
+<li>The following libaries are used by this app:</li>
+<li><a href="https://common-lisp.net/project/alexandria/">Alexandria</a><ul>
+<li>Minimal utility library that seems to be highly recommended</li>
+</ul>
+</li>
+<li><a href="http://clacklisp.org/">Clack</a><ul>
+<li>Abstract web framework library</li>
+<li>Sits on top of tools like Hunchentoot, Woo, etc.</li>
+</ul>
+</li>
+<li><a href="https://github.com/arielnetworks/cl-markup">CL-MARKUP</a><ul>
+<li>Easy way to generate HTML in Lisp-friendly syntax</li>
+</ul>
+</li>
+<li><a href="http://weitz.de/cl-ppcre/">CL-PPCRE</a><ul>
+<li>Defacto regular expression library</li>
+</ul>
+</li>
+<li><a href="https://github.com/thiru/glu">GLU</a><ul>
+<li>My own Common Lisp utility library</li>
+</ul>
+</li>
+<li><a href="https://common-lisp.net/project/local-time/">LOCAL-TIME</a><ul>
+<li>Easily manipulate and display date and times</li>
+</ul>
+</li>
+<li><a href="https://github.com/fukamachi/ningle">Ningle</a><ul>
+<li>Minimal web framework</li>
+<li>There&#39;s also <a href="https://github.com/fukamachi/caveman">Caveman2</a> but I don&#39;t think I&#39;ll need it&#39;s capabilities</li>
+</ul>
+</li>
+<li><a href="http://www.cliki.net/split-sequence">SPLIT-SEQUENCE</a><ul>
+<li>Easily split sequences by arbitrary delimiters</li>
+</ul>
+</li>
+<li><a href="https://github.com/fare/asdf/tree/master/uiop">UIOP</a><ul>
+<li>Portable, OS and file-system utilities</li>
+<li>This is actually part of the core of <a href="https://github.com/fare/asdf">ASDF</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="system-definition">System Definition</h2>
+<ul>
+<li>Okay, on to the code finally!</li>
+<li>See <a href="../fileworthy.asd">fileworthy.asd</a> for the ASDF build system definition<ul>
+<li>describing high-level project details</li>
+<li>and dependencies needed to build the project</li>
+</ul>
+</li>
+<li>This needs to be a separate file to work with some tools<ul>
+<li>e.g. ASDF and <a href="https://www.quicklisp.org/">Quicklisp</a></li>
+<li>otherwise I might&#39;ve embedded it here</li>
+</ul>
+</li>
+<li>All of the other code will be in a single file:<ul>
+<li><a href="../app.lisp">app.lisp</a></li>
+<li>I&#39;m not sure if this is a good idea<ul>
+<li>I&#39;m choosing to go this route as it simplifies my <a href="../weave.ros">current tooling</a> with Literate Programming</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="package-definition">Package Definition</h2>
+<ul>
+<li>The community recommends defining the package within <code>CL-USER</code>:</li>
+</ul>
+<pre><code class="lang-lisp">(in-package :cl-user)
+</code></pre>
+<ul>
+<li>We&#39;ll use a single package for the entire application</li>
+<li>I&#39;m not sure if this is a good idea<ul>
+<li>just trying out a different approach</li>
+<li>let&#39;s see how it works out</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defpackage :fileworthy
+  (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
+  (:documentation &quot;A simple website to manage your *local* notes and files across all your devices&quot;)
+  (:import-from :lack.builder
+                :builder)
+  (:import-from :ppcre
+                :scan
+                :regex-replace)
+  (:export :*app* :start :stop :restart-app))
+</code></pre>
+<ul>
+<li>Switch back to the sole package of the app</li>
+</ul>
+<pre><code class="lang-lisp">(in-package :fileworthy)
+</code></pre>
+<h2 id="global-variables">Global Variables</h2>
+<ul>
+<li>I&#39;m trying to keep the number of global objects as small as possible</li>
+<li><code>*APP*</code> will contain most of the common properties grouped in a single struct</li>
+<li>It will be initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
+<li>so we don&#39;t bother initialising it here</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defvar *app*
+  nil
+  &quot;Singleton instance containing general app details.&quot;)
+</code></pre>
+<ul>
+<li><code>*HANDLER*</code> gets initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
+<li>so we don&#39;t bother initialising it here</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defvar *handler*
+  nil
+  &quot;Singleton Ningle web handler.&quot;)
+</code></pre>
+<ul>
+<li>Unlike the other global variables <code>*WEB*</code> need only be initialised once<ul>
+<li>and it doesn&#39;t require any other objects to be initialised first</li>
+<li>so we do so right here</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defvar *web*
+  (make-instance &#39;ningle:&lt;app&gt;)
+  &quot;Singleton Ningle web application instance.&quot;)
+</code></pre>
+<h2 id="app">APP</h2>
+<ul>
+<li>The <code>APP</code> struct groups general, high-level app details including<ul>
+<li>the base/root directory of the app</li>
+<li>the version of the app</li>
+<li>the time the app was last updated<ul>
+<li>based on the last write time of the <a href="../version">version file</a></li>
+</ul>
+</li>
+<li>the directory containing static web resources</li>
+<li>the regular expression defining static resources</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defstruct app
+  &quot;Contains general, high-level app details.&quot;
+  (base-dir nil :type PATHNAME)
+  (version &quot;0.0&quot; :type STRING)
+  (last-updated nil :type TIMESTAMP)
+  (web-static-dir nil :type PATHNAME)
+  (web-static-regex &quot;^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)&quot;
+                    :read-only t))
+</code></pre>
+<h3 id="create-app">CREATE-APP</h3>
+<ul>
+<li>This function creates an instance of <code>APP</code><ul>
+<li>with all fields correctly initialised</li>
+</ul>
+</li>
+<li>Note that <code>APP-VERSION</code> is loaded from a separate file, <a href="../version">version</a><ul>
+<li>this is partly due to <a href="../fileworthy.asd">fileworthy.asd</a> needing access to the app version as well</li>
+<li>this way we have a single place where the version gets updated<ul>
+<li>and it&#39;s easily modified and read</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun create-app ()
+  &quot;Create APP instance.&quot;
+  (let ((base-dir (asdf:system-source-directory :fileworthy))
+        (version-file-path (asdf:system-relative-pathname
+                            :fileworthy
+                            &quot;version&quot;)))
+    (make-app :base-dir base-dir 
+              :version (asdf::read-file-form version-file-path)
+              :last-updated
+              (universal-to-timestamp
+                (file-write-date version-file-path))
+              :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir))))
+</code></pre>
+<h2 id="startup-and-shutdown">Startup and Shutdown</h2>
+<ul>
+<li>To launch the website with the default values we need only call <code>START</code></li>
+</ul>
+<h3 id="-start-"><code>START</code></h3>
+<ul>
+<li>This function starts the app<ul>
+<li>including the underlying web server</li>
+<li>by default at <a href="http://localhost:9090">http://localhost:9090</a></li>
+</ul>
+</li>
+<li><code>START</code> can be called more than once<ul>
+<li>even without calling <code>STOP</code></li>
+</ul>
+</li>
+<li>If the web server is already running a debugger restart will be presented<ul>
+<li>with the option to restart to web server</li>
+</ul>
+</li>
+<li>Also note that <code>*APP*</code> gets reinitialised even if it&#39;s already loaded<ul>
+<li>not sure this is necessary but it may be useful to reload the version file</li>
+<li>and it&#39;s not an expensive operation anyway</li>
+</ul>
+</li>
+<li>Parameters:<ul>
+<li><code>SERVER</code><ul>
+<li>defines the backend server to use</li>
+<li>see <a href="http://clacklisp.org/">this page</a> for a list of supported servers</li>
+<li>the creator of <a href="https://github.com/fukamachi/ningle">Ningle</a> recommends using<ul>
+<li><a href="http://weitz.de/hunchentoot/">Hunchentoot</a> in <strong>development</strong></li>
+<li><a href="https://github.com/fukamachi/woo">Woo</a> in <strong>production</strong></li>
+<li>which is why the default value is Hunchentoot</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>PORT</code><ul>
+<li>the port of the web server</li>
+<li>The default is 9090 as this is Hunchentoot&#39;s default</li>
+</ul>
+</li>
+<li><code>DEBUG</code><ul>
+<li>whether to start the web server in debug mode</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
+  &quot;Starts the app.&quot;
+  (setf *app* (create-app))
+
+  (when *handler*
+    (restart-case (error &quot;Server is already running.&quot;)
+      (restart-server ()
+        :report &quot;Restart the server&quot;
+        (stop))))
+
+  (setf *handler* (create-web-handler server port debug))
+  (define-routes)
+  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
+</code></pre>
+<h3 id="-stop-"><code>STOP</code></h3>
+<ul>
+<li>This function gracefully shuts down the app<ul>
+<li>including the underlying web server</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun stop ()
+  &quot;Stops the app.&quot;
+  (if *handler*
+   (prog1
+    (clack:stop *handler*)
+    (setf *handler* nil)
+    (format t &quot;Stopped Fileworthy ~A~%&quot; (app-version *app*)))))
+</code></pre>
+<h3 id="-restart-app-"><code>RESTART-APP</code></h3>
+<ul>
+<li>This function restarts the app</li>
+<li>I would&#39;ve named this function <code>RESTART</code><ul>
+<li>but it would then conflict with the <a href="http://clhs.lisp.se/Body/t_rst.htm#restart">system class</a> of the same name</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun restart-app ()
+  &quot;Restart the app.&quot;
+  (stop)
+  (start))
+</code></pre>
+<h3 id="-create-web-handler-"><code>CREATE-WEB-HANDLER</code></h3>
+<ul>
+<li>This function creates the Ningle web handler</li>
+<li><code>*WEB*</code> is expected to be properly initialised before this function is called</li>
+<li>The BUILDER macro defines web middleware</li>
+<li>For now I&#39;m only using it to define where to get the static resources<ul>
+<li>like CSS, Javascript, images, etc.</li>
+</ul>
+</li>
+<li>See <code>START</code> for a description of the parameters<ul>
+<li>as it uses the exact same list</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun create-web-handler (server port debug)
+  &quot;Create the singleton Ningle web handler.&quot;
+  (clack:clackup
+    (builder
+      (:static
+        :path
+        (lambda (path)
+          (if (scan (app-web-static-regex *app*) path)
+            path
+            nil))
+        :root (app-web-static-dir *app*))
+      *web*)
+    :server server
+    :port port
+    :debug debug))
+</code></pre>
+<h2 id="web-resource-routes">Web Resource Routes</h2>
+<ul>
+<li>We define the routes in a function<ul>
+<li>as we need an instance of <code>*WEB*</code> properly initialised first</li>
+<li>and this is done only after <code>START</code> is called</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">
+(defun define-routes ()
+  &quot;Define web resource routes.&quot;
+
+  ;; Home page
+  (setf (route *web* &quot;/&quot; :method :GET) (page-home)))
+</code></pre>
+<h2 id="web-pages">Web Pages</h2>
+<ul>
+<li>All web page-related functions will be prefixed with <code>PAGE-</code></li>
+</ul>
+<h3 id="-page-template-"><code>PAGE-TEMPLATE</code></h3>
+<ul>
+<li>This function defines the template all pages will use</li>
+<li>Parameters:<ul>
+<li><code>TITLE</code><ul>
+<li>the title of the page</li>
+<li>note that the give title is<ul>
+<li>suffixed with the site&#39;s global name, <em>Fileworthy</em></li>
+<li>and separated by a hyphen</li>
+<li>e.g. &quot;Home - Fileworthy&quot;</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>CONTENT</code><ul>
+<li>the HTML of the page as a raw string</li>
+<li>note that the caller is responsible for properly escaping special characters</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun page-template (title content)
+  &quot;Base template for all web pages.&quot;
+  (html5 :lang &quot;en&quot;
+         (:head
+           (:meta :charset &quot;utf-8&quot;)
+           (:meta :http-equiv &quot;X-UA-Compatible&quot; :content &quot;IE=edge&quot;)
+           (:meta
+             :name &quot;viewport&quot;
+             :content &quot;width=device-width, initial-scale=1&quot;)
+           (:meta :name &quot;theme-color&quot; :content &quot;#FFF&quot;)
+           (:title (sf &quot;~A - Fileworthy&quot; title))
+           (:link :rel &quot;manifest&quot; :href &quot;/manifest.json&quot;)
+           (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
+           (:link
+             :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
+             :rel &quot;stylesheet&quot;
+             :type &quot;text/css&quot;)
+           (:link
+             :href &quot;/css/main.css&quot;
+             :rel &quot;stylesheet&quot;
+             :type &quot;text/css&quot;))
+         (:body
+           (:main
+             (raw content)))))
+</code></pre>
+<h3 id="-page-home-"><code>PAGE-HOME</code></h3>
+<pre><code class="lang-lisp">(defun page-home ()
+  &quot;Home page.&quot;
+  (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
+</code></pre>
+</body></html>

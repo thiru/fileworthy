@@ -4,7 +4,7 @@
 
 (asdf:defsystem :fileworthy
   :version (:read-file-form "version")
-  :description "A simple file-system-based website"
+  :description "A simple website to manage your *local* notes and files across many devices"
   :author "Thirushanth Thirunavukarasu <thiru0130@gmail.com>"
   :license "GPLv3"
   :serial t

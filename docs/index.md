@@ -1,4 +1,3 @@
-#||
 # Fileworthy
 
 ## Introduction
@@ -13,7 +12,7 @@
   * especially when I'm on the go
   * and with a small mobile device
 * The website should basically be a simple reprentation of the contents of one or more directories
-* The notes would ideally be written in a markup language such as [Markdown](https://guides.github.com/features/mastering-markdown/) so that:
+* The notes would ideally be written in a markup language such as [Markdown](https://guides.github.com/features/mastering-markdown/) such that:
   * they can be easily transformed to other structured formats like HTML
   * easily edited with any text editor
   * easily manipulated by other tools
@@ -206,20 +205,24 @@
 * All of the other code will be in a single file:
   * [app.lisp](../app.lisp)
   * I'm not sure if this is a good idea
-  * I'm choosing to go this route as it simplifies my [current tooling](../weave.ros) with Literate Programming
+    * I'm choosing to go this route as it simplifies my [current tooling](../weave.ros) with Literate Programming
 
 ## Package Definition
 
 * The community recommends defining the package within `CL-USER`:
-||#
+
+```lisp
 (in-package :cl-user)
 
-#||
+
+```
+
 * We'll use a single package for the entire application
 * I'm not sure if this is a good idea
   * just trying out a different approach
   * let's see how it works out
-||#
+
+```lisp
 (defpackage :fileworthy
   (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
   (:documentation "A simple website to manage your *local* notes and files across all your devices")
@@ -230,41 +233,55 @@
                 :regex-replace)
   (:export :*app* :start :stop :restart-app))
 
-#||
+
+```
+
 * Switch back to the sole package of the app
-||#
+
+```lisp
 (in-package :fileworthy)
 
-#||
+
+```
+
 ## Global Variables
 
 * I'm trying to keep the number of global objects as small as possible
 * `*APP*` will contain most of the common properties grouped in a single struct
 * It will be initialised/reinitialised when `START` or `RESTART-APP` is called
   * so we don't bother initialising it here
-||#
+
+```lisp
 (defvar *app*
   nil
   "Singleton instance containing general app details.")
 
-#||
+
+```
+
 * `*HANDLER*` gets initialised/reinitialised when `START` or `RESTART-APP` is called
   * so we don't bother initialising it here
-||#
+
+```lisp
 (defvar *handler*
   nil
   "Singleton Ningle web handler.")
 
-#||
+
+```
+
 * Unlike the other global variables `*WEB*` need only be initialised once
   * and it doesn't require any other objects to be initialised first
   * so we do so right here
-||#
+
+```lisp
 (defvar *web*
   (make-instance 'ningle:<app>)
   "Singleton Ningle web application instance.")
 
-#||
+
+```
+
 
 ## APP
 
@@ -275,7 +292,8 @@
     * based on the last write time of the [version file](../version)
   * the directory containing static web resources
   * the regular expression defining static resources
-||#
+
+```lisp
 (defstruct app
   "Contains general, high-level app details."
   (base-dir nil :type PATHNAME)
@@ -285,7 +303,9 @@
   (web-static-regex "^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)"
                     :read-only t))
 
-#||
+
+```
+
 
 ### CREATE-APP
 * This function creates an instance of `APP`
@@ -294,7 +314,8 @@
   * this is partly due to [fileworthy.asd](../fileworthy.asd) needing access to the app version as well
   * this way we have a single place where the version gets updated
     * and it's easily modified and read
-||#
+
+```lisp
 (defun create-app ()
   "Create APP instance."
   (let ((base-dir (asdf:system-source-directory :fileworthy))
@@ -308,7 +329,9 @@
                 (file-write-date version-file-path))
               :web-static-dir (merge-pathnames #P"static/" base-dir))))
 
-#||
+
+```
+
 ## Startup and Shutdown
 
 * To launch the website with the default values we need only call `START`
@@ -338,7 +361,8 @@
     * The default is 9090 as this is Hunchentoot's default
   * `DEBUG`
     * whether to start the web server in debug mode
-||#
+
+```lisp
 (defun start (&key (server :hunchentoot) (port 9090) (debug t))
   "Starts the app."
   (setf *app* (create-app))
@@ -353,12 +377,15 @@
   (define-routes)
   (format t "Started Fileworthy ~A~%" (app-version *app*)))
 
-#||
+
+```
+
 ### `STOP`
 
 * This function gracefully shuts down the app
   * including the underlying web server
-||#
+
+```lisp
 (defun stop ()
   "Stops the app."
   (if *handler*
@@ -367,20 +394,25 @@
     (setf *handler* nil)
     (format t "Stopped Fileworthy ~A~%" (app-version *app*)))))
 
-#||
+
+```
+
 ### `RESTART-APP`
 
 * This function restarts the app
 * I would've named this function `RESTART`
   * but it would then conflict with the [system class](http://clhs.lisp.se/Body/t_rst.htm#restart) of the same name
-||#
+
+```lisp
 (defun restart-app ()
   "Restart the app."
   (stop)
   (start))
 
 
-#||
+
+```
+
 ### `CREATE-WEB-HANDLER`
 
 * This function creates the Ningle web handler
@@ -390,7 +422,8 @@
   * like CSS, Javascript, images, etc.
 * See `START` for a description of the parameters
   * as it uses the exact same list
-||#
+
+```lisp
 (defun create-web-handler (server port debug)
   "Create the singleton Ningle web handler."
   (clack:clackup
@@ -407,13 +440,16 @@
     :port port
     :debug debug))
 
-#||
+
+```
+
 ## Web Resource Routes
 
 * We define the routes in a function
   * as we need an instance of `*WEB*` properly initialised first
   * and this is done only after `START` is called
-||#
+
+```lisp
 
 (defun define-routes ()
   "Define web resource routes."
@@ -421,7 +457,9 @@
   ;; Home page
   (setf (route *web* "/" :method :GET) (page-home)))
 
-#||
+
+```
+
 ## Web Pages
 
 * All web page-related functions will be prefixed with `PAGE-`
@@ -439,7 +477,8 @@
   * `CONTENT`
     * the HTML of the page as a raw string
     * note that the caller is responsible for properly escaping special characters
-||#
+
+```lisp
 (defun page-template (title content)
   "Base template for all web pages."
   (html5 :lang "en"
@@ -465,9 +504,14 @@
            (:main
              (raw content)))))
 
-#||
+
+```
+
 ### `PAGE-HOME`
-||#
+
+```lisp
 (defun page-home ()
   "Home page."
   (page-template "Home" (markup (:p "TODO: Home page"))))
+
+```

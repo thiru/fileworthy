@@ -494,7 +494,10 @@
              :href "/deps/font-awesome/css/font-awesome.min.css"
              :rel "stylesheet"
              :type "text/css")
-           (:link :href "/css/main.css" :rel "stylesheet"))
+           (:link :href "/css/main.css" :rel "stylesheet")
+           (:script :src "/deps/lodash/lodash.min.js" "")
+           (:script :src "/deps/momentjs/moment.min.js" "")
+           (:script :src "/deps/markedjs/marked.min.js" ""))
          (:body
            (:main
              (raw content)))))
@@ -508,14 +511,5 @@
 (defun page-home ()
   "Home page."
   (page-template "Home" (markup (:p "TODO: Home page"))))
-
-```
--template "Home" (markup (:p "TODO: Home page"))))
-
-```
-ge-template "Home" (markup (:p "TODO: Home page"))))
-
-```
-age-template "Home" (markup (:p "TODO: Home page"))))
 
 ```

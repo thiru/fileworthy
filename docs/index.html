@@ -628,6 +628,12 @@ a <em>stream of conciousness</em> flow</li>
            (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
            (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
          (:body
+           (:header :id &quot;top-bar&quot;
+            &quot;Fileworthy &quot;
+            (:span
+              :id &quot;version&quot;
+              :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
+              (sf &quot;~A&quot; (app-version *app*))))
            (:main
              (raw content)))))
 </code></pre>

@@ -87,3 +87,21 @@ h2, h3, h4, h5, h6
 }
 
 /* ========== Global [END] ========== */
+
+/* ========== Template [START] ========== */
+
+#top-bar
+{
+  background-color: #333853; /* VAR PURPLE-DARK */
+  color: white;
+  padding: 0.2rem 1rem;
+  text-align: right;
+}
+
+#version
+{
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+/* ========== Template [END] ========== */

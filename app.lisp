@@ -460,6 +460,12 @@
            (:script :src "/deps/momentjs/moment.min.js" "")
            (:script :src "/deps/markedjs/marked.min.js" ""))
          (:body
+           (:header :id "top-bar"
+            "Fileworthy "
+            (:span
+              :id "version"
+              :title (sf "Updated ~A" (app-last-updated *app*))
+              (sf "~A" (app-version *app*))))
            (:main
              (raw content)))))
 

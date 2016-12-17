@@ -12,7 +12,7 @@
   * especially when I'm on the go
   * and with a small mobile device
 * The website should basically be a simple reprentation of the contents of one or more directories
-* The notes would ideally be written in a markup language such as [Markdown](https://guides.github.com/features/mastering-markdown/) such that:
+* The notes would ideally be written in a markup language such as [Markdown](https://guides.github.com/features/mastering-markdown/) so that:
   * they can be easily transformed to other structured formats like HTML
   * easily edited with any text editor
   * easily manipulated by other tools
@@ -205,7 +205,7 @@
 * All of the other code will be in a single file:
   * [app.lisp](../app.lisp)
   * I'm not sure if this is a good idea
-    * I'm choosing to go this route as it simplifies my [current tooling](../weave.ros) with Literate Programming
+  * I'm choosing to go this route as it simplifies my [current tooling](../weave.ros) with Literate Programming
 
 ## Package Definition
 
@@ -488,18 +488,13 @@
            (:meta
              :name "viewport"
              :content "width=device-width, initial-scale=1")
-           (:meta :name "theme-color" :content "#FFF")
            (:title (sf "~A - Fileworthy" title))
-           (:link :rel "manifest" :href "/manifest.json")
            (:link :rel "shortcut icon" :href "/images/favicon.ico")
            (:link
              :href "/deps/font-awesome/css/font-awesome.min.css"
              :rel "stylesheet"
              :type "text/css")
-           (:link
-             :href "/css/main.css"
-             :rel "stylesheet"
-             :type "text/css"))
+           (:link :href "/css/main.css" :rel "stylesheet"))
          (:body
            (:main
              (raw content)))))
@@ -513,5 +508,14 @@
 (defun page-home ()
   "Home page."
   (page-template "Home" (markup (:p "TODO: Home page"))))
+
+```
+-template "Home" (markup (:p "TODO: Home page"))))
+
+```
+ge-template "Home" (markup (:p "TODO: Home page"))))
+
+```
+age-template "Home" (markup (:p "TODO: Home page"))))
 
 ```

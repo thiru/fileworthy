@@ -15,7 +15,7 @@
 </ul>
 </li>
 <li>The website should basically be a simple reprentation of the contents of one or more directories</li>
-<li>The notes would ideally be written in a markup language such as <a href="https://guides.github.com/features/mastering-markdown/">Markdown</a> such that:<ul>
+<li>The notes would ideally be written in a markup language such as <a href="https://guides.github.com/features/mastering-markdown/">Markdown</a> so that:<ul>
 <li>they can be easily transformed to other structured formats like HTML</li>
 <li>easily edited with any text editor</li>
 <li>easily manipulated by other tools<ul>
@@ -328,10 +328,8 @@ a <em>stream of conciousness</em> flow</li>
 </li>
 <li>All of the other code will be in a single file:<ul>
 <li><a href="../app.lisp">app.lisp</a></li>
-<li>I&#39;m not sure if this is a good idea<ul>
+<li>I&#39;m not sure if this is a good idea</li>
 <li>I&#39;m choosing to go this route as it simplifies my <a href="../weave.ros">current tooling</a> with Literate Programming</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -619,18 +617,13 @@ a <em>stream of conciousness</em> flow</li>
            (:meta
              :name &quot;viewport&quot;
              :content &quot;width=device-width, initial-scale=1&quot;)
-           (:meta :name &quot;theme-color&quot; :content &quot;#FFF&quot;)
            (:title (sf &quot;~A - Fileworthy&quot; title))
-           (:link :rel &quot;manifest&quot; :href &quot;/manifest.json&quot;)
            (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
            (:link
              :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
              :rel &quot;stylesheet&quot;
              :type &quot;text/css&quot;)
-           (:link
-             :href &quot;/css/main.css&quot;
-             :rel &quot;stylesheet&quot;
-             :type &quot;text/css&quot;))
+           (:link :href &quot;/css/main.css&quot; :rel &quot;stylesheet&quot;))
          (:body
            (:main
              (raw content)))))
@@ -640,4 +633,8 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Home page.&quot;
   (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
+<p>-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))</p>
+<pre><code>ge-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
+</code></pre><p>age-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))</p>
+<p>```</p>
 </body></html>

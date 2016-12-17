@@ -449,18 +449,13 @@
            (:meta
              :name "viewport"
              :content "width=device-width, initial-scale=1")
-           (:meta :name "theme-color" :content "#FFF")
            (:title (sf "~A - Fileworthy" title))
-           (:link :rel "manifest" :href "/manifest.json")
            (:link :rel "shortcut icon" :href "/images/favicon.ico")
            (:link
              :href "/deps/font-awesome/css/font-awesome.min.css"
              :rel "stylesheet"
              :type "text/css")
-           (:link
-             :href "/css/main.css"
-             :rel "stylesheet"
-             :type "text/css"))
+           (:link :href "/css/main.css" :rel "stylesheet"))
          (:body
            (:main
              (raw content)))))

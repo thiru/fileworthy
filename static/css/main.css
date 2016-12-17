@@ -1,6 +1,17 @@
-/*******************************
-Global
- *******************************/
+/* ========== Global [START] ========== */
+
+/* Color Theme
+ *
+ * Heavenly Hues (image via @arctic_stories)
+ * https://www.design-seeds.com/in-nature/heavens/heavenly-hues-8/
+ *
+ * VAR CREAM = #F7EDE9
+ * VAR PINK = #FBDBD8
+ * VAR PURPLE-LIGHT = #C8BAD2
+ * VAR PURPLE = #7479A0
+ * VAR PURPLE-DARK = #333853
+ * VAR BROWN = #4D464B
+ */
 
 *
 {
@@ -11,8 +22,7 @@ Global
 
 body
 {
-  background: #FFF;
-  color: #555; /* VAR COMMON-TEXT-COLOUR */
+  color: #4D464B; /* VAR BROWN */
   margin: 0;
   padding: 0;
 }
@@ -75,3 +85,5 @@ h2, h3, h4, h5, h6
 {
   text-transform: uppercase;
 }
+
+/* ========== Global [END] ========== */

@@ -408,6 +408,23 @@
     :debug debug))
 
 #||
+## Core Domain Logic
+
+### `GET-DIR-NAMES`
+
+* This function gets a list of directory names relative to either
+  * the given directory `PARENT`
+  * or the root folder as specified by `APP-BASE-DIR`
+
+||#
+(defun get-dir-names (&optional parent)
+  "Get directory names."
+  (map 'list
+       (λ (abs-dir)
+          (last1 (split-sequence #\/ (princ-to-string abs-dir) :remove-empty-subseqs t)))
+       (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+
+#||
 ## Web Resource Routes
 
 * We define the routes in a function
@@ -419,7 +436,7 @@
   "Define web resource routes."
 
   ;; Home page
-  (setf (route *web* "/" :method :GET) (page-home)))
+  (setf (route *web* "/" :method :GET) #'page-home))
 
 #||
 ## Web Pages
@@ -466,12 +483,19 @@
               :id "version"
               :title (sf "Updated ~A" (app-last-updated *app*))
               (sf "~A" (app-version *app*))))
+           (:nav
+             (:ul :id "folders" 
+              (loop
+                for item in (get-dir-names)
+                collect (markup
+                          (:li
+                            (:a :href item item))))))
            (:main
              (raw content)))))
 
 #||
 ### `PAGE-HOME`
 ||#
-(defun page-home ()
+(defun page-home (params)
   "Home page."
   (page-template "Home" (markup (:p "TODO: Home page"))))

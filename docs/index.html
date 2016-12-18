@@ -567,6 +567,22 @@ a <em>stream of conciousness</em> flow</li>
     :port port
     :debug debug))
 </code></pre>
+<h2 id="core-domain-logic">Core Domain Logic</h2>
+<h3 id="-get-dir-names-"><code>GET-DIR-NAMES</code></h3>
+<ul>
+<li>This function gets a list of directory names relative to either<ul>
+<li>the given directory <code>PARENT</code></li>
+<li>or the root folder as specified by <code>APP-BASE-DIR</code></li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun get-dir-names (&amp;optional parent)
+  &quot;Get directory names.&quot;
+  (map &#39;list
+       (λ (abs-dir)
+          (last1 (split-sequence #\/ (princ-to-string abs-dir) :remove-empty-subseqs t)))
+       (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+</code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
 <li>We define the routes in a function<ul>
@@ -580,7 +596,7 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Define web resource routes.&quot;
 
   ;; Home page
-  (setf (route *web* &quot;/&quot; :method :GET) (page-home)))
+  (setf (route *web* &quot;/&quot; :method :GET) #&#39;page-home))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <ul>
@@ -634,12 +650,19 @@ a <em>stream of conciousness</em> flow</li>
               :id &quot;version&quot;
               :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
               (sf &quot;~A&quot; (app-version *app*))))
+           (:nav
+             (:ul :id &quot;folders&quot; 
+              (loop
+                for item in (get-dir-names)
+                collect (markup
+                          (:li
+                            (:a :href item item))))))
            (:main
              (raw content)))))
 </code></pre>
 <h3 id="-page-home-"><code>PAGE-HOME</code></h3>
-<pre><code class="lang-lisp">(defun page-home ()
+<pre><code class="lang-lisp">(defun page-home (params)
   &quot;Home page.&quot;
   (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
-</body></html>
+ </body></html>

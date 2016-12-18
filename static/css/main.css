@@ -40,6 +40,18 @@ h2, h3, h4, h5, h6
   margin-bottom: 0.5rem;
 }
 
+ul, ol
+{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a
+{
+  text-decoration: none;
+}
+
 .clear-fix
 {
   clear: both;
@@ -90,6 +102,11 @@ h2, h3, h4, h5, h6
 
 /* ========== Template [START] ========== */
 
+main, nav
+{
+  margin: 1rem;
+}
+
 #top-bar
 {
   background-color: #333853; /* VAR PURPLE-DARK */
@@ -102,6 +119,14 @@ h2, h3, h4, h5, h6
 {
   opacity: 0.5;
   font-size: 0.8rem;
+}
+
+#folders li
+{
+  border: solid 1px grey;
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.1rem 0.3rem;
 }
 
 /* ========== Template [END] ========== */

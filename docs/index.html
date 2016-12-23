@@ -399,6 +399,10 @@ a <em>stream of conciousness</em> flow</li>
 <h2 id="app">APP</h2>
 <ul>
 <li>The <code>APP</code> struct groups general, high-level app details including<ul>
+<li>the name of this instance of the app<ul>
+<li>this will default to the name of base-dir</li>
+</ul>
+</li>
 <li>the base/root directory of the app</li>
 <li>the version of the app</li>
 <li>the time the app was last updated<ul>
@@ -412,6 +416,7 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <pre><code class="lang-lisp">(defstruct app
   &quot;Contains general, high-level app details.&quot;
+  (name &quot;&quot; :type STRING)
   (base-dir nil :type PATHNAME)
   (version &quot;0.0&quot; :type STRING)
   (last-updated nil :type TIMESTAMP)
@@ -440,7 +445,13 @@ a <em>stream of conciousness</em> flow</li>
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             &quot;version&quot;)))
-    (make-app :base-dir base-dir 
+    (make-app :name
+              (last1 
+                (split-sequence
+                  #\/
+                  (princ-to-string (uiop/filesystem:truename* base-dir))
+                  :remove-empty-subseqs t))
+              :base-dir base-dir 
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
@@ -628,10 +639,10 @@ a <em>stream of conciousness</em> flow</li>
 <li>Parameters:<ul>
 <li><code>TITLE</code><ul>
 <li>the title of the page</li>
-<li>note that the give title is<ul>
-<li>suffixed with the site&#39;s global name, <em>Fileworthy</em></li>
+<li>note that the given title is<ul>
+<li>suffixed with the site&#39;s name and project name (Fileworthy)</li>
 <li>and separated by a hyphen</li>
-<li>e.g. &quot;Home - Fileworthy&quot;</li>
+<li>e.g. &quot;Home - My Documents - Fileworthy&quot;</li>
 </ul>
 </li>
 </ul>
@@ -653,7 +664,7 @@ a <em>stream of conciousness</em> flow</li>
            (:meta
              :name &quot;viewport&quot;
              :content &quot;width=device-width, initial-scale=1&quot;)
-           (:title (sf &quot;~A - Fileworthy&quot; title))
+           (:title (sf &quot;~A - ~A - Fileworthy&quot; title (app-name *app*)))
            (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
            (:link
              :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
@@ -665,11 +676,15 @@ a <em>stream of conciousness</em> flow</li>
            (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
          (:body
            (:header :id &quot;top-bar&quot;
-            &quot;Fileworthy &quot;
-            (:span
-              :id &quot;version&quot;
-              :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
-              (sf &quot;~A&quot; (app-version *app*))))
+            (:div :id &quot;app-name&quot;
+             (app-name *app*))
+            (:div :id &quot;project-name&quot;
+             &quot;Fileworthy &quot;
+             (:span
+               :id &quot;version&quot;
+               :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
+               (sf &quot;~A&quot; (app-version *app*))))
+            (:div :class &quot;clear-fix&quot;))
            (:nav
              (:ul :id &quot;folders&quot; :class &quot;path-names&quot;
               (:li

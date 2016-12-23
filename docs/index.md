@@ -286,6 +286,8 @@
 ## APP
 
 * The `APP` struct groups general, high-level app details including
+  * the name of this instance of the app
+    * this will default to the name of base-dir
   * the base/root directory of the app
   * the version of the app
   * the time the app was last updated
@@ -296,6 +298,7 @@
 ```lisp
 (defstruct app
   "Contains general, high-level app details."
+  (name "" :type STRING)
   (base-dir nil :type PATHNAME)
   (version "0.0" :type STRING)
   (last-updated nil :type TIMESTAMP)
@@ -322,7 +325,13 @@
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             "version")))
-    (make-app :base-dir base-dir 
+    (make-app :name
+              (last1 
+                (split-sequence
+                  #\/
+                  (princ-to-string (uiop/filesystem:truename* base-dir))
+                  :remove-empty-subseqs t))
+              :base-dir base-dir 
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
@@ -510,10 +519,10 @@
 * Parameters:
   * `TITLE`
     * the title of the page
-    * note that the give title is
-      * suffixed with the site's global name, *Fileworthy*
+    * note that the given title is
+      * suffixed with the site's name and project name (Fileworthy)
       * and separated by a hyphen
-      * e.g. "Home - Fileworthy"
+      * e.g. "Home - My Documents - Fileworthy"
   * `CONTENT`
     * the HTML of the page as a raw string
     * note that the caller is responsible for properly escaping special characters
@@ -528,7 +537,7 @@
            (:meta
              :name "viewport"
              :content "width=device-width, initial-scale=1")
-           (:title (sf "~A - Fileworthy" title))
+           (:title (sf "~A - ~A - Fileworthy" title (app-name *app*)))
            (:link :rel "shortcut icon" :href "/images/favicon.ico")
            (:link
              :href "/deps/font-awesome/css/font-awesome.min.css"
@@ -540,11 +549,15 @@
            (:script :src "/deps/markedjs/marked.min.js" ""))
          (:body
            (:header :id "top-bar"
-            "Fileworthy "
-            (:span
-              :id "version"
-              :title (sf "Updated ~A" (app-last-updated *app*))
-              (sf "~A" (app-version *app*))))
+            (:div :id "app-name"
+             (app-name *app*))
+            (:div :id "project-name"
+             "Fileworthy "
+             (:span
+               :id "version"
+               :title (sf "Updated ~A" (app-last-updated *app*))
+               (sf "~A" (app-version *app*))))
+            (:div :class "clear-fix"))
            (:nav
              (:ul :id "folders" :class "path-names"
               (:li

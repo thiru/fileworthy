@@ -114,7 +114,7 @@ main
 {
   background-color: #333853; /* VAR PURPLE-DARK */
   color: white;
-  padding: 0.2rem 1rem;
+  padding: 0.3rem 1rem;
 }
 #app-name
 {
@@ -136,7 +136,7 @@ main
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
   /*border-bottom: solid 1px #C8BAD2; /* VAR PURPLE-LIGHT */
   padding: 0.1rem 1rem;
-  margin-bottom: 0.1rem;
+  margin-top: 0.1rem;
 }
 .path-names li
 {

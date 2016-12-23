@@ -1,4 +1,4 @@
-/* ========== Global [START] ========== */
+/* ========== Common [START] ========== */
 
 /* Color Theme
  *
@@ -11,6 +11,8 @@
  * VAR PURPLE = #7479A0
  * VAR PURPLE-DARK = #333853
  * VAR BROWN = #4D464B
+ *
+ * VAR GREY-LIGHT = #EFEFEF;
  */
 
 *
@@ -34,6 +36,12 @@ body
   }
 }
 
+a
+{
+  color: #4D464B; /* VAR BROWN */
+  text-decoration: none;
+}
+
 h2, h3, h4, h5, h6
 {
   margin-top: 0;
@@ -45,11 +53,6 @@ ul, ol
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-a
-{
-  text-decoration: none;
 }
 
 .clear-fix
@@ -98,13 +101,13 @@ a
   text-transform: uppercase;
 }
 
-/* ========== Global [END] ========== */
+/* ========== Common [END] ========== */
 
 /* ========== Template [START] ========== */
 
-main, nav
+main
 {
-  margin: 1rem;
+  margin: 0.5rem;
 }
 
 #top-bar
@@ -121,12 +124,36 @@ main, nav
   font-size: 0.8rem;
 }
 
+#folders
+{
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  padding: 0.1rem 1rem;
+}
 #folders li
 {
-  border: solid 1px grey;
   display: inline-block;
-  margin-right: 0.5rem;
-  padding: 0.1rem 0.3rem;
+}
+#folders li a
+{
+  display: inline-block;
+  padding: 0.3rem 0.5rem;
+}
+#folders li a:hover
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  color: #333853; /* VAR PURPLE-DARK */
+}
+#folders li a:active
+{
+  font-weight: bold;
+}
+#root-folder
+{
+  color: #C8BAD2; /* VAR PURPLE-LIGHT */
+}
+#root-folder:hover
+{
+  color: #333853; /* VAR PURPLE-DARK */
 }
 
 /* ========== Template [END] ========== */

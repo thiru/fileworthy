@@ -485,6 +485,9 @@
               (sf "~A" (app-version *app*))))
            (:nav
              (:ul :id "folders" 
+              (:li
+                (:a :id "root-folder" :href "/" :title "Folders"
+                 (:i :class "fa fa-folder" "")))
               (loop
                 for item in (get-dir-names)
                 collect (markup

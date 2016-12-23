@@ -652,6 +652,9 @@ a <em>stream of conciousness</em> flow</li>
               (sf &quot;~A&quot; (app-version *app*))))
            (:nav
              (:ul :id &quot;folders&quot; 
+              (:li
+                (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Folders&quot;
+                 (:i :class &quot;fa fa-folder&quot; &quot;&quot;)))
               (loop
                 for item in (get-dir-names)
                 collect (markup

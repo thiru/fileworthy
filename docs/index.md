@@ -504,7 +504,10 @@
   "Define web resource routes."
 
   ;; Home page
-  (setf (route *web* "/" :method :GET) #'page-home))
+  (setf (route *web* "/" :method :GET) #'page-home)
+
+  ;; File-system path page
+  (setf (route *web* "/*" :method :GET) #'page-fs-path))
 
 
 ```
@@ -588,5 +591,18 @@
 (defun page-home (params)
   "Home page."
   (page-template "Home" (markup (:p "TODO: Home page"))))
+
+
+```
+
+### `PAGE-FS-PATH`
+
+```lisp
+(defun page-fs-path (params)
+  "File-system path page."
+  (page-template
+    "FS Path"
+    (markup
+      (:p "TODO: FS path page"))))
 
 ```

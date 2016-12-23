@@ -627,7 +627,10 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Define web resource routes.&quot;
 
   ;; Home page
-  (setf (route *web* &quot;/&quot; :method :GET) #&#39;page-home))
+  (setf (route *web* &quot;/&quot; :method :GET) #&#39;page-home)
+
+  ;; File-system path page
+  (setf (route *web* &quot;/*&quot; :method :GET) #&#39;page-fs-path))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <ul>
@@ -710,5 +713,13 @@ a <em>stream of conciousness</em> flow</li>
 <pre><code class="lang-lisp">(defun page-home (params)
   &quot;Home page.&quot;
   (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
+</code></pre>
+<h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
+<pre><code class="lang-lisp">(defun page-fs-path (params)
+  &quot;File-system path page.&quot;
+  (page-template
+    &quot;FS Path&quot;
+    (markup
+      (:p &quot;TODO: FS path page&quot;))))
 </code></pre>
   </body></html>

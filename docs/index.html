@@ -580,8 +580,28 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Get directory names.&quot;
   (map &#39;list
        (λ (abs-dir)
-          (last1 (split-sequence #\/ (princ-to-string abs-dir) :remove-empty-subseqs t)))
+          (last1 (split-sequence #\/
+                                 (princ-to-string abs-dir)
+                                 :remove-empty-subseqs t)))
        (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+</code></pre>
+<h3 id="-get-file-names-"><code>GET-FILE-NAMES</code></h3>
+<ul>
+<li>This function gets a list of file names relative to either<ul>
+<li>the given directory <code>PARENT</code></li>
+<li>or the root folder as specified by <code>APP-BASE-DIR</code></li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun get-file-names (&amp;optional parent)
+  &quot;Get file names.&quot;
+  (map &#39;list
+       (λ (abs-file)
+          (last1 (split-sequence #\/
+                                 (princ-to-string abs-file)
+                                 :remove-empty-subseqs t)))
+       (uiop/filesystem:directory-files
+         (or parent (app-base-dir *app*)))))
 </code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
@@ -651,7 +671,7 @@ a <em>stream of conciousness</em> flow</li>
               :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
               (sf &quot;~A&quot; (app-version *app*))))
            (:nav
-             (:ul :id &quot;folders&quot; 
+             (:ul :id &quot;folders&quot; :class &quot;path-names&quot;
               (:li
                 (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Folders&quot;
                  (:i :class &quot;fa fa-folder&quot; &quot;&quot;)))
@@ -659,7 +679,15 @@ a <em>stream of conciousness</em> flow</li>
                 for item in (get-dir-names)
                 collect (markup
                           (:li
-                            (:a :href item item))))))
+                            (:a :href (sf &quot;~A/&quot; item) item)))))
+             (:ul :id &quot;files&quot; :class &quot;path-names&quot;
+              (:li
+                (:a :id &quot;root-file&quot; :href &quot;javascript:void(0)&quot; :title &quot;Files&quot;
+                 (:i :class &quot;fa fa-file&quot; &quot;&quot;)))
+              (loop
+                for item in (get-file-names)
+                collect (markup
+                          (:li (:a :href item item))))))
            (:main
              (raw content)))))
 </code></pre>
@@ -668,4 +696,4 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Home page.&quot;
   (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
- </body></html>
+  </body></html>

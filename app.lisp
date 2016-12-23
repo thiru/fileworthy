@@ -415,14 +415,31 @@
 * This function gets a list of directory names relative to either
   * the given directory `PARENT`
   * or the root folder as specified by `APP-BASE-DIR`
-
 ||#
 (defun get-dir-names (&optional parent)
   "Get directory names."
   (map 'list
        (λ (abs-dir)
-          (last1 (split-sequence #\/ (princ-to-string abs-dir) :remove-empty-subseqs t)))
+          (last1 (split-sequence #\/
+                                 (princ-to-string abs-dir)
+                                 :remove-empty-subseqs t)))
        (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+#||
+### `GET-FILE-NAMES`
+
+* This function gets a list of file names relative to either
+  * the given directory `PARENT`
+  * or the root folder as specified by `APP-BASE-DIR`
+||#
+(defun get-file-names (&optional parent)
+  "Get file names."
+  (map 'list
+       (λ (abs-file)
+          (last1 (split-sequence #\/
+                                 (princ-to-string abs-file)
+                                 :remove-empty-subseqs t)))
+       (uiop/filesystem:directory-files
+         (or parent (app-base-dir *app*)))))
 
 #||
 ## Web Resource Routes
@@ -484,7 +501,7 @@
               :title (sf "Updated ~A" (app-last-updated *app*))
               (sf "~A" (app-version *app*))))
            (:nav
-             (:ul :id "folders" 
+             (:ul :id "folders" :class "path-names"
               (:li
                 (:a :id "root-folder" :href "/" :title "Folders"
                  (:i :class "fa fa-folder" "")))
@@ -492,7 +509,15 @@
                 for item in (get-dir-names)
                 collect (markup
                           (:li
-                            (:a :href item item))))))
+                            (:a :href (sf "~A/" item) item)))))
+             (:ul :id "files" :class "path-names"
+              (:li
+                (:a :id "root-file" :href "javascript:void(0)" :title "Files"
+                 (:i :class "fa fa-file" "")))
+              (loop
+                for item in (get-file-names)
+                collect (markup
+                          (:li (:a :href item item))))))
            (:main
              (raw content)))))
 

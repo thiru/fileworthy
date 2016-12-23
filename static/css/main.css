@@ -107,7 +107,7 @@ ul, ol
 
 main
 {
-  margin: 0.5rem;
+  margin: 1rem;
 }
 
 #top-bar
@@ -124,34 +124,37 @@ main
   font-size: 0.8rem;
 }
 
-#folders
+.path-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  /*border-bottom: solid 1px #C8BAD2; /* VAR PURPLE-LIGHT */
   padding: 0.1rem 1rem;
+  margin-bottom: 0.1rem;
 }
-#folders li
+.path-names li
 {
   display: inline-block;
 }
-#folders li a
+.path-names li a
 {
   display: inline-block;
   padding: 0.3rem 0.5rem;
 }
-#folders li a:hover
+.path-names li a:hover
 {
   background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
   color: #333853; /* VAR PURPLE-DARK */
 }
-#folders li a:active
+.path-names li a:active
 {
   font-weight: bold;
 }
-#root-folder
+
+#root-folder, #root-file
 {
   color: #C8BAD2; /* VAR PURPLE-LIGHT */
 }
-#root-folder:hover
+#root-folder:hover, #root-file:hover
 {
   color: #333853; /* VAR PURPLE-DARK */
 }

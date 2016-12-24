@@ -55,6 +55,11 @@ ul, ol
   list-style: none;
 }
 
+.hidden
+{
+  display: none;
+}
+
 .clear-fix
 {
   clear: both;
@@ -167,3 +172,10 @@ main
 }
 
 /* ========== Template [END] ========== */
+
+/* ========== File Content Page [START] ========== */
+#raw-file-content pre
+{
+  white-space: pre-wrap;
+}
+/* ========== File Content Page [END] ========== */

@@ -451,6 +451,37 @@
          (or parent (app-base-dir *app*)))))
 
 #||
+### `GET-URL-PATHNAME`
+||#
+(defun get-url-pathname (params)
+  "Get the URL path name of the Ningle `PARAMS` object that is passed in to route
+   handling functions."
+  (first (cdr (assoc :splat params))))
+
+#||
+### `GET-LOCAL-PATH-FROM-URL`
+
+* Note, I'm right-trimming slashes because `MERGE-PATHNAMES*` seems to ignore
+  it's second parameter if it ends in one
+||#
+(defun get-local-path-from-url (params)
+  "Gets an absolute local path from the given Ningle `PARAMS` object."
+  (if (empty? params)
+    (return-from get-local-path-from-url ""))
+  (merge-pathnames* (app-base-dir *app*)
+                    (string-right-trim '(#\/) (get-url-pathname params))))
+
+#||
+### `GET-FILE-CONTENT`
+||#
+(defun get-file-content (path)
+  "Get file contents of `PATH`."
+  (with-open-file (stream path)
+    (let ((data (make-string (file-length stream))))
+      (read-sequence data stream)
+      data)))
+
+#||
 ## Web Resource Routes
 
 * We define the routes in a function
@@ -535,13 +566,15 @@
                 collect (markup
                           (:li (:a :href item item))))))
            (:main
-             (raw content)))))
+             (raw content))
+           (:script :src "/js/main.js" ""))))
 
 #||
 ### `PAGE-HOME`
 ||#
 (defun page-home (params)
   "Home page."
+  (declare (ignore params))
   (page-template "Home" (markup (:p "TODO: Home page"))))
 
 #||
@@ -549,7 +582,14 @@
 ||#
 (defun page-fs-path (params)
   "File-system path page."
-  (page-template
-    "FS Path"
-    (markup
-      (:p "TODO: FS path page"))))
+  (let* ((local-path (get-local-path-from-url params))
+         (file-content ""))
+    (if (file-exists-p local-path)
+      (setf file-content (get-file-content local-path)))
+    (page-template
+      "TODO: FS Path title"
+      (markup
+        (:p :id "file-path" local-path)
+        (:div :id "raw-file-content" :class "hidden"
+         (:pre file-content))
+        (:div :id "gen-file-content")))))

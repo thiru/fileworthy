@@ -614,6 +614,32 @@ a <em>stream of conciousness</em> flow</li>
        (uiop/filesystem:directory-files
          (or parent (app-base-dir *app*)))))
 </code></pre>
+<h3 id="-get-url-pathname-"><code>GET-URL-PATHNAME</code></h3>
+<pre><code class="lang-lisp">(defun get-url-pathname (params)
+  &quot;Get the URL path name of the Ningle `PARAMS` object that is passed in to route
+   handling functions.&quot;
+  (first (cdr (assoc :splat params))))
+</code></pre>
+<h3 id="-get-local-path-from-url-"><code>GET-LOCAL-PATH-FROM-URL</code></h3>
+<ul>
+<li>Note, I&#39;m right-trimming slashes because <code>MERGE-PATHNAMES*</code> seems to ignore
+it&#39;s second parameter if it ends in one</li>
+</ul>
+<pre><code class="lang-lisp">(defun get-local-path-from-url (params)
+  &quot;Gets an absolute local path from the given Ningle `PARAMS` object.&quot;
+  (if (empty? params)
+    (return-from get-local-path-from-url &quot;&quot;))
+  (merge-pathnames* (app-base-dir *app*)
+                    (string-right-trim &#39;(#\/) (get-url-pathname params))))
+</code></pre>
+<h3 id="-get-file-content-"><code>GET-FILE-CONTENT</code></h3>
+<pre><code class="lang-lisp">(defun get-file-content (path)
+  &quot;Get file contents of `PATH`.&quot;
+  (with-open-file (stream path)
+    (let ((data (make-string (file-length stream))))
+      (read-sequence data stream)
+      data)))
+</code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
 <li>We define the routes in a function<ul>
@@ -707,19 +733,28 @@ a <em>stream of conciousness</em> flow</li>
                 collect (markup
                           (:li (:a :href item item))))))
            (:main
-             (raw content)))))
+             (raw content))
+           (:script :src &quot;/js/main.js&quot; &quot;&quot;))))
 </code></pre>
 <h3 id="-page-home-"><code>PAGE-HOME</code></h3>
 <pre><code class="lang-lisp">(defun page-home (params)
   &quot;Home page.&quot;
+  (declare (ignore params))
   (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
-  (page-template
-    &quot;FS Path&quot;
-    (markup
-      (:p &quot;TODO: FS path page&quot;))))
+  (let* ((local-path (get-local-path-from-url params))
+         (file-content &quot;&quot;))
+    (if (file-exists-p local-path)
+      (setf file-content (get-file-content local-path)))
+    (page-template
+      &quot;TODO: FS Path title&quot;
+      (markup
+        (:p :id &quot;file-path&quot; local-path)
+        (:div :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
+         (:pre file-content))
+        (:div :id &quot;gen-file-content&quot;)))))
 </code></pre>
   </body></html>

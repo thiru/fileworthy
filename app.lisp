@@ -583,14 +583,25 @@
   (let* ((abs-fs-path (get-fs-path-from-url params))
          (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content ""))
-    (if (file-exists-p abs-fs-path)
-      (setf file-content (get-file-content abs-fs-path)))
-    (page-template
-      rel-fs-path
-      (markup
-        (:p
-          "Viewing: "
-          (:span :id "file-path" rel-fs-path))
-        (:div :id "raw-file-content" :class "hidden"
-         (:pre file-content))
-        (:div :id "gen-file-content")))))
+    (cond ((file-exists-p abs-fs-path) ; Show file info
+           (setf file-content (get-file-content abs-fs-path))    
+           (page-template
+             rel-fs-path
+             (markup
+               (:p
+                 (:i :class "fa fa-file" "")
+                 (:span " ")
+                 (:span :id "file-path" rel-fs-path))
+               (:div :id "raw-file-content" :class "hidden"
+                (:pre file-content))
+               (:div :id "gen-file-content"))))
+          ((directory-exists-p abs-fs-path)
+           (page-template
+             rel-fs-path
+             (markup
+               (:p
+                 (:i :class "fa fa-folder-open" "")
+                 (:span " ")
+                 (:span (string-trim '(#\/) (to-string rel-fs-path))))
+               (:div "TODO: show file listing for this directory"))))
+          (t (markup (:div "TODO: not found page"))))))

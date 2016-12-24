@@ -742,14 +742,17 @@ a <em>stream of conciousness</em> flow</li>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
-  (let* ((local-path (get-fs-path-from-url params))
+  (let* ((abs-fs-path (get-fs-path-from-url params))
+         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content &quot;&quot;))
-    (if (file-exists-p local-path)
-      (setf file-content (get-file-content local-path)))
+    (if (file-exists-p abs-fs-path)
+      (setf file-content (get-file-content abs-fs-path)))
     (page-template
-      &quot;TODO: FS Path title&quot;
+      rel-fs-path
       (markup
-        (:p :id &quot;file-path&quot; local-path)
+        (:p
+          &quot;Viewing: &quot;
+          (:span :id &quot;file-path&quot; rel-fs-path))
         (:div :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
          (:pre file-content))
         (:div :id &quot;gen-file-content&quot;)))))

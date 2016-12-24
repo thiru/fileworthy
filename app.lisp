@@ -580,14 +580,17 @@
 ||#
 (defun page-fs-path (params)
   "File-system path page."
-  (let* ((local-path (get-fs-path-from-url params))
+  (let* ((abs-fs-path (get-fs-path-from-url params))
+         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content ""))
-    (if (file-exists-p local-path)
-      (setf file-content (get-file-content local-path)))
+    (if (file-exists-p abs-fs-path)
+      (setf file-content (get-file-content abs-fs-path)))
     (page-template
-      "TODO: FS Path title"
+      rel-fs-path
       (markup
-        (:p :id "file-path" local-path)
+        (:p
+          "Viewing: "
+          (:span :id "file-path" rel-fs-path))
         (:div :id "raw-file-content" :class "hidden"
          (:pre file-content))
         (:div :id "gen-file-content")))))

@@ -620,17 +620,14 @@ a <em>stream of conciousness</em> flow</li>
    handling functions.&quot;
   (first (cdr (assoc :splat params))))
 </code></pre>
-<h3 id="-get-local-path-from-url-"><code>GET-LOCAL-PATH-FROM-URL</code></h3>
-<ul>
-<li>Note, I&#39;m right-trimming slashes because <code>MERGE-PATHNAMES*</code> seems to ignore
-it&#39;s second parameter if it ends in one</li>
-</ul>
-<pre><code class="lang-lisp">(defun get-local-path-from-url (params)
-  &quot;Gets an absolute local path from the given Ningle `PARAMS` object.&quot;
+<h3 id="-get-fs-path-from-url-"><code>GET-FS-PATH-FROM-URL</code></h3>
+<pre><code class="lang-lisp">(defun get-fs-path-from-url (params)
+  &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;
   (if (empty? params)
-    (return-from get-local-path-from-url &quot;&quot;))
-  (merge-pathnames* (app-base-dir *app*)
-                    (string-right-trim &#39;(#\/) (get-url-pathname params))))
+    (return-from get-fs-path-from-url nil))
+  (let* ((path (merge-pathnames* (get-url-pathname params))))
+    (if (subpathp path (app-base-dir *app*))
+      path)))
 </code></pre>
 <h3 id="-get-file-content-"><code>GET-FILE-CONTENT</code></h3>
 <pre><code class="lang-lisp">(defun get-file-content (path)
@@ -745,7 +742,7 @@ it&#39;s second parameter if it ends in one</li>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
-  (let* ((local-path (get-local-path-from-url params))
+  (let* ((local-path (get-fs-path-from-url params))
          (file-content &quot;&quot;))
     (if (file-exists-p local-path)
       (setf file-content (get-file-content local-path)))

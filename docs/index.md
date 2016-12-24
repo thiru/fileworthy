@@ -503,18 +503,16 @@
 
 ```
 
-### `GET-LOCAL-PATH-FROM-URL`
-
-* Note, I'm right-trimming slashes because `MERGE-PATHNAMES*` seems to ignore
-  it's second parameter if it ends in one
+### `GET-FS-PATH-FROM-URL`
 
 ```lisp
-(defun get-local-path-from-url (params)
-  "Gets an absolute local path from the given Ningle `PARAMS` object."
+(defun get-fs-path-from-url (params)
+  "Gets an absolute local file-system path from the given Ningle `PARAMS` object."
   (if (empty? params)
-    (return-from get-local-path-from-url ""))
-  (merge-pathnames* (app-base-dir *app*)
-                    (string-right-trim '(#\/) (get-url-pathname params))))
+    (return-from get-fs-path-from-url nil))
+  (let* ((path (merge-pathnames* (get-url-pathname params))))
+    (if (subpathp path (app-base-dir *app*))
+      path)))
 
 
 ```
@@ -642,7 +640,7 @@
 ```lisp
 (defun page-fs-path (params)
   "File-system path page."
-  (let* ((local-path (get-local-path-from-url params))
+  (let* ((local-path (get-fs-path-from-url params))
          (file-content ""))
     (if (file-exists-p local-path)
       (setf file-content (get-file-content local-path)))

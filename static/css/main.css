@@ -71,6 +71,11 @@ ul, ol
   display: none;
 }
 
+.selected
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+}
+
 .clear-fix
 {
   clear: both;

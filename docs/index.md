@@ -530,6 +530,8 @@
 
 * This function defines the template all pages will use
 * Parameters:
+  * `PARAMS`
+    * the Ningle URL PARAMS object
   * `TITLE`
     * the title of the page
     * note that the given title is
@@ -541,53 +543,60 @@
     * note that the caller is responsible for properly escaping special characters
 
 ```lisp
-(defun page-template (title content)
+(defun page-template (params title content)
   "Base template for all web pages."
-  (html5 :lang "en"
-         (:head
-           (:meta :charset "utf-8")
-           (:meta :http-equiv "X-UA-Compatible" :content "IE=edge")
-           (:meta
-             :name "viewport"
-             :content "width=device-width, initial-scale=1")
-           (:title (sf "~A - ~A - Fileworthy" title (app-name *app*)))
-           (:link :rel "shortcut icon" :href "/images/favicon.ico")
-           (:link
-             :href "/deps/font-awesome/css/font-awesome.min.css"
-             :rel "stylesheet"
-             :type "text/css")
-           (:link :href "/css/main.css" :rel "stylesheet")
-           (:script :src "/deps/lodash/lodash.min.js" "")
-           (:script :src "/deps/momentjs/moment.min.js" "")
-           (:script :src "/deps/markedjs/marked.min.js" ""))
-         (:body
-           ;; Top Purple Bar
-           (:header :id "top-bar"
-            (:a :id "app-name" :href "/"
-             (app-name *app*))
-            (:a :id "project-name" :href "/"
-             "Fileworthy "
-             (:span
-               :id "version"
-               :title (sf "Updated ~A" (app-last-updated *app*))
-               (sf "~A" (app-version *app*))))
-            (:div :class "clear-fix"))
-           ;; Root Folder List
-           (:nav
-             (:ul :id "folders" :class "folder-names"
-              (:li
-                (:a :id "root-folder" :href "/" :title "Root"
-                 (:i :class "fa fa-folder-open" "")))
-              (loop
-                for item in (get-dir-names)
-                collect (markup
-                          (:li
-                            (:a
-                              :href (sf "/~A/" item)
-                              (string-capitalize item)))))))
-           (:main
-             (raw content))
-           (:script :src "/js/main.js" ""))))
+  (let* ((path-name (get-url-pathname params))
+         (path-segs (split-sequence #\/ path-name))
+         (first-path-seg (first path-segs)))
+    (html5 :lang "en"
+           (:head
+             (:meta :charset "utf-8")
+             (:meta :http-equiv "X-UA-Compatible" :content "IE=edge")
+             (:meta
+               :name "viewport"
+               :content "width=device-width, initial-scale=1")
+             (:title (sf "~A - ~A - Fileworthy" title (app-name *app*)))
+             (:link :rel "shortcut icon" :href "/images/favicon.ico")
+             (:link
+               :href "/deps/font-awesome/css/font-awesome.min.css"
+               :rel "stylesheet"
+               :type "text/css")
+             (:link :href "/css/main.css" :rel "stylesheet")
+             (:script :src "/deps/lodash/lodash.min.js" "")
+             (:script :src "/deps/momentjs/moment.min.js" "")
+             (:script :src "/deps/markedjs/marked.min.js" ""))
+           (:body
+             ;; Top Bar
+             (:header :id "top-bar"
+              (:a :id "app-name" :href "/"
+               (app-name *app*))
+              (:a :id "project-name" :href "/"
+               "Fileworthy "
+               (:span
+                 :id "version"
+                 :title (sf "Updated ~A" (app-last-updated *app*))
+                 (sf "~A" (app-version *app*))))
+              (:div :class "clear-fix"))
+             ;; Root Folder List
+             (:nav
+               (:ul :id "folders" :class "folder-names"
+                (:li
+                  (:a :id "root-folder" :href "/" :title "Root"
+                   (:i :class "fa fa-folder-open" "")))
+                (loop
+                  for dir-name in (get-dir-names)
+                  collect (markup
+                            (:li
+                              (:a
+                                :class
+                                (if (string-equal first-path-seg dir-name)
+                                  "selected"
+                                  nil)
+                                :href (sf "/~A/" dir-name)
+                                (string-capitalize dir-name)))))))
+             (:main
+               (raw content))
+             (:script :src "/js/main.js" "")))))
 
 
 ```
@@ -597,10 +606,11 @@
 * This is the standard 404 (not found) page.
 
 ```lisp
-(defun page-error-not-found ()
+(defun page-error-not-found (params)
   "Not Found error page."
   (setf (lack.response:response-status *response*) 404)
   (page-template
+    params
     "Not Found"
     (markup
       (:h2 "Not Found")
@@ -627,6 +637,7 @@
       ((file-exists-p abs-fs-path)
        (setf file-content (get-file-content abs-fs-path))    
        (page-template
+         params
          rel-fs-path
          (markup
            (:p
@@ -643,6 +654,7 @@
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
        (page-template
+         params
          (if (empty? (to-string rel-fs-path)) "Home" rel-fs-path)
          (markup
            (:p
@@ -657,7 +669,7 @@
               collect (markup
                         (:li (:a :href item item))))))))
       ;; Path Not Found
-      (t (page-error-not-found)))))
+      (t (page-error-not-found params)))))
 
 (defun get-fs-path-from-url (params)
   "Gets an absolute local file-system path from the given Ningle `PARAMS` object."

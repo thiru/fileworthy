@@ -645,6 +645,10 @@ a <em>stream of conciousness</em> flow</li>
 <ul>
 <li>This function defines the template all pages will use</li>
 <li>Parameters:<ul>
+<li><code>PARAMS</code><ul>
+<li>the Ningle URL PARAMS object</li>
+</ul>
+</li>
 <li><code>TITLE</code><ul>
 <li>the title of the page</li>
 <li>note that the given title is<ul>
@@ -663,62 +667,70 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun page-template (title content)
+<pre><code class="lang-lisp">(defun page-template (params title content)
   &quot;Base template for all web pages.&quot;
-  (html5 :lang &quot;en&quot;
-         (:head
-           (:meta :charset &quot;utf-8&quot;)
-           (:meta :http-equiv &quot;X-UA-Compatible&quot; :content &quot;IE=edge&quot;)
-           (:meta
-             :name &quot;viewport&quot;
-             :content &quot;width=device-width, initial-scale=1&quot;)
-           (:title (sf &quot;~A - ~A - Fileworthy&quot; title (app-name *app*)))
-           (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
-           (:link
-             :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
-             :rel &quot;stylesheet&quot;
-             :type &quot;text/css&quot;)
-           (:link :href &quot;/css/main.css&quot; :rel &quot;stylesheet&quot;)
-           (:script :src &quot;/deps/lodash/lodash.min.js&quot; &quot;&quot;)
-           (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
-           (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
-         (:body
-           ;; Top Purple Bar
-           (:header :id &quot;top-bar&quot;
-            (:a :id &quot;app-name&quot; :href &quot;/&quot;
-             (app-name *app*))
-            (:a :id &quot;project-name&quot; :href &quot;/&quot;
-             &quot;Fileworthy &quot;
-             (:span
-               :id &quot;version&quot;
-               :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
-               (sf &quot;~A&quot; (app-version *app*))))
-            (:div :class &quot;clear-fix&quot;))
-           ;; Root Folder List
-           (:nav
-             (:ul :id &quot;folders&quot; :class &quot;folder-names&quot;
-              (:li
-                (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Root&quot;
-                 (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)))
-              (loop
-                for item in (get-dir-names)
-                collect (markup
-                          (:li
-                            (:a
-                              :href (sf &quot;/~A/&quot; item)
-                              (string-capitalize item)))))))
-           (:main
-             (raw content))
-           (:script :src &quot;/js/main.js&quot; &quot;&quot;))))
+  (let* ((path-name (get-url-pathname params))
+         (path-segs (split-sequence #\/ path-name))
+         (first-path-seg (first path-segs)))
+    (html5 :lang &quot;en&quot;
+           (:head
+             (:meta :charset &quot;utf-8&quot;)
+             (:meta :http-equiv &quot;X-UA-Compatible&quot; :content &quot;IE=edge&quot;)
+             (:meta
+               :name &quot;viewport&quot;
+               :content &quot;width=device-width, initial-scale=1&quot;)
+             (:title (sf &quot;~A - ~A - Fileworthy&quot; title (app-name *app*)))
+             (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
+             (:link
+               :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
+               :rel &quot;stylesheet&quot;
+               :type &quot;text/css&quot;)
+             (:link :href &quot;/css/main.css&quot; :rel &quot;stylesheet&quot;)
+             (:script :src &quot;/deps/lodash/lodash.min.js&quot; &quot;&quot;)
+             (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
+             (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
+           (:body
+             ;; Top Bar
+             (:header :id &quot;top-bar&quot;
+              (:a :id &quot;app-name&quot; :href &quot;/&quot;
+               (app-name *app*))
+              (:a :id &quot;project-name&quot; :href &quot;/&quot;
+               &quot;Fileworthy &quot;
+               (:span
+                 :id &quot;version&quot;
+                 :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
+                 (sf &quot;~A&quot; (app-version *app*))))
+              (:div :class &quot;clear-fix&quot;))
+             ;; Root Folder List
+             (:nav
+               (:ul :id &quot;folders&quot; :class &quot;folder-names&quot;
+                (:li
+                  (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Root&quot;
+                   (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)))
+                (loop
+                  for dir-name in (get-dir-names)
+                  collect (markup
+                            (:li
+                              (:a
+                                :class
+                                (if (string-equal first-path-seg dir-name)
+                                  &quot;selected&quot;
+                                  nil)
+                                :href (sf &quot;/~A/&quot; dir-name)
+                                (string-capitalize dir-name)))))))
+             (:main
+               (raw content))
+             (:script :src &quot;/js/main.js&quot; &quot;&quot;)))))
 </code></pre>
 <h3 id="-page-error-not-found-"><code>PAGE-ERROR-NOT-FOUND</code></h3>
 <ul>
 <li>This is the standard 404 (not found) page.</li>
 </ul>
-<pre><code class="lang-lisp">(defun page-error-not-found ()
+<pre><code class="lang-lisp">(defun page-error-not-found (params)
   &quot;Not Found error page.&quot;
   (setf (lack.response:response-status *response*) 404)
   (page-template
+    params
     &quot;Not Found&quot;
     (markup
       (:h2 &quot;Not Found&quot;)
@@ -740,6 +752,7 @@ a <em>stream of conciousness</em> flow</li>
       ((file-exists-p abs-fs-path)
        (setf file-content (get-file-content abs-fs-path))    
        (page-template
+         params
          rel-fs-path
          (markup
            (:p
@@ -756,6 +769,7 @@ a <em>stream of conciousness</em> flow</li>
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
        (page-template
+         params
          (if (empty? (to-string rel-fs-path)) &quot;Home&quot; rel-fs-path)
          (markup
            (:p
@@ -770,7 +784,7 @@ a <em>stream of conciousness</em> flow</li>
               collect (markup
                         (:li (:a :href item item))))))))
       ;; Path Not Found
-      (t (page-error-not-found)))))
+      (t (page-error-not-found params)))))
 
 (defun get-fs-path-from-url (params)
   &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;

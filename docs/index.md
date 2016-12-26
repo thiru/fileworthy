@@ -563,9 +563,9 @@
          (:body
            ;; Top Purple Bar
            (:header :id "top-bar"
-            (:div :id "app-name"
+            (:a :id "app-name" :href "/"
              (app-name *app*))
-            (:div :id "project-name"
+            (:a :id "project-name" :href "/"
              "Fileworthy "
              (:span
                :id "version"

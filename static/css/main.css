@@ -132,6 +132,14 @@ main
   color: white;
   padding: 0.3rem 1rem;
 }
+#top-bar *
+{
+  color: white;
+}
+#top-bar a:hover
+{
+  background-color: inherit;
+}
 #app-name
 {
   float: left;

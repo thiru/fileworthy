@@ -707,6 +707,23 @@ a <em>stream of conciousness</em> flow</li>
              (raw content))
            (:script :src &quot;/js/main.js&quot; &quot;&quot;))))
 </code></pre>
+<h3 id="-page-error-not-found-"><code>PAGE-ERROR-NOT-FOUND</code></h3>
+<ul>
+<li>This is the standard 404 (not found) page.</li>
+</ul>
+<pre><code class="lang-lisp">(defun page-error-not-found ()
+  &quot;Not Found error page.&quot;
+  (setf (lack.response:response-status *response*) 404)
+  (page-template
+    &quot;Not Found&quot;
+    (markup
+      (:h2 &quot;Not Found&quot;)
+      (:p &quot;The page or resource you requested could not be found.&quot;)
+      (:p
+        (:a :href &quot;/&quot;
+         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+         (:b &quot; Go back to the home page&quot;))))))
+</code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
@@ -748,7 +765,8 @@ a <em>stream of conciousness</em> flow</li>
               for item in file-names
               collect (markup
                         (:li (:a :href item item))))))))
-      (t (markup (:div &quot;TODO: not found page&quot;))))))
+      ;; Path Not Found
+      (t (page-error-not-found)))))
 
 (defun get-fs-path-from-url (params)
   &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;

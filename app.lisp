@@ -538,6 +538,24 @@
            (:script :src "/js/main.js" ""))))
 
 #||
+### `PAGE-ERROR-NOT-FOUND`
+
+* This is the standard 404 (not found) page.
+||#
+(defun page-error-not-found ()
+  "Not Found error page."
+  (setf (lack.response:response-status *response*) 404)
+  (page-template
+    "Not Found"
+    (markup
+      (:h2 "Not Found")
+      (:p "The page or resource you requested could not be found.")
+      (:p
+        (:a :href "/"
+         (:i :class "fa fa-home" "")
+         (:b " Go back to the home page"))))))
+
+#||
 ### `PAGE-FS-PATH`
 ||#
 (defun page-fs-path (params)
@@ -580,7 +598,8 @@
               for item in file-names
               collect (markup
                         (:li (:a :href item item))))))))
-      (t (markup (:div "TODO: not found page"))))))
+      ;; Path Not Found
+      (t (page-error-not-found)))))
 
 (defun get-fs-path-from-url (params)
   "Gets an absolute local file-system path from the given Ningle `PARAMS` object."

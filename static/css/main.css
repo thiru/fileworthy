@@ -136,28 +136,27 @@ main
   font-size: 0.8rem;
 }
 
-.path-names
+.folder-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
-  /*border-bottom: solid 1px #C8BAD2; /* VAR PURPLE-LIGHT */
   padding: 0.1rem 1rem;
   margin-top: 0.1rem;
 }
-.path-names li
+.folder-names li
 {
   display: inline-block;
 }
-.path-names li a
+.folder-names li a
 {
   display: inline-block;
   padding: 0.3rem 0.5rem;
 }
-.path-names li a:hover
+.folder-names li a:hover
 {
   background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
   color: #333853; /* VAR PURPLE-DARK */
 }
-.path-names li a:active
+.folder-names li a:active
 {
   font-weight: bold;
 }
@@ -173,9 +172,38 @@ main
 
 /* ========== Template [END] ========== */
 
-/* ========== File Content Page [START] ========== */
-#raw-file-content pre
+/* ========== File Contents Page [START] ========== */
+
+.file-names
 {
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  overflow-x: scroll;
+  width: 20%;
+}
+.file-names li a
+{
+  display: block;
+  padding: 0.3rem 0.5rem;
+}
+.file-names li a:hover
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  color: #333853; /* VAR PURPLE-DARK */
+}
+.file-names li a:active
+{
+  font-weight: bold;
+}
+
+#raw-file-content,
+#gen-file-content
+{
+  width: 80%;
+}
+#raw-file-content
+{
+  margin: 0;
   white-space: pre-wrap;
 }
-/* ========== File Content Page [END] ========== */
+
+/* ========== File Contents Page [END] ========== */

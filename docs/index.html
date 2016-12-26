@@ -614,21 +614,6 @@ a <em>stream of conciousness</em> flow</li>
        (uiop/filesystem:directory-files
          (or parent (app-base-dir *app*)))))
 </code></pre>
-<h3 id="-get-url-pathname-"><code>GET-URL-PATHNAME</code></h3>
-<pre><code class="lang-lisp">(defun get-url-pathname (params)
-  &quot;Get the URL path name of the Ningle `PARAMS` object that is passed in to route
-   handling functions.&quot;
-  (first (cdr (assoc :splat params))))
-</code></pre>
-<h3 id="-get-fs-path-from-url-"><code>GET-FS-PATH-FROM-URL</code></h3>
-<pre><code class="lang-lisp">(defun get-fs-path-from-url (params)
-  &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;
-  (if (empty? params)
-    (return-from get-fs-path-from-url nil))
-  (let* ((path (merge-pathnames* (get-url-pathname params))))
-    (if (subpathp path (app-base-dir *app*))
-      path)))
-</code></pre>
 <h3 id="-get-file-content-"><code>GET-FILE-CONTENT</code></h3>
 <pre><code class="lang-lisp">(defun get-file-content (path)
   &quot;Get file contents of `PATH`.&quot;
@@ -648,9 +633,6 @@ a <em>stream of conciousness</em> flow</li>
 <pre><code class="lang-lisp">
 (defun define-routes ()
   &quot;Define web resource routes.&quot;
-
-  ;; Home page
-  (setf (route *web* &quot;/&quot; :method :GET) #&#39;page-home)
 
   ;; File-system path page
   (setf (route *web* &quot;/*&quot; :method :GET) #&#39;page-fs-path))
@@ -712,7 +694,7 @@ a <em>stream of conciousness</em> flow</li>
                (sf &quot;~A&quot; (app-version *app*))))
             (:div :class &quot;clear-fix&quot;))
            (:nav
-             (:ul :id &quot;folders&quot; :class &quot;path-names&quot;
+             (:ul :id &quot;folders&quot; :class &quot;folder-names&quot;
               (:li
                 (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Folders&quot;
                  (:i :class &quot;fa fa-folder&quot; &quot;&quot;)))
@@ -720,52 +702,65 @@ a <em>stream of conciousness</em> flow</li>
                 for item in (get-dir-names)
                 collect (markup
                           (:li
-                            (:a :href (sf &quot;~A/&quot; item) item)))))
-             (:ul :id &quot;files&quot; :class &quot;path-names&quot;
-              (:li
-                (:a :id &quot;root-file&quot; :href &quot;javascript:void(0)&quot; :title &quot;Files&quot;
-                 (:i :class &quot;fa fa-file&quot; &quot;&quot;)))
-              (loop
-                for item in (get-file-names)
-                collect (markup
-                          (:li (:a :href item item))))))
+                            (:a :href (sf &quot;~A/&quot; item) item))))))
            (:main
              (raw content))
            (:script :src &quot;/js/main.js&quot; &quot;&quot;))))
-</code></pre>
-<h3 id="-page-home-"><code>PAGE-HOME</code></h3>
-<pre><code class="lang-lisp">(defun page-home (params)
-  &quot;Home page.&quot;
-  (declare (ignore params))
-  (page-template &quot;Home&quot; (markup (:p &quot;TODO: Home page&quot;))))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
   (let* ((abs-fs-path (get-fs-path-from-url params))
          (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
-         (file-content &quot;&quot;))
-    (cond ((file-exists-p abs-fs-path) ; Show file info
-           (setf file-content (get-file-content abs-fs-path))    
-           (page-template
-             rel-fs-path
-             (markup
-               (:p
-                 (:i :class &quot;fa fa-file&quot; &quot;&quot;)
-                 (:span &quot; &quot;)
-                 (:span :id &quot;file-path&quot; rel-fs-path))
-               (:div :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
-                (:pre file-content))
-               (:div :id &quot;gen-file-content&quot;))))
-          ((directory-exists-p abs-fs-path)
-           (page-template
-             rel-fs-path
-             (markup
-               (:p
-                 (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)
-                 (:span &quot; &quot;)
-                 (:span (string-trim &#39;(#\/) (to-string rel-fs-path))))
-               (:div &quot;TODO: show file listing for this directory&quot;))))
-          (t (markup (:div &quot;TODO: not found page&quot;))))))
+         (file-content &quot;&quot;)
+         (file-names (get-file-names abs-fs-path)))
+    (cond
+      ;; Show File
+      ((file-exists-p abs-fs-path)
+       (setf file-content (get-file-content abs-fs-path))    
+       (page-template
+         rel-fs-path
+         (markup
+           (:p
+             (:i :class &quot;fa fa-file&quot; &quot;&quot;)
+             (:span &quot; &quot;)
+             (:span :id &quot;file-path&quot; rel-fs-path))
+           (:ul :id &quot;files&quot; :class &quot;file-names col&quot;
+            (loop
+              for item in file-names
+              collect (markup
+                        (:li (:a :href item item)))))
+           (:pre :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content)
+           (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
+      ;; Show Directory
+      ((directory-exists-p abs-fs-path)
+       (page-template
+         (if (empty? (to-string rel-fs-path)) &quot;Home&quot; rel-fs-path)
+         (markup
+           (:p
+             (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)
+             (:span &quot; &quot;)
+             (:span (if (empty? (to-string rel-fs-path))
+                      &quot;/&quot;
+                      (to-string rel-fs-path))))
+           (:ul :id &quot;files&quot; :class &quot;file-names&quot;
+            (loop
+              for item in file-names
+              collect (markup
+                        (:li (:a :href item item))))))))
+      (t (markup (:div &quot;TODO: not found page&quot;))))))
+
+(defun get-fs-path-from-url (params)
+  &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;
+  (if (empty? params)
+    (return-from get-fs-path-from-url nil))
+  (let* ((path (merge-pathnames* (get-url-pathname params))))
+    (if (subpathp path (app-base-dir *app*))
+      path)))
+
+(defun get-url-pathname (params)
+  &quot;Get the URL path name of the Ningle `PARAMS` object that is passed in to route
+   handling functions.&quot;
+  (first (cdr (assoc :splat params))))
 </code></pre>
   </body></html>

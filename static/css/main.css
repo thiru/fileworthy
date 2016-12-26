@@ -39,7 +39,18 @@ body
 a
 {
   color: #333853; /* VAR PURPLE-DARK */
+  padding: 0.1rem;
   text-decoration: none;
+}
+a:hover
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  color: #333853; /* VAR PURPLE-DARK */
+}
+a:active
+{
+  background-color: #333853; /* VAR PURPLE-DARK */
+  color: white;
 }
 
 h2, h3, h4, h5, h6
@@ -139,8 +150,9 @@ main
 .folder-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
-  padding: 0.1rem 1rem;
-  margin-top: 0.1rem;
+  padding: 0 1rem;
+  font-size: 1.5rem;
+  text-align: center;
 }
 .folder-names li
 {
@@ -149,25 +161,7 @@ main
 .folder-names li a
 {
   display: inline-block;
-  padding: 0.3rem 0.5rem;
-}
-.folder-names li a:hover
-{
-  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
-  color: #333853; /* VAR PURPLE-DARK */
-}
-.folder-names li a:active
-{
-  font-weight: bold;
-}
-
-#root-folder, #root-file
-{
-  color: #C8BAD2; /* VAR PURPLE-LIGHT */
-}
-#root-folder:hover, #root-file:hover
-{
-  color: #333853; /* VAR PURPLE-DARK */
+  padding: 0.5rem 1rem;
 }
 
 /* ========== Template [END] ========== */
@@ -184,15 +178,6 @@ main
 {
   display: block;
   padding: 0.3rem 0.5rem;
-}
-.file-names li a:hover
-{
-  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
-  color: #333853; /* VAR PURPLE-DARK */
-}
-.file-names li a:active
-{
-  font-weight: bold;
 }
 
 #raw-file-content,

@@ -683,6 +683,7 @@ a <em>stream of conciousness</em> flow</li>
            (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
            (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
          (:body
+           ;; Top Purple Bar
            (:header :id &quot;top-bar&quot;
             (:div :id &quot;app-name&quot;
              (app-name *app*))
@@ -693,16 +694,19 @@ a <em>stream of conciousness</em> flow</li>
                :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
                (sf &quot;~A&quot; (app-version *app*))))
             (:div :class &quot;clear-fix&quot;))
+           ;; Root Folder List
            (:nav
              (:ul :id &quot;folders&quot; :class &quot;folder-names&quot;
               (:li
-                (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Folders&quot;
-                 (:i :class &quot;fa fa-folder&quot; &quot;&quot;)))
+                (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Root&quot;
+                 (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)))
               (loop
                 for item in (get-dir-names)
                 collect (markup
                           (:li
-                            (:a :href (sf &quot;~A/&quot; item) item))))))
+                            (:a
+                              :href (sf &quot;/~A/&quot; item)
+                              (string-capitalize item)))))))
            (:main
              (raw content))
            (:script :src &quot;/js/main.js&quot; &quot;&quot;))))

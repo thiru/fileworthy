@@ -513,6 +513,7 @@
            (:script :src "/deps/momentjs/moment.min.js" "")
            (:script :src "/deps/markedjs/marked.min.js" ""))
          (:body
+           ;; Top Purple Bar
            (:header :id "top-bar"
             (:div :id "app-name"
              (app-name *app*))
@@ -523,16 +524,19 @@
                :title (sf "Updated ~A" (app-last-updated *app*))
                (sf "~A" (app-version *app*))))
             (:div :class "clear-fix"))
+           ;; Root Folder List
            (:nav
              (:ul :id "folders" :class "folder-names"
               (:li
-                (:a :id "root-folder" :href "/" :title "Folders"
-                 (:i :class "fa fa-folder" "")))
+                (:a :id "root-folder" :href "/" :title "Root"
+                 (:i :class "fa fa-folder-open" "")))
               (loop
                 for item in (get-dir-names)
                 collect (markup
                           (:li
-                            (:a :href (sf "~A/" item) item))))))
+                            (:a
+                              :href (sf "/~A/" item)
+                              (string-capitalize item)))))))
            (:main
              (raw content))
            (:script :src "/js/main.js" ""))))

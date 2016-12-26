@@ -181,8 +181,6 @@
   * Easy way to generate HTML in Lisp-friendly syntax
 * [CL-PPCRE](http://weitz.de/cl-ppcre/)
   * Defacto regular expression library
-* [GLU](https://github.com/thiru/glu)
-  * My own Common Lisp utility library
 * [LOCAL-TIME](https://common-lisp.net/project/local-time/)
   * Easily manipulate and display date and times
 * [Ningle](https://github.com/fukamachi/ningle)

@@ -653,12 +653,12 @@
       ((directory-exists-p abs-fs-path)
        (page-template
          params
-         (if (empty? (to-string rel-fs-path)) "Home" rel-fs-path)
+         (if (empty? rel-fs-path) "Home" rel-fs-path)
          (markup
            (:p
              (:i :class "fa fa-folder-open" "")
              (:span " ")
-             (:span (if (empty? (to-string rel-fs-path))
+             (:span (if (empty? rel-fs-path)
                       "/"
                       (to-string rel-fs-path))))
            (:ul :id "files" :class "file-names"

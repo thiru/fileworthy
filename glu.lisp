@@ -57,9 +57,10 @@
   `(setf (slot-value ,obj ',slot) ,val))
 
 (defmacro empty? (val)
-  "Determine whether 'val' is considered empty. I.e. is an empty sequence
-  or an empty string."
+  "Determine whether 'val' is considered empty. I.e. is null, an empty
+   sequence, string or path."
   `(or (null ,val)
+       (and (typep ,val 'PATHNAME) (= 0 (length (princ-to-string ,val))))
        (and (listp ,val) (= 0 (length ,val)))
        (and (stringp ,val) (= 0 (length, val)))))
 

@@ -766,12 +766,12 @@ a <em>stream of conciousness</em> flow</li>
       ((directory-exists-p abs-fs-path)
        (page-template
          params
-         (if (empty? (to-string rel-fs-path)) &quot;Home&quot; rel-fs-path)
+         (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
          (markup
            (:p
              (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)
              (:span &quot; &quot;)
-             (:span (if (empty? (to-string rel-fs-path))
+             (:span (if (empty? rel-fs-path)
                       &quot;/&quot;
                       (to-string rel-fs-path))))
            (:ul :id &quot;files&quot; :class &quot;file-names&quot;

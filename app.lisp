@@ -522,15 +522,21 @@
                :name "viewport"
                :content "width=device-width, initial-scale=1")
              (:title (sf "~A - ~A - Fileworthy" title (app-name *app*)))
-             (:link :rel "shortcut icon" :href "/images/favicon.ico")
+
+             (:link :href "/images/favicon.ico" :rel "shortcut icon")
              (:link
                :href "/deps/font-awesome/css/font-awesome.min.css"
                :rel "stylesheet"
                :type "text/css")
+             (:link
+               :href "/deps/highlightjs/styles/github.css"
+               :rel "stylesheet")
              (:link :href "/css/main.css" :rel "stylesheet")
+
              (:script :src "/deps/lodash/lodash.min.js" "")
              (:script :src "/deps/momentjs/moment.min.js" "")
-             (:script :src "/deps/markedjs/marked.min.js" ""))
+             (:script :src "/deps/markedjs/marked.min.js" "")
+             (:script :src "/deps/highlightjs/highlight.pack.js" ""))
            (:body
              ;; Top Bar
              (:header :id "top-bar"
@@ -657,7 +663,8 @@
                               nil)
                             :href file-path
                             file-path)))))
-           (:pre :id "raw-file-content" :class "col hidden" file-content)
+           (:pre
+             (:code :id "raw-file-content" :class "col hidden" file-content))
            (:div :id "gen-file-content" :class "col"))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
@@ -686,7 +693,8 @@
                               nil)
                             :href file-path
                             file-path)))))
-           (:pre :id "raw-file-content" :class "col hidden" file-content)
+           (:pre
+             (:code :id "raw-file-content" :class "col hidden" file-content))
            (:div :id "gen-file-content" :class "col"))))
       ;; Path Not Found
       (t (page-error-not-found params)))))

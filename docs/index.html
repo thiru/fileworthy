@@ -692,15 +692,21 @@ a <em>stream of conciousness</em> flow</li>
                :name &quot;viewport&quot;
                :content &quot;width=device-width, initial-scale=1&quot;)
              (:title (sf &quot;~A - ~A - Fileworthy&quot; title (app-name *app*)))
-             (:link :rel &quot;shortcut icon&quot; :href &quot;/images/favicon.ico&quot;)
+
+             (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
                :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
                :rel &quot;stylesheet&quot;
                :type &quot;text/css&quot;)
+             (:link
+               :href &quot;/deps/highlightjs/styles/github.css&quot;
+               :rel &quot;stylesheet&quot;)
              (:link :href &quot;/css/main.css&quot; :rel &quot;stylesheet&quot;)
+
              (:script :src &quot;/deps/lodash/lodash.min.js&quot; &quot;&quot;)
              (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
-             (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;))
+             (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;)
+             (:script :src &quot;/deps/highlightjs/highlight.pack.js&quot; &quot;&quot;))
            (:body
              ;; Top Bar
              (:header :id &quot;top-bar&quot;
@@ -826,7 +832,8 @@ a <em>stream of conciousness</em> flow</li>
                               nil)
                             :href file-path
                             file-path)))))
-           (:pre :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content)
+           (:pre
+             (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
            (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
@@ -855,7 +862,8 @@ a <em>stream of conciousness</em> flow</li>
                               nil)
                             :href file-path
                             file-path)))))
-           (:pre :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content)
+           (:pre
+             (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
            (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
       ;; Path Not Found
       (t (page-error-not-found params)))))

@@ -1,4 +1,5 @@
 displayFileContent();
+hljs.initHighlightingOnLoad();
 
 function displayFileContent() {
   var filePath = document.querySelector('#files .selected').innerText.trim();

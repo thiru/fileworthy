@@ -666,7 +666,7 @@ a <em>stream of conciousness</em> flow</li>
 <pre><code class="lang-lisp">(defun page-template (params title content)
   &quot;Base template for all web pages.&quot;
   (let* ((path-name (get-url-pathname params))
-         (path-segs (split-sequence #\/ path-name))
+         (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang &quot;en&quot;
            (:head
@@ -697,26 +697,67 @@ a <em>stream of conciousness</em> flow</li>
                  :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
                  (sf &quot;~A&quot; (app-version *app*))))
               (:div :class &quot;clear-fix&quot;))
-             ;; Root Folder List
              (:nav
-               (:ul :id &quot;folders&quot; :class &quot;folder-names&quot;
+               ;; Root Folders
+               (:ul :id &quot;root-folder-names&quot;
                 (:li
                   (:a :id &quot;root-folder&quot; :href &quot;/&quot; :title &quot;Root&quot;
                    (:i :class &quot;fa fa-folder-open&quot; &quot;&quot;)))
                 (loop
-                  for dir-name in (get-dir-names)
-                  collect (markup
+                  :for dir-name :in (get-dir-names)
+                  :collect (markup
                             (:li
                               (:a
                                 :class
-                                (if (string-equal first-path-seg dir-name)
+                                (if (string= first-path-seg dir-name)
                                   &quot;selected&quot;
                                   nil)
                                 :href (sf &quot;/~A/&quot; dir-name)
-                                (string-capitalize dir-name)))))))
+                                (string-capitalize dir-name))))))
+               ;; Sub-folders
+               (let* ((expanded-dirs (expand-all-folders path-name))
+                      (sub-dir-name-lst (map &#39;list
+                                        (λ (sub-dir) (get-dir-names sub-dir))
+                                        expanded-dirs)))
+                 (loop :for sub-dir-names :in sub-dir-name-lst
+                       :for i :from 0
+                       :collect
+                       (markup
+                         (:ul :class &quot;sub-folder-names&quot;
+                          (loop :for dir-name :in sub-dir-names
+                                :collect
+                                (markup
+                                  (:li
+                                    (:a
+                                      :class
+                                      (if (string= dir-name
+                                                   (nth (1+ i) path-segs))
+                                        &quot;selected&quot;
+                                        nil)
+                                      :href (sf &quot;/~A/~A/&quot;
+                                                (nth i expanded-dirs)
+                                                dir-name)
+                                      dir-name)))))))))
              (:main
                (raw content))
              (:script :src &quot;/js/main.js&quot; &quot;&quot;)))))
+</code></pre>
+<ul>
+<li>An example call of the following is:<ul>
+<li>&quot;root/sub1/sub1a&quot; ==&gt; &#39;(&quot;root&quot;, &quot;root/sub1&quot;, &quot;root/sub1/sub1a&quot;)</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun expand-all-folders (path-name)
+  &quot;Expand all the path segments in PATH-NAME to a list of sub-folders.&quot;
+  (let* ((path-name (string-trim &#39;(#\/) (or path-name &quot;&quot;))))
+    (if (empty? path-name)
+      (return-from expand-all-folders nil))
+    (loop :for c :across path-name
+          :for i :from 0
+          :when (char= #\/ c)
+          :collect (subseq path-name 0 i) :into lst
+          :finally (return (append lst (list path-name))))))
 </code></pre>
 <h3 id="-page-error-not-found-"><code>PAGE-ERROR-NOT-FOUND</code></h3>
 <ul>
@@ -795,4 +836,4 @@ a <em>stream of conciousness</em> flow</li>
    handling functions.&quot;
   (first (cdr (assoc :splat params))))
 </code></pre>
-  </body></html>
+   </body></html>

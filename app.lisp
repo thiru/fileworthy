@@ -496,7 +496,7 @@
 (defun page-template (params title content)
   "Base template for all web pages."
   (let* ((path-name (get-url-pathname params))
-         (path-segs (split-sequence #\/ path-name))
+         (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang "en"
            (:head
@@ -527,27 +527,66 @@
                  :title (sf "Updated ~A" (app-last-updated *app*))
                  (sf "~A" (app-version *app*))))
               (:div :class "clear-fix"))
-             ;; Root Folder List
              (:nav
-               (:ul :id "folders" :class "folder-names"
+               ;; Root Folders
+               (:ul :id "root-folder-names"
                 (:li
                   (:a :id "root-folder" :href "/" :title "Root"
                    (:i :class "fa fa-folder-open" "")))
                 (loop
-                  for dir-name in (get-dir-names)
-                  collect (markup
+                  :for dir-name :in (get-dir-names)
+                  :collect (markup
                             (:li
                               (:a
                                 :class
-                                (if (string-equal first-path-seg dir-name)
+                                (if (string= first-path-seg dir-name)
                                   "selected"
                                   nil)
                                 :href (sf "/~A/" dir-name)
-                                (string-capitalize dir-name)))))))
+                                (string-capitalize dir-name))))))
+               ;; Sub-folders
+               (let* ((expanded-dirs (expand-all-folders path-name))
+                      (sub-dir-name-lst (map 'list
+                                        (λ (sub-dir) (get-dir-names sub-dir))
+                                        expanded-dirs)))
+                 (loop :for sub-dir-names :in sub-dir-name-lst
+                       :for i :from 0
+                       :collect
+                       (markup
+                         (:ul :class "sub-folder-names"
+                          (loop :for dir-name :in sub-dir-names
+                                :collect
+                                (markup
+                                  (:li
+                                    (:a
+                                      :class
+                                      (if (string= dir-name
+                                                   (nth (1+ i) path-segs))
+                                        "selected"
+                                        nil)
+                                      :href (sf "/~A/~A/"
+                                                (nth i expanded-dirs)
+                                                dir-name)
+                                      dir-name)))))))))
              (:main
                (raw content))
              (:script :src "/js/main.js" "")))))
 
+#||
+
+* An example call of the following is:
+  * "root/sub1/sub1a" ==> '("root", "root/sub1", "root/sub1/sub1a")
+||#
+(defun expand-all-folders (path-name)
+  "Expand all the path segments in PATH-NAME to a list of sub-folders."
+  (let* ((path-name (string-trim '(#\/) (or path-name ""))))
+    (if (empty? path-name)
+      (return-from expand-all-folders nil))
+    (loop :for c :across path-name
+          :for i :from 0
+          :when (char= #\/ c)
+          :collect (subseq path-name 0 i) :into lst
+          :finally (return (append lst (list path-name))))))
 #||
 ### `PAGE-ERROR-NOT-FOUND`
 

@@ -8,6 +8,7 @@
  * VAR CREAM = #F7EDE9
  * VAR PINK = #FBDBD8
  * VAR PURPLE-LIGHT = #C8BAD2
+ * VAR PURPLE-LIGHT2 = #E3D9EA
  * VAR PURPLE = #7479A0
  * VAR PURPLE-DARK = #333853
  * VAR BROWN = #4D464B
@@ -73,7 +74,7 @@ ul, ol
 
 .selected
 {
-  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  background-color: #E3D9EA; /* VAR PURPLE-LIGHT2 */
 }
 
 .clear-fix
@@ -160,21 +161,27 @@ main
   font-size: 0.8rem;
 }
 
-.folder-names
+#root-folder-names, .sub-folder-names
 {
-  background-color: #EFEFEF; /* VAR GREY-LIGHT */
-  padding: 0 1rem;
-  font-size: 1.5rem;
   text-align: center;
 }
-.folder-names li
+#root-folder-names
+{
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  font-size: 1.5rem;
+}
+.sub-folder-names a
+{
+  border-bottom: solid 1px #EFEFEF;
+}
+#root-folder-names li, .sub-folder-names li
 {
   display: inline-block;
 }
-.folder-names li a
+#root-folder-names li a, .sub-folder-names li a
 {
   display: inline-block;
-  padding: 0.5rem 1rem;
+  padding: 0.5em;
 }
 
 /* ========== Template [END] ========== */

@@ -611,7 +611,9 @@
 ||#
 (defun page-fs-path (params)
   "File-system path page."
-  (let* ((abs-fs-path (get-fs-path-from-url params))
+  (let* ((path-name (get-url-pathname params))
+         (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
+         (abs-fs-path (get-fs-path-from-url params))
          (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
@@ -629,9 +631,16 @@
              (:span :id "file-path" rel-fs-path))
            (:ul :id "files" :class "file-names col"
             (loop
-              for item in file-names
-              collect (markup
-                        (:li (:a :href item item)))))
+              :for file-path :in file-names
+              :collect (markup
+                        (:li
+                          (:a
+                            :class
+                            (if (string= file-path (last1 path-segs))
+                              "selected"
+                              nil)
+                            :href file-path
+                            file-path)))))
            (:pre :id "raw-file-content" :class "col hidden" file-content)
            (:div :id "gen-file-content" :class "col"))))
       ;; Show Directory
@@ -648,8 +657,8 @@
                       (to-string rel-fs-path))))
            (:ul :id "files" :class "file-names"
             (loop
-              for item in file-names
-              collect (markup
+              :for item :in file-names
+              :collect (markup
                         (:li (:a :href item item))))))))
       ;; Path Not Found
       (t (page-error-not-found params)))))

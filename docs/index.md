@@ -501,6 +501,25 @@
       data)))
 
 
+
+```
+
+## Web Utils
+
+* This section contains utility functions common to most web functionality
+
+### `EXTRACT-URL-PATHNAME`
+
+* When a route is defined via `(SETF (ROUTE ...))`
+  * the route handling function is passed a `PARAMS` object
+  * that contains details on the requested URL
+
+```lisp
+(defun extract-url-pathname (ningle-params)
+  "Get the URL path name of the given Ningle params object."
+  (first (cdr (assoc :splat ningle-params))))
+
+
 ```
 
 ## Web Resource Routes
@@ -543,7 +562,7 @@
 ```lisp
 (defun page-template (params title content)
   "Base template for all web pages."
-  (let* ((path-name (get-url-pathname params))
+  (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang "en"
@@ -668,9 +687,9 @@
 ```lisp
 (defun page-fs-path (params)
   "File-system path page."
-  (let* ((path-name (get-url-pathname params))
+  (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (get-fs-path-from-url params))
+         (abs-fs-path (get-fs-path-from-url path-name))
          (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
@@ -732,17 +751,10 @@
       ;; Path Not Found
       (t (page-error-not-found params)))))
 
-(defun get-fs-path-from-url (params)
-  "Gets an absolute local file-system path from the given Ningle `PARAMS` object."
-  (if (empty? params)
-    (return-from get-fs-path-from-url nil))
-  (let* ((path (merge-pathnames* (get-url-pathname params))))
+(defun get-fs-path-from-url (path-name)
+  "Gets an absolute local file-system path from the given path name."
+  (let* ((path (merge-pathnames* path-name)))
     (if (subpathp path (app-base-dir *app*))
       path)))
-
-(defun get-url-pathname (params)
-  "Get the URL path name of the Ningle `PARAMS` object that is passed in to route
-   handling functions."
-  (first (cdr (assoc :splat params))))
 
 ```

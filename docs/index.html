@@ -618,6 +618,22 @@ a <em>stream of conciousness</em> flow</li>
       (read-sequence data stream)
       data)))
 </code></pre>
+<h2 id="web-utils">Web Utils</h2>
+<ul>
+<li>This section contains utility functions common to most web functionality</li>
+</ul>
+<h3 id="-extract-url-pathname-"><code>EXTRACT-URL-PATHNAME</code></h3>
+<ul>
+<li>When a route is defined via <code>(SETF (ROUTE ...))</code><ul>
+<li>the route handling function is passed a <code>PARAMS</code> object</li>
+<li>that contains details on the requested URL</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun extract-url-pathname (ningle-params)
+  &quot;Get the URL path name of the given Ningle params object.&quot;
+  (first (cdr (assoc :splat ningle-params))))
+</code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
 <li>We define the routes in a function<ul>
@@ -665,7 +681,7 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <pre><code class="lang-lisp">(defun page-template (params title content)
   &quot;Base template for all web pages.&quot;
-  (let* ((path-name (get-url-pathname params))
+  (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang &quot;en&quot;
@@ -780,9 +796,9 @@ a <em>stream of conciousness</em> flow</li>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <pre><code class="lang-lisp">(defun page-fs-path (params)
   &quot;File-system path page.&quot;
-  (let* ((path-name (get-url-pathname params))
+  (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (get-fs-path-from-url params))
+         (abs-fs-path (get-fs-path-from-url path-name))
          (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
@@ -844,17 +860,10 @@ a <em>stream of conciousness</em> flow</li>
       ;; Path Not Found
       (t (page-error-not-found params)))))
 
-(defun get-fs-path-from-url (params)
-  &quot;Gets an absolute local file-system path from the given Ningle `PARAMS` object.&quot;
-  (if (empty? params)
-    (return-from get-fs-path-from-url nil))
-  (let* ((path (merge-pathnames* (get-url-pathname params))))
+(defun get-fs-path-from-url (path-name)
+  &quot;Gets an absolute local file-system path from the given path name.&quot;
+  (let* ((path (merge-pathnames* path-name)))
     (if (subpathp path (app-base-dir *app*))
       path)))
-
-(defun get-url-pathname (params)
-  &quot;Get the URL path name of the Ningle `PARAMS` object that is passed in to route
-   handling functions.&quot;
-  (first (cdr (assoc :splat params))))
 </code></pre>
    </body></html>

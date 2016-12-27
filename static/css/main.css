@@ -41,7 +41,6 @@ a
 {
   color: #333853; /* VAR PURPLE-DARK */
   padding: 0.1rem;
-  text-decoration: none;
 }
 a:hover
 {
@@ -133,6 +132,11 @@ main
   margin: 1rem;
 }
 
+nav a
+{
+  text-decoration: none;
+}
+
 #top-bar
 {
   background-color: #333853; /* VAR PURPLE-DARK */
@@ -142,6 +146,10 @@ main
 #top-bar *
 {
   color: white;
+}
+#top-bar a
+{
+  text-decoration: none;
 }
 #top-bar a:hover
 {
@@ -199,6 +207,7 @@ main
 {
   display: block;
   padding: 0.3rem 0.5rem;
+  text-decoration: none;
 }
 
 #raw-file-content,

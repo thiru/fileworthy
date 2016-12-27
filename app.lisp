@@ -269,7 +269,9 @@
 * The `APP` struct groups general, high-level app details including
   * the name of this instance of the app
     * this will default to the name of base-dir
-  * the base/root directory of the app
+  * the base/root directory of the app's source/binaries
+  * the current/working directory for the app
+    * this will be the root path from which the website is generated
   * the version of the app
   * the time the app was last updated
     * based on the last write time of the [version file](../version)
@@ -280,6 +282,7 @@
   "Contains general, high-level app details."
   (name "" :type STRING)
   (base-dir nil :type PATHNAME)
+  (working-dir nil :type PATHNAME)
   (version "0.0" :type STRING)
   (last-updated nil :type TIMESTAMP)
   (web-static-dir nil :type PATHNAME)
@@ -309,6 +312,7 @@
                   (princ-to-string (uiop/filesystem:truename* base-dir))
                   :remove-empty-subseqs t))
               :base-dir base-dir 
+              :working-dir (get-pathname-defaults)
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
@@ -421,7 +425,7 @@
 
 * This function gets a list of directory names relative to either
   * the given directory `PARENT`
-  * or the root folder as specified by `APP-BASE-DIR`
+  * or the root working folder as specified by `APP-WORKING-DIR`
 ||#
 (defun get-dir-names (&optional parent)
   "Get directory names."
@@ -430,13 +434,13 @@
           (last1 (split-sequence #\/
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
-       (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+       (uiop/filesystem:subdirectories (or parent (app-working-dir *app*)))))
 #||
 ### `GET-FILE-NAMES`
 
 * This function gets a list of file names relative to either
   * the given directory `PARENT`
-  * or the root folder as specified by `APP-BASE-DIR`
+  * or the root working folder as specified by `APP-WORKING-DIR`
 ||#
 (defun get-file-names (&optional parent)
   "Get file names."
@@ -446,7 +450,7 @@
                                  (princ-to-string abs-file)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:directory-files
-         (or parent (app-base-dir *app*)))))
+         (or parent (app-working-dir *app*)))))
 
 #||
 ### `GET-FILE-CONTENT`
@@ -636,7 +640,7 @@
   (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
-         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
+         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
     (cond
@@ -702,5 +706,5 @@
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."
   (let* ((path (merge-pathnames* path-name)))
-    (if (subpathp path (app-base-dir *app*))
+    (if (subpathp path (app-working-dir *app*))
       path)))

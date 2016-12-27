@@ -399,7 +399,11 @@ a <em>stream of conciousness</em> flow</li>
 <li>this will default to the name of base-dir</li>
 </ul>
 </li>
-<li>the base/root directory of the app</li>
+<li>the base/root directory of the app&#39;s source/binaries</li>
+<li>the current/working directory for the app<ul>
+<li>this will be the root path from which the website is generated</li>
+</ul>
+</li>
 <li>the version of the app</li>
 <li>the time the app was last updated<ul>
 <li>based on the last write time of the <a href="../version">version file</a></li>
@@ -414,6 +418,7 @@ a <em>stream of conciousness</em> flow</li>
   &quot;Contains general, high-level app details.&quot;
   (name &quot;&quot; :type STRING)
   (base-dir nil :type PATHNAME)
+  (working-dir nil :type PATHNAME)
   (version &quot;0.0&quot; :type STRING)
   (last-updated nil :type TIMESTAMP)
   (web-static-dir nil :type PATHNAME)
@@ -448,6 +453,7 @@ a <em>stream of conciousness</em> flow</li>
                   (princ-to-string (uiop/filesystem:truename* base-dir))
                   :remove-empty-subseqs t))
               :base-dir base-dir 
+              :working-dir (get-pathname-defaults)
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
@@ -579,7 +585,7 @@ a <em>stream of conciousness</em> flow</li>
 <ul>
 <li>This function gets a list of directory names relative to either<ul>
 <li>the given directory <code>PARENT</code></li>
-<li>or the root folder as specified by <code>APP-BASE-DIR</code></li>
+<li>or the root working folder as specified by <code>APP-WORKING-DIR</code></li>
 </ul>
 </li>
 </ul>
@@ -590,13 +596,13 @@ a <em>stream of conciousness</em> flow</li>
           (last1 (split-sequence #\/
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
-       (uiop/filesystem:subdirectories (or parent (app-base-dir *app*)))))
+       (uiop/filesystem:subdirectories (or parent (app-working-dir *app*)))))
 </code></pre>
 <h3 id="-get-file-names-"><code>GET-FILE-NAMES</code></h3>
 <ul>
 <li>This function gets a list of file names relative to either<ul>
 <li>the given directory <code>PARENT</code></li>
-<li>or the root folder as specified by <code>APP-BASE-DIR</code></li>
+<li>or the root working folder as specified by <code>APP-WORKING-DIR</code></li>
 </ul>
 </li>
 </ul>
@@ -608,7 +614,7 @@ a <em>stream of conciousness</em> flow</li>
                                  (princ-to-string abs-file)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:directory-files
-         (or parent (app-base-dir *app*)))))
+         (or parent (app-working-dir *app*)))))
 </code></pre>
 <h3 id="-get-file-content-"><code>GET-FILE-CONTENT</code></h3>
 <pre><code class="lang-lisp">(defun get-file-content (path)
@@ -805,7 +811,7 @@ a <em>stream of conciousness</em> flow</li>
   (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
-         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-base-dir *app*))))
+         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
     (cond
@@ -871,7 +877,7 @@ a <em>stream of conciousness</em> flow</li>
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;
   (let* ((path (merge-pathnames* path-name)))
-    (if (subpathp path (app-base-dir *app*))
+    (if (subpathp path (app-working-dir *app*))
       path)))
 </code></pre>
    </body></html>

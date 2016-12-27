@@ -814,6 +814,8 @@ a <em>stream of conciousness</em> flow</li>
            (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
+       (if (= 1 (length file-names))
+           (setf file-content (get-file-content (sf &quot;~A~A&quot; abs-fs-path (first file-names)))))
        (page-template
          params
          (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
@@ -824,11 +826,21 @@ a <em>stream of conciousness</em> flow</li>
              (:span (if (empty? rel-fs-path)
                       &quot;/&quot;
                       (to-string rel-fs-path))))
-           (:ul :id &quot;files&quot; :class &quot;file-names&quot;
+           (:ul :id &quot;files&quot; :class &quot;file-names col&quot;
             (loop
-              :for item :in file-names
+              :for file-path :in file-names
               :collect (markup
-                        (:li (:a :href item item))))))))
+                        (:li
+                          (:a
+                            :class
+                            (if (and (= 1 (length file-names))
+                                     (string= file-path (first file-names)))
+                              &quot;selected&quot;
+                              nil)
+                            :href file-path
+                            file-path)))))
+           (:pre :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content)
+           (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
       ;; Path Not Found
       (t (page-error-not-found params)))))
 

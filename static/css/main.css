@@ -75,6 +75,7 @@ ul, ol
 .selected
 {
   background-color: #E3D9EA; /* VAR PURPLE-LIGHT2 */
+  font-weight: bold;
 }
 
 .clear-fix

@@ -1,7 +1,7 @@
 displayFileContent();
 
 function displayFileContent() {
-  var filePath = document.getElementById('file-path').innerText;
+  var filePath = document.querySelector('#files .selected').innerText.trim();
   var rawFileEl = document.getElementById('raw-file-content');
 
   if (filePath && filePath.endsWith('.md')) {

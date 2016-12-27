@@ -645,6 +645,8 @@
            (:div :id "gen-file-content" :class "col"))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
+       (if (= 1 (length file-names))
+           (setf file-content (get-file-content (sf "~A~A" abs-fs-path (first file-names)))))
        (page-template
          params
          (if (empty? rel-fs-path) "Home" rel-fs-path)
@@ -655,11 +657,21 @@
              (:span (if (empty? rel-fs-path)
                       "/"
                       (to-string rel-fs-path))))
-           (:ul :id "files" :class "file-names"
+           (:ul :id "files" :class "file-names col"
             (loop
-              :for item :in file-names
+              :for file-path :in file-names
               :collect (markup
-                        (:li (:a :href item item))))))))
+                        (:li
+                          (:a
+                            :class
+                            (if (and (= 1 (length file-names))
+                                     (string= file-path (first file-names)))
+                              "selected"
+                              nil)
+                            :href file-path
+                            file-path)))))
+           (:pre :id "raw-file-content" :class "col hidden" file-content)
+           (:div :id "gen-file-content" :class "col"))))
       ;; Path Not Found
       (t (page-error-not-found params)))))
 

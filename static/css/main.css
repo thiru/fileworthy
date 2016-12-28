@@ -200,7 +200,7 @@ nav a
 .file-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
-  overflow-x: scroll;
+  overflow-x: auto;
   width: 20%;
 }
 .file-names li a

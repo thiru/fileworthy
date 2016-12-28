@@ -323,6 +323,7 @@
 (defun create-app ()
   "Create APP instance."
   (let ((base-dir (asdf:system-source-directory :fileworthy))
+        (working-dir (get-pathname-defaults))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
                             "version")))
@@ -330,10 +331,10 @@
               (last1 
                 (split-sequence
                   #\/
-                  (princ-to-string (uiop/filesystem:truename* base-dir))
+                  (princ-to-string (uiop/filesystem:truename* working-dir))
                   :remove-empty-subseqs t))
               :base-dir base-dir 
-              :working-dir (get-pathname-defaults)
+              :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp

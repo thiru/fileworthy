@@ -179,7 +179,7 @@ nav a
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
   font-size: 1.5rem;
 }
-.sub-folder-names a
+.sub-folder-names
 {
   border-bottom: solid 1px #EFEFEF;
 }

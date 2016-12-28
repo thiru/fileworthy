@@ -573,10 +573,12 @@
                ;; Sub-folders
                (let* ((expanded-dirs (expand-all-folders path-name))
                       (sub-dir-name-lst (map 'list
-                                        (λ (sub-dir) (get-dir-names sub-dir))
-                                        expanded-dirs)))
+                                             (λ (sub-dir)
+                                                (get-dir-names sub-dir))
+                                             expanded-dirs)))
                  (loop :for sub-dir-names :in sub-dir-name-lst
                        :for i :from 0
+                       :when (non-empty? sub-dir-names) 
                        :collect
                        (markup
                          (:ul :class "sub-folder-names"

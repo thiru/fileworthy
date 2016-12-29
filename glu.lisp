@@ -1,20 +1,4 @@
-(in-package :cl-user)
-
-(defpackage :glu
-  (:use :cl :local-time)
-  (:export
-    :*english-list*
-    :empty? :non-empty?
-    :labeled-time
-    :last1
-    :levels
-    :loose-parse-int
-    :r :r-data :r-level :r-message :new-r :succeeded? :failed?
-    :sf
-    :to-string
-    ))
-
-(in-package :glu)
+(in-package :fileworthy)
 
 ;;; Reader Macros --------------------------------------------------------------
 (defvar lambda-symbol-defined nil)

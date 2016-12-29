@@ -331,27 +331,20 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <h2 id="package-definition">Package Definition</h2>
 <ul>
-<li>The community recommends defining the package within <code>CL-USER</code>:</li>
-</ul>
-<pre><code class="lang-lisp">(in-package :cl-user)
-</code></pre>
-<ul>
-<li>We&#39;ll use a single package for the entire application</li>
+<li>We&#39;ll use a single package for the entire application: <code>FILEWORTHY</code></li>
 <li>I&#39;m not sure if this is a good idea<ul>
 <li>just trying out a different approach</li>
 <li>let&#39;s see how it works out</li>
 </ul>
 </li>
+<li>See <a href="../package.lisp">package.lisp</a> for the code</li>
+<li>The reason it&#39;s in a separate file is so that we can have the package
+defined before we run the source files that depend on it<ul>
+<li>e.g. <a href="../glu.lisp">glu.lisp</a></li>
 </ul>
-<pre><code class="lang-lisp">(defpackage :fileworthy
-  (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
-  (:documentation &quot;A simple website to manage your *local* notes and files across all your devices&quot;)
-  (:import-from :lack.builder
-                :builder)
-  (:import-from :ppcre
-                :scan
-                :regex-replace)
-  (:export :*app* :start :stop :restart-app))
+</li>
+</ul>
+<pre><code class="lang-lisp">
 </code></pre>
 <ul>
 <li>Switch back to the sole package of the app</li>

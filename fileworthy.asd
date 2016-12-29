@@ -10,5 +10,6 @@
   :serial t
   :depends-on (:alexandria :clack :cl-markup :cl-ppcre :local-time :ningle
                :split-sequence :uiop)
-  :components ((:file "glu")
+  :components ((:file "package")
+               (:file "glu")
                (:file "app")))

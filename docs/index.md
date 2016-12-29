@@ -207,29 +207,16 @@
 
 ## Package Definition
 
-* The community recommends defining the package within `CL-USER`:
-
-```lisp
-(in-package :cl-user)
-
-
-```
-
-* We'll use a single package for the entire application
+* We'll use a single package for the entire application: `FILEWORTHY`
 * I'm not sure if this is a good idea
   * just trying out a different approach
   * let's see how it works out
+* See [package.lisp](../package.lisp) for the code
+* The reason it's in a separate file is so that we can have the package
+  defined before we run the source files that depend on it
+  * e.g. [glu.lisp](../glu.lisp)
 
 ```lisp
-(defpackage :fileworthy
-  (:use :cl :cl-markup :ningle :glu :local-time :split-sequence :uiop)
-  (:documentation "A simple website to manage your *local* notes and files across all your devices")
-  (:import-from :lack.builder
-                :builder)
-  (:import-from :ppcre
-                :scan
-                :regex-replace)
-  (:export :*app* :start :stop :restart-app))
 
 
 ```

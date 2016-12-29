@@ -469,14 +469,22 @@
 
 * This section contains utility functions common to most web functionality
 
+### `GET-QUERY-PARAM-PAIR`
+||#
+(defun get-query-param-pair (name params)
+  "Get the query parameter pair whose name is NAME from the given Ningle
+   PARAMS alist."
+  (assoc name params :test #'string-equal))
+
+#||
 ### `EXTRACT-URL-PATHNAME`
 
 * When a route is defined via `(SETF (ROUTE ...))`
-  * the route handling function is passed a `PARAMS` object
+  * the route handling function is passed a `PARAMS` alist
   * that contains details on the requested URL
 ||#
 (defun extract-url-pathname (ningle-params)
-  "Get the URL path name of the given Ningle params object."
+  "Get the URL path name of the given Ningle params alist."
   (first (cdr (assoc :splat ningle-params))))
 
 #||
@@ -503,7 +511,7 @@
 * This function defines the template all pages will use
 * Parameters:
   * `PARAMS`
-    * the Ningle URL PARAMS object
+    * the Ningle URL PARAMS alist
   * `TITLE`
     * the title of the page
     * note that the given title is
@@ -643,12 +651,19 @@
   (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
-         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-working-dir *app*))))
+         (file-exists? (if (non-empty? abs-fs-path)
+                         (file-exists-p abs-fs-path)))
+         (rel-fs-path (if abs-fs-path
+                        (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
     (cond
+      ;; Download File
+      ((and (get-query-param-pair 'download params)
+            file-exists?)
+       abs-fs-path)
       ;; Show File
-      ((file-exists-p abs-fs-path)
+      (file-exists?
        (setf file-content (get-file-content abs-fs-path))    
        (page-template
          params
@@ -660,23 +675,29 @@
              (:span :id "file-path" rel-fs-path))
            (:ul :id "files" :class "file-names col"
             (loop
-              :for file-path :in file-names
+              :for file-name :in file-names
               :collect (markup
                         (:li
                           (:a
+                            :class "download"
+                            :href
+                            (sf "~A?download" file-name)
+                            (:i :class "fa fa-download" ""))
+                          (:a
                             :class
-                            (if (string= file-path (last1 path-segs))
+                            (if (string= file-name (last1 path-segs))
                               "selected"
                               nil)
-                            :href file-path
-                            file-path)))))
+                            :href file-name
+                            file-name)))))
            (:pre
              (:code :id "raw-file-content" :class "col hidden" file-content))
            (:div :id "gen-file-content" :class "col"))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
        (if (= 1 (length file-names))
-           (setf file-content (get-file-content (sf "~A~A" abs-fs-path (first file-names)))))
+           (setf file-content
+                 (get-file-content (sf "~A~A" abs-fs-path (first file-names)))))
        (page-template
          params
          (if (empty? rel-fs-path) "Home" rel-fs-path)
@@ -689,17 +710,21 @@
                       (to-string rel-fs-path))))
            (:ul :id "files" :class "file-names col"
             (loop
-              :for file-path :in file-names
+              :for file-name :in file-names
               :collect (markup
                         (:li
                           (:a
+                            :class "download"
+                            :href
+                            (sf "~A?download" file-name)
+                            (:i :class "fa fa-download" ""))
+                          (:a
                             :class
-                            (if (and (= 1 (length file-names))
-                                     (string= file-path (first file-names)))
+                            (if (string= file-name (last1 path-segs))
                               "selected"
                               nil)
-                            :href file-path
-                            file-path)))))
+                            :href file-name
+                            file-name)))))
            (:pre
              (:code :id "raw-file-content" :class "col hidden" file-content))
            (:div :id "gen-file-content" :class "col"))))

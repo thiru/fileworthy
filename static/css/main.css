@@ -209,6 +209,10 @@ nav a
   padding: 0.3rem 0.5rem;
   text-decoration: none;
 }
+.file-names .download
+{
+  float: left;
+}
 
 #raw-file-content,
 #gen-file-content

@@ -629,16 +629,22 @@ a <em>stream of conciousness</em> flow</li>
 <ul>
 <li>This section contains utility functions common to most web functionality</li>
 </ul>
+<h3 id="-get-query-param-pair-"><code>GET-QUERY-PARAM-PAIR</code></h3>
+<pre><code class="lang-lisp">(defun get-query-param-pair (name params)
+  &quot;Get the query parameter pair whose name is NAME from the given Ningle
+   PARAMS alist.&quot;
+  (assoc name params :test #&#39;string-equal))
+</code></pre>
 <h3 id="-extract-url-pathname-"><code>EXTRACT-URL-PATHNAME</code></h3>
 <ul>
 <li>When a route is defined via <code>(SETF (ROUTE ...))</code><ul>
-<li>the route handling function is passed a <code>PARAMS</code> object</li>
+<li>the route handling function is passed a <code>PARAMS</code> alist</li>
 <li>that contains details on the requested URL</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun extract-url-pathname (ningle-params)
-  &quot;Get the URL path name of the given Ningle params object.&quot;
+  &quot;Get the URL path name of the given Ningle params alist.&quot;
   (first (cdr (assoc :splat ningle-params))))
 </code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
@@ -665,7 +671,7 @@ a <em>stream of conciousness</em> flow</li>
 <li>This function defines the template all pages will use</li>
 <li>Parameters:<ul>
 <li><code>PARAMS</code><ul>
-<li>the Ningle URL PARAMS object</li>
+<li>the Ningle URL PARAMS alist</li>
 </ul>
 </li>
 <li><code>TITLE</code><ul>
@@ -814,12 +820,19 @@ a <em>stream of conciousness</em> flow</li>
   (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
-         (rel-fs-path (if abs-fs-path (subpathp abs-fs-path (app-working-dir *app*))))
+         (file-exists? (if (non-empty? abs-fs-path)
+                         (file-exists-p abs-fs-path)))
+         (rel-fs-path (if abs-fs-path
+                        (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
     (cond
+      ;; Download File
+      ((and (get-query-param-pair &#39;download params)
+            file-exists?)
+       abs-fs-path)
       ;; Show File
-      ((file-exists-p abs-fs-path)
+      (file-exists?
        (setf file-content (get-file-content abs-fs-path))    
        (page-template
          params
@@ -831,23 +844,29 @@ a <em>stream of conciousness</em> flow</li>
              (:span :id &quot;file-path&quot; rel-fs-path))
            (:ul :id &quot;files&quot; :class &quot;file-names col&quot;
             (loop
-              :for file-path :in file-names
+              :for file-name :in file-names
               :collect (markup
                         (:li
                           (:a
+                            :class &quot;download&quot;
+                            :href
+                            (sf &quot;~A?download&quot; file-name)
+                            (:i :class &quot;fa fa-download&quot; &quot;&quot;))
+                          (:a
                             :class
-                            (if (string= file-path (last1 path-segs))
+                            (if (string= file-name (last1 path-segs))
                               &quot;selected&quot;
                               nil)
-                            :href file-path
-                            file-path)))))
+                            :href file-name
+                            file-name)))))
            (:pre
              (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
            (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))
       ;; Show Directory
       ((directory-exists-p abs-fs-path)
        (if (= 1 (length file-names))
-           (setf file-content (get-file-content (sf &quot;~A~A&quot; abs-fs-path (first file-names)))))
+           (setf file-content
+                 (get-file-content (sf &quot;~A~A&quot; abs-fs-path (first file-names)))))
        (page-template
          params
          (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
@@ -860,17 +879,21 @@ a <em>stream of conciousness</em> flow</li>
                       (to-string rel-fs-path))))
            (:ul :id &quot;files&quot; :class &quot;file-names col&quot;
             (loop
-              :for file-path :in file-names
+              :for file-name :in file-names
               :collect (markup
                         (:li
                           (:a
+                            :class &quot;download&quot;
+                            :href
+                            (sf &quot;~A?download&quot; file-name)
+                            (:i :class &quot;fa fa-download&quot; &quot;&quot;))
+                          (:a
                             :class
-                            (if (and (= 1 (length file-names))
-                                     (string= file-path (first file-names)))
+                            (if (string= file-name (last1 path-segs))
                               &quot;selected&quot;
                               nil)
-                            :href file-path
-                            file-path)))))
+                            :href file-name
+                            file-name)))))
            (:pre
              (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
            (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;))))

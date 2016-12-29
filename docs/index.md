@@ -760,18 +760,7 @@
       params
       (if (empty? rel-fs-path) "Home" rel-fs-path)
       (markup
-        (:p
-          (:i
-            :class
-            (if dir-exists?
-              "fa fa-folder-open"
-              "fa fa-file")
-            "")
-          (:span " ")
-          (:span (if (empty? rel-fs-path)
-                   "/"
-                   (to-string rel-fs-path))))
-        (:ul :id "files" :class "file-names col"
+        (:ul :id "files" :class "file-names"
          (loop
            :for file-name :in file-names
            :collect
@@ -789,6 +778,17 @@
                    nil)
                  :href file-name
                  file-name)))))
+        (:p
+          (:i
+            :class
+            (if dir-exists?
+              "fa fa-folder-open"
+              "fa fa-file")
+            "")
+          (:span " ")
+          (:span (if (empty? rel-fs-path)
+                   "/"
+                   (to-string rel-fs-path))))
         (:section :id "file-details"
          (if binary-file?
            (raw
@@ -800,8 +800,8 @@
                  " instead.")))
            (raw (markup
                   (:pre
-                    (:code :id "raw-file-content" :class "col hidden" file-content))
-                  (:div :id "gen-file-content" :class "col")))))))))
+                    (:code :id "raw-file-content" :class "hidden" file-content))
+                  (:div :id "gen-file-content")))))))))
 
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."

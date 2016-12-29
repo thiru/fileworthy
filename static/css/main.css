@@ -200,6 +200,7 @@ nav a
 .file-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  float: right;
   overflow-x: auto;
   width: 20%;
 }
@@ -211,16 +212,11 @@ nav a
 }
 .file-names .download
 {
-  float: left;
+  float: right;
 }
 
-#file-details
-{
-  width: 80%;
-}
 #raw-file-content
 {
-  margin: 0;
   white-space: pre-wrap;
 }
 

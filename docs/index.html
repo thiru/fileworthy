@@ -871,18 +871,7 @@ defined before we run the source files that depend on it<ul>
       params
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
       (markup
-        (:p
-          (:i
-            :class
-            (if dir-exists?
-              &quot;fa fa-folder-open&quot;
-              &quot;fa fa-file&quot;)
-            &quot;&quot;)
-          (:span &quot; &quot;)
-          (:span (if (empty? rel-fs-path)
-                   &quot;/&quot;
-                   (to-string rel-fs-path))))
-        (:ul :id &quot;files&quot; :class &quot;file-names col&quot;
+        (:ul :id &quot;files&quot; :class &quot;file-names&quot;
          (loop
            :for file-name :in file-names
            :collect
@@ -900,6 +889,17 @@ defined before we run the source files that depend on it<ul>
                    nil)
                  :href file-name
                  file-name)))))
+        (:p
+          (:i
+            :class
+            (if dir-exists?
+              &quot;fa fa-folder-open&quot;
+              &quot;fa fa-file&quot;)
+            &quot;&quot;)
+          (:span &quot; &quot;)
+          (:span (if (empty? rel-fs-path)
+                   &quot;/&quot;
+                   (to-string rel-fs-path))))
         (:section :id &quot;file-details&quot;
          (if binary-file?
            (raw
@@ -911,8 +911,8 @@ defined before we run the source files that depend on it<ul>
                  &quot; instead.&quot;)))
            (raw (markup
                   (:pre
-                    (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
-                  (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;)))))))))
+                    (:code :id &quot;raw-file-content&quot; :class &quot;hidden&quot; file-content))
+                  (:div :id &quot;gen-file-content&quot;)))))))))
 
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;

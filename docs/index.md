@@ -714,85 +714,71 @@
   (let* ((path-name (extract-url-pathname params))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
-         (file-exists? (if (non-empty? abs-fs-path)
+         (dir-exists? (if (non-empty? abs-fs-path)
+                        (directory-exists-p abs-fs-path)))
+         (file-exists? (if (and (not dir-exists?)
+                                (non-empty? abs-fs-path))
                          (file-exists-p abs-fs-path)))
+         (loaded-file-name "")
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
-    (cond
-      ;; Download File
-      ((and (get-query-param-pair 'download params)
-            file-exists?)
-       abs-fs-path)
-      ;; Show File
-      (file-exists?
-       (setf file-content (get-file-content abs-fs-path))    
-       (page-template
-         params
-         rel-fs-path
-         (markup
-           (:p
-             (:i :class "fa fa-file" "")
-             (:span " ")
-             (:span :id "file-path" rel-fs-path))
-           (:ul :id "files" :class "file-names col"
-            (loop
-              :for file-name :in file-names
-              :collect (markup
-                        (:li
-                          (:a
-                            :class "download"
-                            :href
-                            (sf "~A?download" file-name)
-                            (:i :class "fa fa-download" ""))
-                          (:a
-                            :class
-                            (if (string= file-name (last1 path-segs))
-                              "selected"
-                              nil)
-                            :href file-name
-                            file-name)))))
-           (:pre
-             (:code :id "raw-file-content" :class "col hidden" file-content))
-           (:div :id "gen-file-content" :class "col"))))
-      ;; Show Directory
-      ((directory-exists-p abs-fs-path)
-       (if (= 1 (length file-names))
-           (setf file-content
-                 (get-file-content (sf "~A~A" abs-fs-path (first file-names)))))
-       (page-template
-         params
-         (if (empty? rel-fs-path) "Home" rel-fs-path)
-         (markup
-           (:p
-             (:i :class "fa fa-folder-open" "")
-             (:span " ")
-             (:span (if (empty? rel-fs-path)
-                      "/"
-                      (to-string rel-fs-path))))
-           (:ul :id "files" :class "file-names col"
-            (loop
-              :for file-name :in file-names
-              :collect (markup
-                        (:li
-                          (:a
-                            :class "download"
-                            :href
-                            (sf "~A?download" file-name)
-                            (:i :class "fa fa-download" ""))
-                          (:a
-                            :class
-                            (if (string= file-name (last1 path-segs))
-                              "selected"
-                              nil)
-                            :href file-name
-                            file-name)))))
-           (:pre
-             (:code :id "raw-file-content" :class "col hidden" file-content))
-           (:div :id "gen-file-content" :class "col"))))
-      ;; Path Not Found
-      (t (page-error-not-found params)))))
+    ;; Path not found
+    (if (and (null dir-exists?) (null file-exists?))
+      (return-from page-fs-path (page-error-not-found params)))
+    ;; Download file
+    (if (and (get-query-param-pair 'download params)
+             file-exists?)
+      (return-from page-fs-path abs-fs-path))
+    ;; File info requested
+    (when file-exists?
+      (setf loaded-file-name (last1 path-segs))
+      (setf file-content (get-file-content abs-fs-path)))
+    ;; Directory info requested, but only file file in dir so show it
+    (when (and dir-exists?
+               (= 1 (length file-names)))
+      (setf loaded-file-name (first file-names))
+      (setf file-content
+            (get-file-content (sf "~A~A"
+                                  abs-fs-path
+                                  (first file-names)))))
+    (page-template
+      params
+      (if (empty? rel-fs-path) "Home" rel-fs-path)
+      (markup
+        (:p
+          (:i
+            :class
+            (if dir-exists?
+              "fa fa-folder-open"
+              "fa fa-file")
+            "")
+          (:span " ")
+          (:span (if (empty? rel-fs-path)
+                   "/"
+                   (to-string rel-fs-path))))
+        (:ul :id "files" :class "file-names col"
+         (loop
+           :for file-name :in file-names
+           :collect
+           (markup
+             (:li
+               (:a
+                 :class "download"
+                 :href
+                 (sf "~A?download" file-name)
+                 (:i :class "fa fa-download" ""))
+               (:a
+                 :class
+                 (if (string= file-name loaded-file-name)
+                   "selected"
+                   nil)
+                 :href file-name
+                 file-name)))))
+        (:pre
+          (:code :id "raw-file-content" :class "col hidden" file-content))
+        (:div :id "gen-file-content" :class "col")))))
 
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."

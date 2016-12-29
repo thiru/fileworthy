@@ -618,6 +618,27 @@ defined before we run the source files that depend on it<ul>
       (read-sequence data stream)
       data)))
 </code></pre>
+<h3 id="-is-file-binary-"><code>IS-FILE-BINARY?</code></h3>
+<ul>
+<li>This function attempts to determine whether the given path is a binary file</li>
+<li>It does this with a very simple technique of looking for a 0 byte</li>
+<li>This technique should work with ASCII and UTF-8 files<ul>
+<li>but not UTF-16 and UTF-32</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun is-file-binary? (path)
+  &quot;Try to detect if PATH is a binary file.&quot;
+  (with-open-file (stream path
+                          :element-type &#39;(unsigned-byte 8)
+                          :if-does-not-exist nil)
+    (loop :for i :from 0
+          :for b = (read-byte stream nil nil)
+          :while b
+          :when (zerop b)
+          :do (return-from is-file-binary? t)))
+  nil)
+</code></pre>
 <h2 id="web-utils">Web Utils</h2>
 <ul>
 <li>This section contains utility functions common to most web functionality</li>
@@ -818,30 +839,34 @@ defined before we run the source files that depend on it<ul>
          (file-exists? (if (and (not dir-exists?)
                                 (non-empty? abs-fs-path))
                          (file-exists-p abs-fs-path)))
+         (binary-file? nil)
          (loaded-file-name &quot;&quot;)
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
-    ;; Path not found
+    ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
       (return-from page-fs-path (page-error-not-found params)))
     ;; Download file
     (if (and (get-query-param-pair &#39;download params)
              file-exists?)
       (return-from page-fs-path abs-fs-path))
-    ;; File info requested
+    ;; File requested
     (when file-exists?
-      (setf loaded-file-name (last1 path-segs))
-      (setf file-content (get-file-content abs-fs-path)))
-    ;; Directory info requested, but only file file in dir so show it
-    (when (and dir-exists?
-               (= 1 (length file-names)))
-      (setf loaded-file-name (first file-names))
-      (setf file-content
-            (get-file-content (sf &quot;~A~A&quot;
-                                  abs-fs-path
-                                  (first file-names)))))
+      (setf binary-file? (is-file-binary? abs-fs-path))
+      (when (not binary-file?)
+        (setf loaded-file-name (last1 path-segs))
+        (setf file-content (get-file-content abs-fs-path))))
+    ;; Directory requested, but only one file in dir so show it
+    (when (and dir-exists? (= 1 (length file-names)))
+      (setf abs-fs-path (concatenate &#39;string
+                                     (to-string abs-fs-path)
+                                     (first file-names)))
+      (setf binary-file? (is-file-binary? abs-fs-path))
+      (when (not binary-file?)
+        (setf loaded-file-name (first file-names))
+        (setf file-content (get-file-content abs-fs-path))))
     (page-template
       params
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
@@ -875,9 +900,19 @@ defined before we run the source files that depend on it<ul>
                    nil)
                  :href file-name
                  file-name)))))
-        (:pre
-          (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
-        (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;)))))
+        (:section :id &quot;file-details&quot;
+         (if binary-file?
+           (raw
+             (markup
+               (:p &quot;This appears to be a binary file, and so can&#39;t be displayed here.&quot;)
+               (:p
+                 &quot;You can &quot;
+                 (:a :href (sf &quot;~A?download&quot; loaded-file-name) &quot;download the file&quot;)
+                 &quot; instead.&quot;)))
+           (raw (markup
+                  (:pre
+                    (:code :id &quot;raw-file-content&quot; :class &quot;col hidden&quot; file-content))
+                  (:div :id &quot;gen-file-content&quot; :class &quot;col&quot;)))))))))
 
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;

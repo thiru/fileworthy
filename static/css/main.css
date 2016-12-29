@@ -214,8 +214,7 @@ nav a
   float: left;
 }
 
-#raw-file-content,
-#gen-file-content
+#file-details
 {
   width: 80%;
 }

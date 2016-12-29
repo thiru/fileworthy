@@ -453,6 +453,25 @@
       (read-sequence data stream)
       data)))
 
+#||
+### `IS-FILE-BINARY?`
+
+* This function attempts to determine whether the given path is a binary file
+* It does this with a very simple technique of looking for a 0 byte
+* This technique should work with ASCII and UTF-8 files
+  * but not UTF-16 and UTF-32
+||#
+(defun is-file-binary? (path)
+  "Try to detect if PATH is a binary file."
+  (with-open-file (stream path
+                          :element-type '(unsigned-byte 8)
+                          :if-does-not-exist nil)
+    (loop :for i :from 0
+          :for b = (read-byte stream nil nil)
+          :while b
+          :when (zerop b)
+          :do (return-from is-file-binary? t)))
+  nil)
 
 #||
 ## Web Utils
@@ -646,30 +665,34 @@
          (file-exists? (if (and (not dir-exists?)
                                 (non-empty? abs-fs-path))
                          (file-exists-p abs-fs-path)))
+         (binary-file? nil)
          (loaded-file-name "")
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
-    ;; Path not found
+    ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
       (return-from page-fs-path (page-error-not-found params)))
     ;; Download file
     (if (and (get-query-param-pair 'download params)
              file-exists?)
       (return-from page-fs-path abs-fs-path))
-    ;; File info requested
+    ;; File requested
     (when file-exists?
-      (setf loaded-file-name (last1 path-segs))
-      (setf file-content (get-file-content abs-fs-path)))
-    ;; Directory info requested, but only file file in dir so show it
-    (when (and dir-exists?
-               (= 1 (length file-names)))
-      (setf loaded-file-name (first file-names))
-      (setf file-content
-            (get-file-content (sf "~A~A"
-                                  abs-fs-path
-                                  (first file-names)))))
+      (setf binary-file? (is-file-binary? abs-fs-path))
+      (when (not binary-file?)
+        (setf loaded-file-name (last1 path-segs))
+        (setf file-content (get-file-content abs-fs-path))))
+    ;; Directory requested, but only one file in dir so show it
+    (when (and dir-exists? (= 1 (length file-names)))
+      (setf abs-fs-path (concatenate 'string
+                                     (to-string abs-fs-path)
+                                     (first file-names)))
+      (setf binary-file? (is-file-binary? abs-fs-path))
+      (when (not binary-file?)
+        (setf loaded-file-name (first file-names))
+        (setf file-content (get-file-content abs-fs-path))))
     (page-template
       params
       (if (empty? rel-fs-path) "Home" rel-fs-path)
@@ -703,9 +726,19 @@
                    nil)
                  :href file-name
                  file-name)))))
-        (:pre
-          (:code :id "raw-file-content" :class "col hidden" file-content))
-        (:div :id "gen-file-content" :class "col")))))
+        (:section :id "file-details"
+         (if binary-file?
+           (raw
+             (markup
+               (:p "This appears to be a binary file, and so can't be displayed here.")
+               (:p
+                 "You can "
+                 (:a :href (sf "~A?download" loaded-file-name) "download the file")
+                 " instead.")))
+           (raw (markup
+                  (:pre
+                    (:code :id "raw-file-content" :class "col hidden" file-content))
+                  (:div :id "gen-file-content" :class "col")))))))))
 
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."

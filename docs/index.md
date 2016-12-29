@@ -632,7 +632,7 @@
                                   "selected"
                                   nil)
                                 :href (sf "/~A/" dir-name)
-                                (string-capitalize dir-name))))))
+                                dir-name)))))
                ;; Sub-folders
                (let* ((expanded-dirs (expand-all-folders path-name))
                       (sub-dir-name-lst (map 'list

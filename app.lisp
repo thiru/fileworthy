@@ -181,11 +181,10 @@
   * Easy way to generate HTML in Lisp-friendly syntax
 * [CL-PPCRE](http://weitz.de/cl-ppcre/)
   * Defacto regular expression library
+* [Hunchentoot](http://weitz.de/hunchentoot/)
+  * Web server and framework
 * [LOCAL-TIME](https://common-lisp.net/project/local-time/)
   * Easily manipulate and display date and times
-* [Ningle](https://github.com/fukamachi/ningle)
-  * Minimal web framework
-  * There's also [Caveman2](https://github.com/fukamachi/caveman) but I don't think I'll need it's capabilities
 * [SPLIT-SEQUENCE](http://www.cliki.net/split-sequence)
   * Easily split sequences by arbitrary delimiters
 * [UIOP](https://github.com/fare/asdf/tree/master/uiop)
@@ -236,24 +235,14 @@
   "Singleton instance containing general app details.")
 
 #||
-* `*HANDLER*` gets initialised/reinitialised when `START` or `RESTART-APP` is called
+* `*ACCEPTOR*` gets initialised/reinitialised when `START` or `RESTART-APP` is called
   * so we don't bother initialising it here
 ||#
-(defvar *handler*
+(defvar *acceptor*
   nil
-  "Singleton Ningle web handler.")
+  "Singleton Hunchentoot web handler.")
 
 #||
-* Unlike the other global variables `*WEB*` need only be initialised once
-  * and it doesn't require any other objects to be initialised first
-  * so we do so right here
-||#
-(defvar *web*
-  (make-instance 'ningle:<app>)
-  "Singleton Ningle web application instance.")
-
-#||
-
 ## APP
 
 * The `APP` struct groups general, high-level app details including
@@ -315,7 +304,7 @@
 
 * To launch the website with the default values we need only call `START`
 
-### `START`
+### `START-APP`
 
 * This function starts the app
   * including the underlying web server
@@ -328,46 +317,36 @@
   * not sure this is necessary but it may be useful to reload the version file
   * and it's not an expensive operation anyway
 * Parameters:
-  * `SERVER`
-    * defines the backend server to use
-    * see [this page](http://clacklisp.org/) for a list of supported servers
-    * the creator of [Ningle](https://github.com/fukamachi/ningle) recommends using
-      * [Hunchentoot](http://weitz.de/hunchentoot/) in **development**
-      * [Woo](https://github.com/fukamachi/woo) in **production**
-      * which is why the default value is Hunchentoot
   * `PORT`
     * the port of the web server
     * The default is 9090 as this is Hunchentoot's default
   * `DEBUG`
     * whether to start the web server in debug mode
 ||#
-(defun start (&key (server :hunchentoot) (port 9090) (debug t))
+(defun start-app (&key (port 9090) (debug t))
   "Starts the app."
   (setf *app* (create-app))
 
-  (when *handler*
-    (restart-case (error "Server is already running.")
-      (restart-server ()
-        :report "Restart the server"
-        (stop))))
-
-  (setf *handler* (create-web-handler server port debug))
+  (setf *acceptor* (create-web-acceptor :port port :debug debug))
   (define-routes)
-  (format t "Started Fileworthy ~A~%" (app-version *app*)))
+  (when debug
+    (setf *catch-errors-p* nil)
+    (setf *show-lisp-errors-p* t))
+  (format t "Started Fileworthy ~A~%" (app-version *app*))
+  (start *acceptor*))
 
 #||
-### `STOP`
+### `STOP-APP`
 
 * This function gracefully shuts down the app
   * including the underlying web server
 ||#
-(defun stop ()
+(defun stop-app ()
   "Stops the app."
-  (if *handler*
-   (prog1
-    (clack:stop *handler*)
-    (setf *handler* nil)
-    (format t "Stopped Fileworthy ~A~%" (app-version *app*)))))
+  (when *acceptor*
+    (stop *acceptor* :soft t)
+    (setf *acceptor* nil)
+    (format t "Stopped Fileworthy ~A~%" (app-version *app*))))
 
 #||
 ### `RESTART-APP`
@@ -377,37 +356,32 @@
   * but it would then conflict with the [system class](http://clhs.lisp.se/Body/t_rst.htm#restart) of the same name
 ||#
 (defun restart-app ()
-  "Restart the app."
+  "Restarts the app."
   (stop)
   (start))
 
 
 #||
-### `CREATE-WEB-HANDLER`
+### `CREATE-WEB-ACCEPTOR`
 
-* This function creates the Ningle web handler
-* `*WEB*` is expected to be properly initialised before this function is called
+* This function creates the Hunchentoot (easy) acceptor
 * The BUILDER macro defines web middleware
 * For now I'm only using it to define where to get the static resources
   * like CSS, Javascript, images, etc.
 * See `START` for a description of the parameters
   * as it uses the exact same list
 ||#
-(defun create-web-handler (server port debug)
-  "Create the singleton Ningle web handler."
-  (clack:clackup
-    (builder
-      (:static
-        :path
-        (lambda (path)
-          (if (scan (app-web-static-regex *app*) path)
-            path
-            nil))
-        :root (app-web-static-dir *app*))
-      *web*)
-    :server server
-    :port port
-    :debug debug))
+(defun create-web-acceptor (&key (port 9090) (debug t))
+  "Creates an 'easy-acceptor' which will listen on the specified port."
+  (make-instance 'easy-acceptor
+                 :port port
+                 :document-root (app-web-static-dir *app*)
+                 :access-log-destination (if debug
+                                           *standard-output*
+                                           "tbnl-access.log")
+                 :message-log-destination (if debug
+                                            *standard-output*
+                                            "tbnl-message.log")))
 
 #||
 ## Core Domain Logic
@@ -478,37 +452,29 @@
 
 * This section contains utility functions common to most web functionality
 
-### `GET-QUERY-PARAM-PAIR`
-||#
-(defun get-query-param-pair (name params)
-  "Get the query parameter pair whose name is NAME from the given Ningle
-   PARAMS alist."
-  (assoc name params :test #'string-equal))
-
-#||
-### `EXTRACT-URL-PATHNAME`
-
-* When a route is defined via `(SETF (ROUTE ...))`
-  * the route handling function is passed a `PARAMS` alist
-  * that contains details on the requested URL
-||#
-(defun extract-url-pathname (ningle-params)
-  "Get the URL path name of the given Ningle params alist."
-  (first (cdr (assoc :splat ningle-params))))
-
-#||
 ## Web Resource Routes
 
-* We define the routes in a function
-  * as we need an instance of `*WEB*` properly initialised first
-  * and this is done only after `START` is called
+* Route are defined in a function since
+  * we need to have the `*APP*` instance initialised first
+  * the page functions are defined below this point
 ||#
-
 (defun define-routes ()
   "Define web resource routes."
+  (setq *dispatch-table*
+        (list
+          ;; Static files
+          (create-folder-dispatcher-and-handler
+            "/css/"
+            (merge-pathnames* "css/" (app-web-static-dir *app*)))
+          (create-folder-dispatcher-and-handler
+            "/deps/"
+            (merge-pathnames* "deps/" (app-web-static-dir *app*)))
+          (create-folder-dispatcher-and-handler
+            "/js/"
+            (merge-pathnames* "js/" (app-web-static-dir *app*)))
 
-  ;; File-system path page
-  (setf (route *web* "/*" :method :GET) #'page-fs-path))
+          ;; File path page
+          (create-regex-dispatcher "^/*" #'page-fs-path))))
 
 #||
 ## Web Pages
@@ -519,8 +485,6 @@
 
 * This function defines the template all pages will use
 * Parameters:
-  * `PARAMS`
-    * the Ningle URL PARAMS alist
   * `TITLE`
     * the title of the page
     * note that the given title is
@@ -531,9 +495,9 @@
     * the HTML of the page as a raw string
     * note that the caller is responsible for properly escaping special characters
 ||#
-(defun page-template (params title content)
+(defun page-template (title content)
   "Base template for all web pages."
-  (let* ((path-name (extract-url-pathname params))
+  (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang "en"
@@ -638,11 +602,10 @@
 
 * This is the standard 404 (not found) page.
 ||#
-(defun page-error-not-found (params)
+(defun page-error-not-found ()
   "Not Found error page."
-  (setf (lack.response:response-status *response*) 404)
+  ;(setf (lack.response:response-status *response*) 404)
   (page-template
-    params
     "Not Found"
     (markup
       (:h2 "Not Found")
@@ -655,9 +618,9 @@
 #||
 ### `PAGE-FS-PATH`
 ||#
-(defun page-fs-path (params)
+(defun page-fs-path ()
   "File-system path page."
-  (let* ((path-name (extract-url-pathname params))
+  (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
          (dir-exists? (if (non-empty? abs-fs-path)
@@ -673,11 +636,11 @@
          (file-names (get-file-names abs-fs-path)))
     ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
-      (return-from page-fs-path (page-error-not-found params)))
+      (return-from page-fs-path (page-error-not-found)))
     ;; Download file
-    (if (and (get-query-param-pair 'download params)
+    (if (and (get-parameter "download")
              file-exists?)
-      (return-from page-fs-path abs-fs-path))
+      (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
@@ -694,7 +657,6 @@
         (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
-      params
       (if (empty? rel-fs-path) "Home" rel-fs-path)
       (markup
         (:ul :id "files" :class "file-names"
@@ -742,6 +704,6 @@
 
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."
-  (let* ((path (merge-pathnames* path-name)))
+  (let* ((path (merge-pathnames* (string-left-trim '(#\/) path-name))))
     (if (subpathp path (app-working-dir *app*))
       path)))

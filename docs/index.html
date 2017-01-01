@@ -290,13 +290,12 @@ a <em>stream of conciousness</em> flow</li>
 <li>Defacto regular expression library</li>
 </ul>
 </li>
-<li><a href="https://common-lisp.net/project/local-time/">LOCAL-TIME</a><ul>
-<li>Easily manipulate and display date and times</li>
+<li><a href="http://weitz.de/hunchentoot/">Hunchentoot</a><ul>
+<li>Web server and framework</li>
 </ul>
 </li>
-<li><a href="https://github.com/fukamachi/ningle">Ningle</a><ul>
-<li>Minimal web framework</li>
-<li>There&#39;s also <a href="https://github.com/fukamachi/caveman">Caveman2</a> but I don&#39;t think I&#39;ll need it&#39;s capabilities</li>
+<li><a href="https://common-lisp.net/project/local-time/">LOCAL-TIME</a><ul>
+<li>Easily manipulate and display date and times</li>
 </ul>
 </li>
 <li><a href="http://www.cliki.net/split-sequence">SPLIT-SEQUENCE</a><ul>
@@ -365,25 +364,14 @@ defined before we run the source files that depend on it<ul>
   &quot;Singleton instance containing general app details.&quot;)
 </code></pre>
 <ul>
-<li><code>*HANDLER*</code> gets initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
+<li><code>*ACCEPTOR*</code> gets initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
 <li>so we don&#39;t bother initialising it here</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defvar *handler*
+<pre><code class="lang-lisp">(defvar *acceptor*
   nil
-  &quot;Singleton Ningle web handler.&quot;)
-</code></pre>
-<ul>
-<li>Unlike the other global variables <code>*WEB*</code> need only be initialised once<ul>
-<li>and it doesn&#39;t require any other objects to be initialised first</li>
-<li>so we do so right here</li>
-</ul>
-</li>
-</ul>
-<pre><code class="lang-lisp">(defvar *web*
-  (make-instance &#39;ningle:&lt;app&gt;)
-  &quot;Singleton Ningle web application instance.&quot;)
+  &quot;Singleton Hunchentoot web handler.&quot;)
 </code></pre>
 <h2 id="app">APP</h2>
 <ul>
@@ -458,7 +446,7 @@ defined before we run the source files that depend on it<ul>
 <ul>
 <li>To launch the website with the default values we need only call <code>START</code></li>
 </ul>
-<h3 id="-start-"><code>START</code></h3>
+<h3 id="-start-app-"><code>START-APP</code></h3>
 <ul>
 <li>This function starts the app<ul>
 <li>including the underlying web server</li>
@@ -479,17 +467,6 @@ defined before we run the source files that depend on it<ul>
 </ul>
 </li>
 <li>Parameters:<ul>
-<li><code>SERVER</code><ul>
-<li>defines the backend server to use</li>
-<li>see <a href="http://clacklisp.org/">this page</a> for a list of supported servers</li>
-<li>the creator of <a href="https://github.com/fukamachi/ningle">Ningle</a> recommends using<ul>
-<li><a href="http://weitz.de/hunchentoot/">Hunchentoot</a> in <strong>development</strong></li>
-<li><a href="https://github.com/fukamachi/woo">Woo</a> in <strong>production</strong></li>
-<li>which is why the default value is Hunchentoot</li>
-</ul>
-</li>
-</ul>
-</li>
 <li><code>PORT</code><ul>
 <li>the port of the web server</li>
 <li>The default is 9090 as this is Hunchentoot&#39;s default</li>
@@ -502,34 +479,31 @@ defined before we run the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun start (&amp;key (server :hunchentoot) (port 9090) (debug t))
+<pre><code class="lang-lisp">(defun start-app (&amp;key (port 9090) (debug t))
   &quot;Starts the app.&quot;
   (setf *app* (create-app))
 
-  (when *handler*
-    (restart-case (error &quot;Server is already running.&quot;)
-      (restart-server ()
-        :report &quot;Restart the server&quot;
-        (stop))))
-
-  (setf *handler* (create-web-handler server port debug))
+  (setf *acceptor* (create-web-acceptor :port port :debug debug))
   (define-routes)
-  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*)))
+  (when debug
+    (setf *catch-errors-p* nil)
+    (setf *show-lisp-errors-p* t))
+  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*))
+  (start *acceptor*))
 </code></pre>
-<h3 id="-stop-"><code>STOP</code></h3>
+<h3 id="-stop-app-"><code>STOP-APP</code></h3>
 <ul>
 <li>This function gracefully shuts down the app<ul>
 <li>including the underlying web server</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun stop ()
+<pre><code class="lang-lisp">(defun stop-app ()
   &quot;Stops the app.&quot;
-  (if *handler*
-   (prog1
-    (clack:stop *handler*)
-    (setf *handler* nil)
-    (format t &quot;Stopped Fileworthy ~A~%&quot; (app-version *app*)))))
+  (when *acceptor*
+    (stop *acceptor* :soft t)
+    (setf *acceptor* nil)
+    (format t &quot;Stopped Fileworthy ~A~%&quot; (app-version *app*))))
 </code></pre>
 <h3 id="-restart-app-"><code>RESTART-APP</code></h3>
 <ul>
@@ -540,14 +514,13 @@ defined before we run the source files that depend on it<ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun restart-app ()
-  &quot;Restart the app.&quot;
+  &quot;Restarts the app.&quot;
   (stop)
   (start))
 </code></pre>
-<h3 id="-create-web-handler-"><code>CREATE-WEB-HANDLER</code></h3>
+<h3 id="-create-web-acceptor-"><code>CREATE-WEB-ACCEPTOR</code></h3>
 <ul>
-<li>This function creates the Ningle web handler</li>
-<li><code>*WEB*</code> is expected to be properly initialised before this function is called</li>
+<li>This function creates the Hunchentoot (easy) acceptor</li>
 <li>The BUILDER macro defines web middleware</li>
 <li>For now I&#39;m only using it to define where to get the static resources<ul>
 <li>like CSS, Javascript, images, etc.</li>
@@ -558,21 +531,17 @@ defined before we run the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun create-web-handler (server port debug)
-  &quot;Create the singleton Ningle web handler.&quot;
-  (clack:clackup
-    (builder
-      (:static
-        :path
-        (lambda (path)
-          (if (scan (app-web-static-regex *app*) path)
-            path
-            nil))
-        :root (app-web-static-dir *app*))
-      *web*)
-    :server server
-    :port port
-    :debug debug))
+<pre><code class="lang-lisp">(defun create-web-acceptor (&amp;key (port 9090) (debug t))
+  &quot;Creates an &#39;easy-acceptor&#39; which will listen on the specified port.&quot;
+  (make-instance &#39;easy-acceptor
+                 :port port
+                 :document-root (app-web-static-dir *app*)
+                 :access-log-destination (if debug
+                                           *standard-output*
+                                           &quot;tbnl-access.log&quot;)
+                 :message-log-destination (if debug
+                                            *standard-output*
+                                            &quot;tbnl-message.log&quot;)))
 </code></pre>
 <h2 id="core-domain-logic">Core Domain Logic</h2>
 <h3 id="-get-dir-names-"><code>GET-DIR-NAMES</code></h3>
@@ -643,38 +612,31 @@ defined before we run the source files that depend on it<ul>
 <ul>
 <li>This section contains utility functions common to most web functionality</li>
 </ul>
-<h3 id="-get-query-param-pair-"><code>GET-QUERY-PARAM-PAIR</code></h3>
-<pre><code class="lang-lisp">(defun get-query-param-pair (name params)
-  &quot;Get the query parameter pair whose name is NAME from the given Ningle
-   PARAMS alist.&quot;
-  (assoc name params :test #&#39;string-equal))
-</code></pre>
-<h3 id="-extract-url-pathname-"><code>EXTRACT-URL-PATHNAME</code></h3>
-<ul>
-<li>When a route is defined via <code>(SETF (ROUTE ...))</code><ul>
-<li>the route handling function is passed a <code>PARAMS</code> alist</li>
-<li>that contains details on the requested URL</li>
-</ul>
-</li>
-</ul>
-<pre><code class="lang-lisp">(defun extract-url-pathname (ningle-params)
-  &quot;Get the URL path name of the given Ningle params alist.&quot;
-  (first (cdr (assoc :splat ningle-params))))
-</code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
-<li>We define the routes in a function<ul>
-<li>as we need an instance of <code>*WEB*</code> properly initialised first</li>
-<li>and this is done only after <code>START</code> is called</li>
+<li>Route are defined in a function since<ul>
+<li>we need to have the <code>*APP*</code> instance initialised first</li>
+<li>the page functions are defined below this point</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">
-(defun define-routes ()
+<pre><code class="lang-lisp">(defun define-routes ()
   &quot;Define web resource routes.&quot;
+  (setq *dispatch-table*
+        (list
+          ;; Static files
+          (create-folder-dispatcher-and-handler
+            &quot;/css/&quot;
+            (merge-pathnames* &quot;css/&quot; (app-web-static-dir *app*)))
+          (create-folder-dispatcher-and-handler
+            &quot;/deps/&quot;
+            (merge-pathnames* &quot;deps/&quot; (app-web-static-dir *app*)))
+          (create-folder-dispatcher-and-handler
+            &quot;/js/&quot;
+            (merge-pathnames* &quot;js/&quot; (app-web-static-dir *app*)))
 
-  ;; File-system path page
-  (setf (route *web* &quot;/*&quot; :method :GET) #&#39;page-fs-path))
+          ;; File path page
+          (create-regex-dispatcher &quot;^/*&quot; #&#39;page-fs-path))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <ul>
@@ -684,10 +646,6 @@ defined before we run the source files that depend on it<ul>
 <ul>
 <li>This function defines the template all pages will use</li>
 <li>Parameters:<ul>
-<li><code>PARAMS</code><ul>
-<li>the Ningle URL PARAMS alist</li>
-</ul>
-</li>
 <li><code>TITLE</code><ul>
 <li>the title of the page</li>
 <li>note that the given title is<ul>
@@ -706,9 +664,9 @@ defined before we run the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun page-template (params title content)
+<pre><code class="lang-lisp">(defun page-template (title content)
   &quot;Base template for all web pages.&quot;
-  (let* ((path-name (extract-url-pathname params))
+  (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang &quot;en&quot;
@@ -814,11 +772,10 @@ defined before we run the source files that depend on it<ul>
 <ul>
 <li>This is the standard 404 (not found) page.</li>
 </ul>
-<pre><code class="lang-lisp">(defun page-error-not-found (params)
+<pre><code class="lang-lisp">(defun page-error-not-found ()
   &quot;Not Found error page.&quot;
-  (setf (lack.response:response-status *response*) 404)
+  ;(setf (lack.response:response-status *response*) 404)
   (page-template
-    params
     &quot;Not Found&quot;
     (markup
       (:h2 &quot;Not Found&quot;)
@@ -829,9 +786,9 @@ defined before we run the source files that depend on it<ul>
          (:b &quot; Go back to the home page&quot;))))))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
-<pre><code class="lang-lisp">(defun page-fs-path (params)
+<pre><code class="lang-lisp">(defun page-fs-path ()
   &quot;File-system path page.&quot;
-  (let* ((path-name (extract-url-pathname params))
+  (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (get-fs-path-from-url path-name))
          (dir-exists? (if (non-empty? abs-fs-path)
@@ -847,11 +804,11 @@ defined before we run the source files that depend on it<ul>
          (file-names (get-file-names abs-fs-path)))
     ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
-      (return-from page-fs-path (page-error-not-found params)))
+      (return-from page-fs-path (page-error-not-found)))
     ;; Download file
-    (if (and (get-query-param-pair &#39;download params)
+    (if (and (get-parameter &quot;download&quot;)
              file-exists?)
-      (return-from page-fs-path abs-fs-path))
+      (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
@@ -868,7 +825,6 @@ defined before we run the source files that depend on it<ul>
         (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
-      params
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
       (markup
         (:ul :id &quot;files&quot; :class &quot;file-names&quot;
@@ -916,7 +872,7 @@ defined before we run the source files that depend on it<ul>
 
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;
-  (let* ((path (merge-pathnames* path-name)))
+  (let* ((path (merge-pathnames* (string-left-trim &#39;(#\/) path-name))))
     (if (subpathp path (app-working-dir *app*))
       path)))
 </code></pre>

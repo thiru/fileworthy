@@ -720,7 +720,7 @@
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
-      (when (not binary-file?)
+      (when (or (not binary-file?) (get-parameter "force-show"))
         (setf loaded-file-name (last1 path-segs))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
@@ -729,7 +729,7 @@
                                      (to-string abs-fs-path)
                                      (first file-names)))
       (setf binary-file? (is-file-binary? abs-fs-path))
-      (when (not binary-file?)
+      (when (or (not binary-file?) (get-parameter "force-show"))
         (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
@@ -765,18 +765,23 @@
                    "/"
                    (to-string rel-fs-path))))
         (:section :id "file-details"
-         (if binary-file?
-           (raw
-             (markup
-               (:p "This appears to be a binary file, and so can't be displayed here.")
-               (:p
-                 "You can "
-                 (:a :href (sf "~A?download" loaded-file-name) "download the file")
-                 " instead.")))
+         (if (or (not binary-file?) (get-parameter "force-show"))
            (raw (markup
                   (:pre
                     (:code :id "raw-file-content" :class "hidden" file-content))
-                  (:div :id "gen-file-content")))))))))
+                  (:div :id "gen-file-content")))
+           (raw
+             (markup
+               (:p "It looks like this is a binary file, so it isn't displayed.")
+               (:p
+                 "You can "
+                 (:a
+                   :href (sf "~A?download" loaded-file-name)
+                   "download the file")
+                 " or try to "
+                 (:a
+                   :href (sf "~A?force-show" loaded-file-name)
+                   "display it anyway."))))))))))
 
 (defun get-fs-path-from-url (path-name)
   "Gets an absolute local file-system path from the given path name."

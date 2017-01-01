@@ -918,7 +918,7 @@ defined before we compile the source files that depend on it<ul>
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
-      (when (not binary-file?)
+      (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
         (setf loaded-file-name (last1 path-segs))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
@@ -927,7 +927,7 @@ defined before we compile the source files that depend on it<ul>
                                      (to-string abs-fs-path)
                                      (first file-names)))
       (setf binary-file? (is-file-binary? abs-fs-path))
-      (when (not binary-file?)
+      (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
         (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
@@ -963,18 +963,23 @@ defined before we compile the source files that depend on it<ul>
                    &quot;/&quot;
                    (to-string rel-fs-path))))
         (:section :id &quot;file-details&quot;
-         (if binary-file?
-           (raw
-             (markup
-               (:p &quot;This appears to be a binary file, and so can&#39;t be displayed here.&quot;)
-               (:p
-                 &quot;You can &quot;
-                 (:a :href (sf &quot;~A?download&quot; loaded-file-name) &quot;download the file&quot;)
-                 &quot; instead.&quot;)))
+         (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
            (raw (markup
                   (:pre
                     (:code :id &quot;raw-file-content&quot; :class &quot;hidden&quot; file-content))
-                  (:div :id &quot;gen-file-content&quot;)))))))))
+                  (:div :id &quot;gen-file-content&quot;)))
+           (raw
+             (markup
+               (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
+               (:p
+                 &quot;You can &quot;
+                 (:a
+                   :href (sf &quot;~A?download&quot; loaded-file-name)
+                   &quot;download the file&quot;)
+                 &quot; or try to &quot;
+                 (:a
+                   :href (sf &quot;~A?force-show&quot; loaded-file-name)
+                   &quot;display it anyway.&quot;))))))))))
 
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;

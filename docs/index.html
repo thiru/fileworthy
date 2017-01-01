@@ -688,6 +688,11 @@ defined before we compile the source files that depend on it<ul>
 <ul>
 <li>This section contains utility functions common to most web functionality</li>
 </ul>
+<pre><code class="lang-lisp">
+(defun set-http-code (code)
+  &quot;Set the current request&#39;s HTTP status code to `CODE`.&quot;
+  (setf (return-code*) code))
+</code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
 <li>Route are defined in a function since<ul>
@@ -850,7 +855,7 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(defun page-error-not-found ()
   &quot;Not Found error page.&quot;
-  ;(setf (lack.response:response-status *response*) 404)
+  (set-http-code +http-not-found+)
   (page-template
     &quot;Not Found&quot;
     (markup

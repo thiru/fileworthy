@@ -499,7 +499,13 @@
 ## Web Utils
 
 * This section contains utility functions common to most web functionality
+||#
 
+(defun set-http-code (code)
+  "Set the current request's HTTP status code to `CODE`."
+  (setf (return-code*) code))
+
+#||
 ## Web Resource Routes
 
 * Route are defined in a function since
@@ -652,7 +658,7 @@
 ||#
 (defun page-error-not-found ()
   "Not Found error page."
-  ;(setf (lack.response:response-status *response*) 404)
+  (set-http-code +http-not-found+)
   (page-template
     "Not Found"
     (markup

@@ -593,8 +593,8 @@
                ;; Root Folders
                (:ul :id "root-folder-names"
                 (:li
-                  (:a :id "root-folder" :href "/" :title "Root"
-                   (:i :class "fa fa-folder-open" "")))
+                  (:a :href "/" :title "Home"
+                   (:i :class "fa fa-home" "")))
                 (loop
                   :for dir-name :in (get-dir-names)
                   :collect (markup

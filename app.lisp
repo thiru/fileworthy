@@ -100,6 +100,9 @@
 * Many developers believe **managing complexity** to be the biggest challenge in software development
   * so the primary motivation behind the conventions and styles used here are to mitigate this
   * i.e. the code must be as simple as possible for **humans** to **read** and **maintain**
+
+#### Programming Paradigm
+
 * The code will generally follow a combination of functional and procedural programming, avoiding OOP
   * e.g. inheritance, polymorphism, etc.
   * more and more, developers are finding these constructs
@@ -112,11 +115,21 @@
   * are far less complex
   * still a good way to group a set of related data
 
+#### Error Handling
+
+* Errors/exceptions are triggered only in truly unexpected cases
+  * i.e. due to a programmer error
+  * or an unrecoverable error leaving the app in a bad state
+  * though the same cannot be said for dependencies
+* So, many functions will return a value indicating a result/error code
+  * this is encapsulated in an `R` struct
+  * see [glu.lisp](../glu.lisp)
+
 ## Source Files
 
 * What follows is a brief description of the main files and folders the compose this app:
 * [app.lisp](../app.lisp)
-  * Contains **all** the code and documentation
+  * Contains just about **all** of the code and documentation relevant to this project
 * [docs/](../docs)
   * [index.html](index.html)
     * The sole documentation file
@@ -126,8 +139,7 @@
   * [index.md](index.md)
     * Generated from [app.lisp](../app.lisp)
   * [highlightjs](highlightjs/)
-    * Directory containing the syntax highlighting library used by the documentation:
-      * [highlight.js](https://highlightjs.org/)
+    * Directory containing the syntax highlighting library used by the documentation, [highlight.js](https://highlightjs.org/)
   * [template.html](template.html)
     * HTML template for this file
     * Basically contains everything outside the body tag
@@ -135,11 +147,16 @@
   * End-user license agreement
 * [fileworthy.asd](../fileworthy.asd)
   * ASDF system/build description
+* [glu.lisp](../glu.lisp)
+  * GLU stands for Global Lisp Utilities
+  * These are my (opinionated) utilities that are not particular to this app per se
 * [index.html](../index.html)
   * Simply redirects to the documentation
   * This file is needed here to facilitate hosting from github.io
 * [LICENSE](../LICENSE)
   * GPLv3 license
+* [package.lisp](../package.lisp)
+  * Contains the sole package definition for this app
 * [README.md](../README.md)
   * Basically contains the intro of this file
 * [start.lisp](../start.lisp)
@@ -147,9 +164,9 @@
 * [start.sh](../start.sh)
   * Shell script to start the website within a GNU screen session
 * [static/](../static/)
-  * Contains static web resources such as images, Javascript, CSS, etc.
+  * Contains static web resources such as CSS, images, Javascript and dependencies
 * [version](../version)
-  * Version of the app
+  * Current version of the app
   * The version will follow a simple MAJOR.MINOR form
     * A change to the major version indicates
       * significant changes
@@ -157,7 +174,7 @@
     * A change to the minor version indicates
       * non-major changes
       * changes can be bug fixes and features
-    * 0.x version changes are considered alpha/beta
+    * *0.x* versions are considered alpha/beta
       * and so will regularly introduce breaking changes
   * The version is quoted so we can easily read the file through a Common Lisp function as a string
 * [weave.ros](../weave.ros)
@@ -172,6 +189,9 @@
 ## Libraries
 
 * The following libaries are used by this app:
+
+### Back-end/Server-side
+
 * [Alexandria](https://common-lisp.net/project/alexandria/)
   * Minimal utility library that seems to be highly recommended
 * [Clack](http://clacklisp.org/)
@@ -191,6 +211,19 @@
   * Portable, OS and file-system utilities
   * This is actually part of the core of [ASDF](https://github.com/fare/asdf)
 
+### Front-end/Client-side
+
+* [Font Awesome](http://fontawesome.io/)
+  * Rich set of icons as a font
+* [Highlight.js](https://highlightjs.org/)
+  * Code/syntax highlighting
+* [Lodash](https://lodash.com/)
+  * Utility library with many useful functional list operations
+* [Marked.js](https://github.com/chjj/marked)
+  * Transforms Markdown to HTML
+* [Moment.js](http://momentjs.com/)
+  * Date/time utilities
+
 ## System Definition
 
 * Okay, on to the code finally!
@@ -207,18 +240,14 @@
 
 ## Package Definition
 
-* We'll use a single package for the entire application: `FILEWORTHY`
+* We'll use a single package named `FILEWORTHY` for the entire application
 * I'm not sure if this is a good idea
   * just trying out a different approach
   * let's see how it works out
 * See [package.lisp](../package.lisp) for the code
 * The reason it's in a separate file is so that we can have the package
-  defined before we run the source files that depend on it
+  defined before we compile the source files that depend on it
   * e.g. [glu.lisp](../glu.lisp)
-||#
-
-#||
-* Switch back to the sole package of the app
 ||#
 (in-package :fileworthy)
 
@@ -227,7 +256,7 @@
 
 * I'm trying to keep the number of global objects as small as possible
 * `*APP*` will contain most of the common properties grouped in a single struct
-* It will be initialised/reinitialised when `START` or `RESTART-APP` is called
+* It will be initialised/reinitialised when `START-APP` or `RESTART-APP` is called
   * so we don't bother initialising it here
 ||#
 (defvar *app*
@@ -235,7 +264,7 @@
   "Singleton instance containing general app details.")
 
 #||
-* `*ACCEPTOR*` gets initialised/reinitialised when `START` or `RESTART-APP` is called
+* `*ACCEPTOR*` gets initialised/reinitialised when `START-APP` or `RESTART-APP` is called
   * so we don't bother initialising it here
 ||#
 (defvar *acceptor*
@@ -246,41 +275,43 @@
 ## APP
 
 * The `APP` struct groups general, high-level app details including
-  * the name of this instance of the app
-    * this will default to the name of base-dir
-  * the base/root directory of the app's source/binaries
-  * the current/working directory for the app
+  * `NAME`
+    * the user-specified name of this instance of the app
+    * this will default to the name of the directory specified in `working-dir`
+  * `APP-DIR`
+    * the root directory of the app's source/binaries
+  * `WORKING-DIR`
+    * the current/working directory for the app
     * this will be the root path from which the website is generated
-  * the version of the app
-  * the time the app was last updated
+  * `VERSION`
+    * the current version of the app
+  * `LAST-UPDATED`
+    * the time the app was last updated
     * based on the last write time of the [version file](../version)
-  * the directory containing static web resources
-  * the regular expression defining static resources
+  * `WEB-STATIC-DIR`
+    * the directory containing static client-side web resources
 ||#
 (defstruct app
   "Contains general, high-level app details."
   (name "" :type STRING)
-  (base-dir nil :type PATHNAME)
+  (app-dir nil :type PATHNAME)
   (working-dir nil :type PATHNAME)
   (version "0.0" :type STRING)
   (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME)
-  (web-static-regex "^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)"
-                    :read-only t))
+  (web-static-dir nil :type PATHNAME))
 
 #||
-
 ### CREATE-APP
 * This function creates an instance of `APP`
-  * with all fields correctly initialised
-* Note that `APP-VERSION` is loaded from a separate file, [version](../version)
+  * with all fields properly initialised
+* Note that `APP-VERSION` is loaded from a separate [version file](../version)
   * this is partly due to [fileworthy.asd](../fileworthy.asd) needing access to the app version as well
-  * this way we have a single place where the version gets updated
-    * and it's easily modified and read
+  * and this way we have a single place where the version gets updated
+    * and it's easily modified and read from
 ||#
 (defun create-app ()
   "Create APP instance."
-  (let ((base-dir (asdf:system-source-directory :fileworthy))
+  (let ((app-dir (asdf:system-source-directory :fileworthy))
         (working-dir (get-pathname-defaults))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
@@ -291,49 +322,70 @@
                   #\/
                   (princ-to-string (uiop/filesystem:truename* working-dir))
                   :remove-empty-subseqs t))
-              :base-dir base-dir 
+              :app-dir app-dir 
               :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
                 (file-write-date version-file-path))
-              :web-static-dir (merge-pathnames #P"static/" base-dir))))
+              :web-static-dir (merge-pathnames #P"static/" app-dir))))
 
 #||
 ## Startup and Shutdown
 
-* To launch the website with the default values we need only call `START`
+* To launch the website with the default values we need only call `START-APP`
 
 ### `START-APP`
 
 * This function starts the app
   * including the underlying web server
   * by default at http://localhost:9090
-* `START` can be called more than once
-  * even without calling `STOP`
-* If the web server is already running a debugger restart will be presented
-  * with the option to restart to web server
-* Also note that `*APP*` gets reinitialised even if it's already loaded
-  * not sure this is necessary but it may be useful to reload the version file
-  * and it's not an expensive operation anyway
 * Parameters:
   * `PORT`
     * the port of the web server
-    * The default is 9090 as this is Hunchentoot's default
   * `DEBUG`
-    * whether to start the web server in debug mode
+    * whether to start the web server in debug mode where:
+      * errors are caught by the debugger
+      * errors are shown in HTML output
+        * rather than showing a friendly "server error" page: TODO
+* Returns:
+  * an `R` result
+* Side-effects:
+  * sets `*ACCEPTOR*` and `*APP*`
+  * since the Hunchentoot web server is started
+    * this may initialise its own global variables
+    * and produce it's own side-effects
+    * this function explicitly sets the following Hunchentoot global vars:
+      * `*CATCH-ERRORS-P*`
+      * `*SHOW-LISP-ERRORS-P*`
+  * calls `DEFINE-ROUTES`
+    * which has its own side-effects
 ||#
 (defun start-app (&key (port 9090) (debug t))
   "Starts the app."
+
+  (if *acceptor*
+    (let* ((res (new-r :error "Server is already running.")))
+      (format t (r-message res))
+      (return-from start-app res)))
+
   (setf *app* (create-app))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
+
   (define-routes)
+
   (when debug
     (setf *catch-errors-p* nil)
     (setf *show-lisp-errors-p* t))
-  (format t "Started Fileworthy ~A~%" (app-version *app*))
-  (start *acceptor*))
+
+  (start *acceptor*)
+
+  (let* ((res (new-r :success
+                     (sf "Fileworthy ~A started on port ~A, working out of '~A'."
+                         (app-version *app*) port (app-working-dir *app*)))))
+    (format t (r-message res))
+    res))
 
 #||
 ### `STOP-APP`
@@ -352,8 +404,7 @@
 ### `RESTART-APP`
 
 * This function restarts the app
-* I would've named this function `RESTART`
-  * but it would then conflict with the [system class](http://clhs.lisp.se/Body/t_rst.htm#restart) of the same name
+  * including the underlying web server
 ||#
 (defun restart-app ()
   "Restarts the app."
@@ -365,10 +416,7 @@
 ### `CREATE-WEB-ACCEPTOR`
 
 * This function creates the Hunchentoot (easy) acceptor
-* The BUILDER macro defines web middleware
-* For now I'm only using it to define where to get the static resources
-  * like CSS, Javascript, images, etc.
-* See `START` for a description of the parameters
+* See `START-APP` for a description of the parameters
   * as it uses the exact same list
 ||#
 (defun create-web-acceptor (&key (port 9090) (debug t))
@@ -389,7 +437,7 @@
 ### `GET-DIR-NAMES`
 
 * This function gets a list of directory names relative to either
-  * the given directory `PARENT`
+  * the given directory, `PARENT`
   * or the root working folder as specified by `APP-WORKING-DIR`
 ||#
 (defun get-dir-names (&optional parent)
@@ -473,7 +521,7 @@
             "/js/"
             (merge-pathnames* "js/" (app-web-static-dir *app*)))
 
-          ;; File path page
+          ;; File-system path page
           (create-regex-dispatcher "^/*" #'page-fs-path))))
 
 #||
@@ -553,7 +601,7 @@
                                 :href (sf "/~A/" dir-name)
                                 dir-name)))))
                ;; Sub-folders
-               (let* ((expanded-dirs (expand-all-folders path-name))
+               (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map 'list
                                              (λ (sub-dir)
                                                 (get-dir-names sub-dir))
@@ -587,11 +635,11 @@
 * An example call of the following is:
   * "root/sub1/sub1a" ==> '("root", "root/sub1", "root/sub1/sub1a")
 ||#
-(defun expand-all-folders (path-name)
-  "Expand all the path segments in PATH-NAME to a list of sub-folders."
+(defun expand-sub-dirs (path-name)
+  "Expand all the path segments in PATH-NAME to a list of sub-directories."
   (let* ((path-name (string-trim '(#\/) (or path-name ""))))
     (if (empty? path-name)
-      (return-from expand-all-folders nil))
+      (return-from expand-sub-dirs nil))
     (loop :for c :across path-name
           :for i :from 0
           :when (char= #\/ c)
@@ -600,7 +648,7 @@
 #||
 ### `PAGE-ERROR-NOT-FOUND`
 
-* This is the standard 404 (not found) page.
+* This is the 404 (not found) page.
 ||#
 (defun page-error-not-found ()
   "Not Found error page."
@@ -617,6 +665,11 @@
 
 #||
 ### `PAGE-FS-PATH`
+
+* This page displays a file-system path
+  * i.e. a directory or file
+* If the file appears to be a binary file, don't show it but provide links with options
+* If the path is a directory with one non-binary file in it, just show it
 ||#
 (defun page-fs-path ()
   "File-system path page."

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head>  <meta charset="utf-8">  <title>Fileworthy</title>  <link rel="stylesheet" href="highlightjs/styles/default.css">  <script src="highlightjs/highlight.pack.js"></script>  <script>hljs.initHighlightingOnLoad();</script></head><body><h1 id="fileworthy">Fileworthy</h1>
+<!doctype html><html lang="en"><head>  <meta charset="utf-8">  <title>Fileworthy</title>  <link rel="stylesheet" href="highlightjs/styles/github.css">  <script src="highlightjs/highlight.pack.js"></script>  <script>hljs.initHighlightingOnLoad();</script></head><body><h1 id="fileworthy">Fileworthy</h1>
 <h2 id="introduction">Introduction</h2>
 <ul>
 <li>Fileworthy is intended to facilitate easy management of files and notes across many devices</li>
@@ -145,6 +145,9 @@ a <em>stream of conciousness</em> flow</li>
 <li>i.e. the code must be as simple as possible for <strong>humans</strong> to <strong>read</strong> and <strong>maintain</strong></li>
 </ul>
 </li>
+</ul>
+<h4 id="programming-paradigm">Programming Paradigm</h4>
+<ul>
 <li>The code will generally follow a combination of functional and procedural programming, avoiding OOP<ul>
 <li>e.g. inheritance, polymorphism, etc.</li>
 <li>more and more, developers are finding these constructs<ul>
@@ -165,11 +168,25 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 </li>
 </ul>
+<h4 id="error-handling">Error Handling</h4>
+<ul>
+<li>Errors/exceptions are triggered only in truly unexpected cases<ul>
+<li>i.e. due to a programmer error</li>
+<li>or an unrecoverable error leaving the app in a bad state</li>
+<li>though the same cannot be said for dependencies</li>
+</ul>
+</li>
+<li>So, many functions will return a value indicating a result/error code<ul>
+<li>this is encapsulated in an <code>R</code> struct</li>
+<li>see <a href="../glu.lisp">glu.lisp</a></li>
+</ul>
+</li>
+</ul>
 <h2 id="source-files">Source Files</h2>
 <ul>
 <li>What follows is a brief description of the main files and folders the compose this app:</li>
 <li><a href="../app.lisp">app.lisp</a><ul>
-<li>Contains <strong>all</strong> the code and documentation</li>
+<li>Contains just about <strong>all</strong> of the code and documentation relevant to this project</li>
 </ul>
 </li>
 <li><a href="../docs">docs/</a><ul>
@@ -187,10 +204,7 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 </li>
 <li><a href="highlightjs/">highlightjs</a><ul>
-<li>Directory containing the syntax highlighting library used by the documentation:<ul>
-<li><a href="https://highlightjs.org/">highlight.js</a></li>
-</ul>
-</li>
+<li>Directory containing the syntax highlighting library used by the documentation, <a href="https://highlightjs.org/">highlight.js</a></li>
 </ul>
 </li>
 <li><a href="template.html">template.html</a><ul>
@@ -208,6 +222,11 @@ a <em>stream of conciousness</em> flow</li>
 <li>ASDF system/build description</li>
 </ul>
 </li>
+<li><a href="../glu.lisp">glu.lisp</a><ul>
+<li>GLU stands for Global Lisp Utilities</li>
+<li>These are my (opinionated) utilities that are not particular to this app per se</li>
+</ul>
+</li>
 <li><a href="../index.html">index.html</a><ul>
 <li>Simply redirects to the documentation</li>
 <li>This file is needed here to facilitate hosting from github.io</li>
@@ -215,6 +234,10 @@ a <em>stream of conciousness</em> flow</li>
 </li>
 <li><a href="../LICENSE">LICENSE</a><ul>
 <li>GPLv3 license</li>
+</ul>
+</li>
+<li><a href="../package.lisp">package.lisp</a><ul>
+<li>Contains the sole package definition for this app</li>
 </ul>
 </li>
 <li><a href="../README.md">README.md</a><ul>
@@ -230,11 +253,11 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 </li>
 <li><a href="../static/">static/</a><ul>
-<li>Contains static web resources such as images, Javascript, CSS, etc.</li>
+<li>Contains static web resources such as CSS, images, Javascript and dependencies</li>
 </ul>
 </li>
 <li><a href="../version">version</a><ul>
-<li>Version of the app</li>
+<li>Current version of the app</li>
 <li>The version will follow a simple MAJOR.MINOR form<ul>
 <li>A change to the major version indicates<ul>
 <li>significant changes</li>
@@ -246,7 +269,7 @@ a <em>stream of conciousness</em> flow</li>
 <li>changes can be bug fixes and features</li>
 </ul>
 </li>
-<li>0.x version changes are considered alpha/beta<ul>
+<li><em>0.x</em> versions are considered alpha/beta<ul>
 <li>and so will regularly introduce breaking changes</li>
 </ul>
 </li>
@@ -273,6 +296,9 @@ a <em>stream of conciousness</em> flow</li>
 <h2 id="libraries">Libraries</h2>
 <ul>
 <li>The following libaries are used by this app:</li>
+</ul>
+<h3 id="back-end-server-side">Back-end/Server-side</h3>
+<ul>
 <li><a href="https://common-lisp.net/project/alexandria/">Alexandria</a><ul>
 <li>Minimal utility library that seems to be highly recommended</li>
 </ul>
@@ -308,6 +334,29 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 </li>
 </ul>
+<h3 id="front-end-client-side">Front-end/Client-side</h3>
+<ul>
+<li><a href="http://fontawesome.io/">Font Awesome</a><ul>
+<li>Rich set of icons as a font</li>
+</ul>
+</li>
+<li><a href="https://highlightjs.org/">Highlight.js</a><ul>
+<li>Code/syntax highlighting</li>
+</ul>
+</li>
+<li><a href="https://lodash.com/">Lodash</a><ul>
+<li>Utility library with many useful functional list operations</li>
+</ul>
+</li>
+<li><a href="https://github.com/chjj/marked">Marked.js</a><ul>
+<li>Transforms Markdown to HTML</li>
+</ul>
+</li>
+<li><a href="http://momentjs.com/">Moment.js</a><ul>
+<li>Date/time utilities</li>
+</ul>
+</li>
+</ul>
 <h2 id="system-definition">System Definition</h2>
 <ul>
 <li>Okay, on to the code finally!</li>
@@ -330,7 +379,7 @@ a <em>stream of conciousness</em> flow</li>
 </ul>
 <h2 id="package-definition">Package Definition</h2>
 <ul>
-<li>We&#39;ll use a single package for the entire application: <code>FILEWORTHY</code></li>
+<li>We&#39;ll use a single package named <code>FILEWORTHY</code> for the entire application</li>
 <li>I&#39;m not sure if this is a good idea<ul>
 <li>just trying out a different approach</li>
 <li>let&#39;s see how it works out</li>
@@ -338,15 +387,10 @@ a <em>stream of conciousness</em> flow</li>
 </li>
 <li>See <a href="../package.lisp">package.lisp</a> for the code</li>
 <li>The reason it&#39;s in a separate file is so that we can have the package
-defined before we run the source files that depend on it<ul>
+defined before we compile the source files that depend on it<ul>
 <li>e.g. <a href="../glu.lisp">glu.lisp</a></li>
 </ul>
 </li>
-</ul>
-<pre><code class="lang-lisp">
-</code></pre>
-<ul>
-<li>Switch back to the sole package of the app</li>
 </ul>
 <pre><code class="lang-lisp">(in-package :fileworthy)
 </code></pre>
@@ -354,7 +398,7 @@ defined before we run the source files that depend on it<ul>
 <ul>
 <li>I&#39;m trying to keep the number of global objects as small as possible</li>
 <li><code>*APP*</code> will contain most of the common properties grouped in a single struct</li>
-<li>It will be initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
+<li>It will be initialised/reinitialised when <code>START-APP</code> or <code>RESTART-APP</code> is called<ul>
 <li>so we don&#39;t bother initialising it here</li>
 </ul>
 </li>
@@ -364,7 +408,7 @@ defined before we run the source files that depend on it<ul>
   &quot;Singleton instance containing general app details.&quot;)
 </code></pre>
 <ul>
-<li><code>*ACCEPTOR*</code> gets initialised/reinitialised when <code>START</code> or <code>RESTART-APP</code> is called<ul>
+<li><code>*ACCEPTOR*</code> gets initialised/reinitialised when <code>START-APP</code> or <code>RESTART-APP</code> is called<ul>
 <li>so we don&#39;t bother initialising it here</li>
 </ul>
 </li>
@@ -376,46 +420,55 @@ defined before we run the source files that depend on it<ul>
 <h2 id="app">APP</h2>
 <ul>
 <li>The <code>APP</code> struct groups general, high-level app details including<ul>
-<li>the name of this instance of the app<ul>
-<li>this will default to the name of base-dir</li>
+<li><code>NAME</code><ul>
+<li>the user-specified name of this instance of the app</li>
+<li>this will default to the name of the directory specified in <code>working-dir</code></li>
 </ul>
 </li>
-<li>the base/root directory of the app&#39;s source/binaries</li>
-<li>the current/working directory for the app<ul>
+<li><code>APP-DIR</code><ul>
+<li>the root directory of the app&#39;s source/binaries</li>
+</ul>
+</li>
+<li><code>WORKING-DIR</code><ul>
+<li>the current/working directory for the app</li>
 <li>this will be the root path from which the website is generated</li>
 </ul>
 </li>
-<li>the version of the app</li>
-<li>the time the app was last updated<ul>
+<li><code>VERSION</code><ul>
+<li>the current version of the app</li>
+</ul>
+</li>
+<li><code>LAST-UPDATED</code><ul>
+<li>the time the app was last updated</li>
 <li>based on the last write time of the <a href="../version">version file</a></li>
 </ul>
 </li>
-<li>the directory containing static web resources</li>
-<li>the regular expression defining static resources</li>
+<li><code>WEB-STATIC-DIR</code><ul>
+<li>the directory containing static client-side web resources</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defstruct app
   &quot;Contains general, high-level app details.&quot;
   (name &quot;&quot; :type STRING)
-  (base-dir nil :type PATHNAME)
+  (app-dir nil :type PATHNAME)
   (working-dir nil :type PATHNAME)
   (version &quot;0.0&quot; :type STRING)
   (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME)
-  (web-static-regex &quot;^(?:/images/|/css/|/deps/|/js/|/robot\\.txt$|$)&quot;
-                    :read-only t))
+  (web-static-dir nil :type PATHNAME))
 </code></pre>
 <h3 id="create-app">CREATE-APP</h3>
 <ul>
 <li>This function creates an instance of <code>APP</code><ul>
-<li>with all fields correctly initialised</li>
+<li>with all fields properly initialised</li>
 </ul>
 </li>
-<li>Note that <code>APP-VERSION</code> is loaded from a separate file, <a href="../version">version</a><ul>
+<li>Note that <code>APP-VERSION</code> is loaded from a separate <a href="../version">version file</a><ul>
 <li>this is partly due to <a href="../fileworthy.asd">fileworthy.asd</a> needing access to the app version as well</li>
-<li>this way we have a single place where the version gets updated<ul>
-<li>and it&#39;s easily modified and read</li>
+<li>and this way we have a single place where the version gets updated<ul>
+<li>and it&#39;s easily modified and read from</li>
 </ul>
 </li>
 </ul>
@@ -423,7 +476,7 @@ defined before we run the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(defun create-app ()
   &quot;Create APP instance.&quot;
-  (let ((base-dir (asdf:system-source-directory :fileworthy))
+  (let ((app-dir (asdf:system-source-directory :fileworthy))
         (working-dir (get-pathname-defaults))
         (version-file-path (asdf:system-relative-pathname
                             :fileworthy
@@ -434,17 +487,17 @@ defined before we run the source files that depend on it<ul>
                   #\/
                   (princ-to-string (uiop/filesystem:truename* working-dir))
                   :remove-empty-subseqs t))
-              :base-dir base-dir 
+              :app-dir app-dir 
               :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
                 (file-write-date version-file-path))
-              :web-static-dir (merge-pathnames #P&quot;static/&quot; base-dir))))
+              :web-static-dir (merge-pathnames #P&quot;static/&quot; app-dir))))
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
-<li>To launch the website with the default values we need only call <code>START</code></li>
+<li>To launch the website with the default values we need only call <code>START-APP</code></li>
 </ul>
 <h3 id="-start-app-"><code>START-APP</code></h3>
 <ul>
@@ -453,27 +506,42 @@ defined before we run the source files that depend on it<ul>
 <li>by default at <a href="http://localhost:9090">http://localhost:9090</a></li>
 </ul>
 </li>
-<li><code>START</code> can be called more than once<ul>
-<li>even without calling <code>STOP</code></li>
-</ul>
-</li>
-<li>If the web server is already running a debugger restart will be presented<ul>
-<li>with the option to restart to web server</li>
-</ul>
-</li>
-<li>Also note that <code>*APP*</code> gets reinitialised even if it&#39;s already loaded<ul>
-<li>not sure this is necessary but it may be useful to reload the version file</li>
-<li>and it&#39;s not an expensive operation anyway</li>
-</ul>
-</li>
 <li>Parameters:<ul>
 <li><code>PORT</code><ul>
 <li>the port of the web server</li>
-<li>The default is 9090 as this is Hunchentoot&#39;s default</li>
 </ul>
 </li>
 <li><code>DEBUG</code><ul>
-<li>whether to start the web server in debug mode</li>
+<li>whether to start the web server in debug mode where:<ul>
+<li>errors are caught by the debugger</li>
+<li>errors are shown in HTML output<ul>
+<li>rather than showing a friendly &quot;server error&quot; page: TODO</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Returns:<ul>
+<li>an <code>R</code> result</li>
+</ul>
+</li>
+<li>Side-effects:<ul>
+<li>sets <code>*ACCEPTOR*</code> and <code>*APP*</code></li>
+<li>since the Hunchentoot web server is started<ul>
+<li>this may initialise its own global variables</li>
+<li>and produce it&#39;s own side-effects</li>
+<li>this function explicitly sets the following Hunchentoot global vars:<ul>
+<li><code>*CATCH-ERRORS-P*</code></li>
+<li><code>*SHOW-LISP-ERRORS-P*</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>calls <code>DEFINE-ROUTES</code><ul>
+<li>which has its own side-effects</li>
 </ul>
 </li>
 </ul>
@@ -481,15 +549,29 @@ defined before we run the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(defun start-app (&amp;key (port 9090) (debug t))
   &quot;Starts the app.&quot;
+
+  (if *acceptor*
+    (let* ((res (new-r :error &quot;Server is already running.&quot;)))
+      (format t (r-message res))
+      (return-from start-app res)))
+
   (setf *app* (create-app))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
+
   (define-routes)
+
   (when debug
     (setf *catch-errors-p* nil)
     (setf *show-lisp-errors-p* t))
-  (format t &quot;Started Fileworthy ~A~%&quot; (app-version *app*))
-  (start *acceptor*))
+
+  (start *acceptor*)
+
+  (let* ((res (new-r :success
+                     (sf &quot;Fileworthy ~A started on port ~A, working out of &#39;~A&#39;.&quot;
+                         (app-version *app*) port (app-working-dir *app*)))))
+    (format t (r-message res))
+    res))
 </code></pre>
 <h3 id="-stop-app-"><code>STOP-APP</code></h3>
 <ul>
@@ -507,9 +589,8 @@ defined before we run the source files that depend on it<ul>
 </code></pre>
 <h3 id="-restart-app-"><code>RESTART-APP</code></h3>
 <ul>
-<li>This function restarts the app</li>
-<li>I would&#39;ve named this function <code>RESTART</code><ul>
-<li>but it would then conflict with the <a href="http://clhs.lisp.se/Body/t_rst.htm#restart">system class</a> of the same name</li>
+<li>This function restarts the app<ul>
+<li>including the underlying web server</li>
 </ul>
 </li>
 </ul>
@@ -521,12 +602,7 @@ defined before we run the source files that depend on it<ul>
 <h3 id="-create-web-acceptor-"><code>CREATE-WEB-ACCEPTOR</code></h3>
 <ul>
 <li>This function creates the Hunchentoot (easy) acceptor</li>
-<li>The BUILDER macro defines web middleware</li>
-<li>For now I&#39;m only using it to define where to get the static resources<ul>
-<li>like CSS, Javascript, images, etc.</li>
-</ul>
-</li>
-<li>See <code>START</code> for a description of the parameters<ul>
+<li>See <code>START-APP</code> for a description of the parameters<ul>
 <li>as it uses the exact same list</li>
 </ul>
 </li>
@@ -547,7 +623,7 @@ defined before we run the source files that depend on it<ul>
 <h3 id="-get-dir-names-"><code>GET-DIR-NAMES</code></h3>
 <ul>
 <li>This function gets a list of directory names relative to either<ul>
-<li>the given directory <code>PARENT</code></li>
+<li>the given directory, <code>PARENT</code></li>
 <li>or the root working folder as specified by <code>APP-WORKING-DIR</code></li>
 </ul>
 </li>
@@ -635,7 +711,7 @@ defined before we run the source files that depend on it<ul>
             &quot;/js/&quot;
             (merge-pathnames* &quot;js/&quot; (app-web-static-dir *app*)))
 
-          ;; File path page
+          ;; File-system path page
           (create-regex-dispatcher &quot;^/*&quot; #&#39;page-fs-path))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
@@ -722,7 +798,7 @@ defined before we run the source files that depend on it<ul>
                                 :href (sf &quot;/~A/&quot; dir-name)
                                 dir-name)))))
                ;; Sub-folders
-               (let* ((expanded-dirs (expand-all-folders path-name))
+               (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map &#39;list
                                              (λ (sub-dir)
                                                 (get-dir-names sub-dir))
@@ -757,11 +833,11 @@ defined before we run the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun expand-all-folders (path-name)
-  &quot;Expand all the path segments in PATH-NAME to a list of sub-folders.&quot;
+<pre><code class="lang-lisp">(defun expand-sub-dirs (path-name)
+  &quot;Expand all the path segments in PATH-NAME to a list of sub-directories.&quot;
   (let* ((path-name (string-trim &#39;(#\/) (or path-name &quot;&quot;))))
     (if (empty? path-name)
-      (return-from expand-all-folders nil))
+      (return-from expand-sub-dirs nil))
     (loop :for c :across path-name
           :for i :from 0
           :when (char= #\/ c)
@@ -770,7 +846,7 @@ defined before we run the source files that depend on it<ul>
 </code></pre>
 <h3 id="-page-error-not-found-"><code>PAGE-ERROR-NOT-FOUND</code></h3>
 <ul>
-<li>This is the standard 404 (not found) page.</li>
+<li>This is the 404 (not found) page.</li>
 </ul>
 <pre><code class="lang-lisp">(defun page-error-not-found ()
   &quot;Not Found error page.&quot;
@@ -786,6 +862,14 @@ defined before we run the source files that depend on it<ul>
          (:b &quot; Go back to the home page&quot;))))))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
+<ul>
+<li>This page displays a file-system path<ul>
+<li>i.e. a directory or file</li>
+</ul>
+</li>
+<li>If the file appears to be a binary file, don&#39;t show it but provide links with options</li>
+<li>If the path is a directory with one non-binary file in it, just show it</li>
+</ul>
 <pre><code class="lang-lisp">(defun page-fs-path ()
   &quot;File-system path page.&quot;
   (let* ((path-name (script-name* *request*))

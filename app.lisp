@@ -347,7 +347,7 @@
     * whether to start the web server in debug mode where:
       * errors are caught by the debugger
       * errors are shown in HTML output
-        * rather than showing a friendly "server error" page: TODO
+        * rather than showing a friendly "server error" page
 * Returns:
   * an `R` result
 * Side-effects:
@@ -652,12 +652,10 @@
           :collect (subseq path-name 0 i) :into lst
           :finally (return (append lst (list path-name))))))
 #||
-### `PAGE-ERROR-NOT-FOUND`
-
-* This is the 404 (not found) page.
+### Error pages
 ||#
 (defun page-error-not-found ()
-  "Not Found error page."
+  "Not found error page."
   (set-http-code +http-not-found+)
   (page-template
     "Not Found"
@@ -669,6 +667,25 @@
          (:i :class "fa fa-home" "")
          (:b " Go back to the home page"))))))
 
+(defmethod acceptor-status-message (acceptor (http-status-code (eql 404)) &key)
+  (page-error-not-found))
+
+(defun page-error-server ()
+  "Internal server error page."
+  (set-http-code +http-internal-server-error+)
+  (page-template
+    "Server Error"
+    (markup
+      (:h2 "Server Error")
+      (:p (sf '("Sorry, it looks like something went wrong on the server. "
+                "Please try again later if the problem persists.")))
+      (:p
+        (:a :href "/"
+         (:i :class "fa fa-home" "")
+         (:b " Go back to the home page"))))))
+
+(defmethod acceptor-status-message (acceptor (http-status-code (eql 500)) &key)
+  (page-error-server))
 #||
 ### `PAGE-FS-PATH`
 

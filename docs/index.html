@@ -515,7 +515,7 @@ defined before we compile the source files that depend on it<ul>
 <li>whether to start the web server in debug mode where:<ul>
 <li>errors are caught by the debugger</li>
 <li>errors are shown in HTML output<ul>
-<li>rather than showing a friendly &quot;server error&quot; page: TODO</li>
+<li>rather than showing a friendly &quot;server error&quot; page</li>
 </ul>
 </li>
 </ul>
@@ -849,12 +849,9 @@ defined before we compile the source files that depend on it<ul>
           :collect (subseq path-name 0 i) :into lst
           :finally (return (append lst (list path-name))))))
 </code></pre>
-<h3 id="-page-error-not-found-"><code>PAGE-ERROR-NOT-FOUND</code></h3>
-<ul>
-<li>This is the 404 (not found) page.</li>
-</ul>
+<h3 id="error-pages">Error pages</h3>
 <pre><code class="lang-lisp">(defun page-error-not-found ()
-  &quot;Not Found error page.&quot;
+  &quot;Not found error page.&quot;
   (set-http-code +http-not-found+)
   (page-template
     &quot;Not Found&quot;
@@ -865,6 +862,26 @@ defined before we compile the source files that depend on it<ul>
         (:a :href &quot;/&quot;
          (:i :class &quot;fa fa-home&quot; &quot;&quot;)
          (:b &quot; Go back to the home page&quot;))))))
+
+(defmethod acceptor-status-message (acceptor (http-status-code (eql 404)) &amp;key)
+  (page-error-not-found))
+
+(defun page-error-server ()
+  &quot;Internal server error page.&quot;
+  (set-http-code +http-internal-server-error+)
+  (page-template
+    &quot;Server Error&quot;
+    (markup
+      (:h2 &quot;Server Error&quot;)
+      (:p (sf &#39;(&quot;Sorry, it looks like something went wrong on the server. &quot;
+                &quot;Please try again later if the problem persists.&quot;)))
+      (:p
+        (:a :href &quot;/&quot;
+         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+         (:b &quot; Go back to the home page&quot;))))))
+
+(defmethod acceptor-status-message (acceptor (http-status-code (eql 500)) &amp;key)
+  (page-error-server))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <ul>

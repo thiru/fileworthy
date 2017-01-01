@@ -212,7 +212,12 @@ nav a
 }
 .file-names .download
 {
+  display: none;
   float: right;
+}
+.file-names li:hover .download
+{
+  display: block;
 }
 
 #raw-file-content

@@ -2,8 +2,11 @@ displayFileContent();
 hljs.initHighlightingOnLoad();
 
 function displayFileContent() {
-  var filePath = document.querySelector('#files .selected').innerText.trim();
   var rawFileEl = document.getElementById('raw-file-content');
+  if (!rawFileEl)
+    return;
+
+  var filePath = document.querySelector('#files .selected').innerText.trim();
 
   if (filePath && filePath.endsWith('.md')) {
     var genMarkdown = marked(rawFileEl.innerText);

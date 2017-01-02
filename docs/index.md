@@ -508,6 +508,20 @@
       (read-sequence data stream)
       data)))
 
+(defun pretty-time (time)
+  "Formats a date/time to a user-friendly form. TIME is expected to either be a
+   timestamp readable by LOCAL-TIME, or a LOCAL-TIME:TIMESTAMP object."
+  (if (empty? time)
+      ""
+      (let* ((format-desc '())
+             (timestamp (if (stringp time)
+                            (parse-timestring time)
+                            time)))
+
+        (setf format-desc '(:short-weekday " " :short-month " " :day
+                            ", " :hour12 ":" (:min 2) " " :ampm))
+
+        (format-timestring nil timestamp :format format-desc))))
 
 ```
 
@@ -569,6 +583,9 @@
             "/js/"
             (merge-pathnames* "js/" (app-web-static-dir *app*)))
 
+          ;; About page
+          (create-regex-dispatcher "^/fileworthy/about/?$" #'page-about)
+
           ;; File-system path page
           (create-regex-dispatcher "^/*" #'page-fs-path))))
 
@@ -625,8 +642,16 @@
            (:body
              ;; Top Bar
              (:header :id "top-bar"
+              ;; Menu Bar
+              (:a
+                :id "menu-bar"
+                :href "javascript:toggleMenu()"
+                :title "Main menu"
+               (:i :class "fa fa-bars" " "))
+              ;; Site Name
               (:a :id "app-name" :href "/"
                (app-name *app*))
+              ;; App Name & Version
               (:a :id "project-name" :href "/"
                "Fileworthy "
                (:span
@@ -634,6 +659,12 @@
                  :title (sf "Updated ~A" (app-last-updated *app*))
                  (sf "~A" (app-version *app*))))
               (:div :class "clear-fix"))
+             ;; Main Menu
+             (:ul :id "main-menu" :class "hidden"
+              (:li
+                (:a :href "/fileworthy/about" "About"))
+              (:li
+                (:a :href "javascript:toggleMenu()" "Close")))
              (:nav
                ;; Root Folders
                (:ul :id "root-folder-names"
@@ -679,6 +710,7 @@
                                       dir-name)))))))))
              (:main
                (raw content))
+             (:script :src "/js/utils.js" "")
              (:script :src "/js/main.js" "")))))
 
 
@@ -737,6 +769,41 @@
 
 (defmethod acceptor-status-message (acceptor (http-status-code (eql 500)) &key)
   (page-error-server))
+
+
+```
+
+### `PAGE-ABOUT`
+
+```lisp
+(defun page-about ()
+  "About page."
+  (page-template
+    "About"
+    (markup
+      (:h2 "About Fileworthy")
+      (:p (sf '("Fileworthy aims to be a simple solution to managing your "
+                "notes and files across many devices. It is half static site "
+                "generator, half file-system.")))
+      (:table :class "simple-table"
+       (:tr
+         (:td "Version")
+         (:td (app-version *app*)))
+       (:tr
+         (:td "Last Updated")
+         (:td (pretty-time (app-last-updated *app*))))
+       (:tr
+         (:td "Source Code")
+         (:td (:a :href "https://github.com/thiru/fileworthy"
+               "Hosted at Github")))
+       (:tr
+         (:td "License")
+         (:td
+           (:a :href "https://www.gnu.org/licenses/gpl-3.0.html" "GPL v3")))
+       (:tr
+         (:td "Copyright")
+         (:td "2017 Thirushanth Thirunavukarasu"))))))
+
 
 ```
 

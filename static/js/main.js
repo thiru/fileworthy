@@ -16,3 +16,7 @@ function displayFileContent() {
     rawFileEl.classList.remove('hidden');
   }
 }
+
+function toggleMenu() {
+  get("main-menu").classList.toggle("hidden");
+}

@@ -123,6 +123,15 @@ ul, ol
   text-transform: uppercase;
 }
 
+.simple-table td
+{
+  padding: 0 0.5rem 0.5rem 0;
+}
+.simple-table td:first-child
+{
+  font-weight: bold;
+}
+
 /* ========== Common [END] ========== */
 
 /* ========== Template [START] ========== */
@@ -149,19 +158,35 @@ nav a
 }
 #top-bar a
 {
+  display: inline-block;
+  padding: 0;
   text-decoration: none;
 }
 #top-bar a:hover
 {
   background-color: inherit;
 }
-#app-name
-{
-  float: left;
-}
 #project-name
 {
   float: right;
+}
+
+#menu-bar
+{
+  margin-right: 0.5rem;
+}
+#main-menu
+{
+  padding: 0.5rem 1rem;
+}
+#main-menu li:nth-child(odd)
+{
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+}
+#main-menu a
+{
+  display: block;
+  text-decoration: none;
 }
 
 #version

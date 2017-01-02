@@ -508,6 +508,12 @@
       (read-sequence data stream)
       data)))
 
+
+```
+
+### `PRETTY-TIME`
+
+```lisp
 (defun pretty-time (time)
   "Formats a date/time to a user-friendly form. TIME is expected to either be a
    timestamp readable by LOCAL-TIME, or a LOCAL-TIME:TIMESTAMP object."

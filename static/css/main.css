@@ -177,7 +177,8 @@ nav a
 }
 #main-menu
 {
-  padding: 0.5rem 1rem;
+  border: solid 0.2rem #EFEFEF; /* VAR GREY-LIGHT */
+  margin: 0.5rem 1rem;
 }
 #main-menu li:nth-child(odd)
 {

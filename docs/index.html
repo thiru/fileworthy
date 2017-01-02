@@ -662,8 +662,9 @@ defined before we compile the source files that depend on it<ul>
     (let ((data (make-string (file-length stream))))
       (read-sequence data stream)
       data)))
-
-(defun pretty-time (time)
+</code></pre>
+<h3 id="-pretty-time-"><code>PRETTY-TIME</code></h3>
+<pre><code class="lang-lisp">(defun pretty-time (time)
   &quot;Formats a date/time to a user-friendly form. TIME is expected to either be a
    timestamp readable by LOCAL-TIME, or a LOCAL-TIME:TIMESTAMP object.&quot;
   (if (empty? time)

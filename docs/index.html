@@ -673,8 +673,8 @@ defined before we compile the source files that depend on it<ul>
                             (parse-timestring time)
                             time)))
 
-        (setf format-desc &#39;(:short-weekday &quot; &quot; :short-month &quot; &quot; :day
-                            &quot;, &quot; :hour12 &quot;:&quot; (:min 2) &quot; &quot; :ampm))
+        (setf format-desc &#39;(:short-weekday &quot; &quot; :short-month &quot; &quot; :day &quot; &quot;
+                            :year &quot;, &quot; :hour12 &quot;:&quot; (:min 2) &quot; &quot; :ampm))
 
         (format-timestring nil timestamp :format format-desc))))
 </code></pre>
@@ -808,7 +808,7 @@ defined before we compile the source files that depend on it<ul>
                &quot;Fileworthy &quot;
                (:span
                  :id &quot;version&quot;
-                 :title (sf &quot;Updated ~A&quot; (app-last-updated *app*))
+                 :title (sf &quot;Updated ~A&quot; (pretty-time (app-last-updated *app*)))
                  (sf &quot;~A&quot; (app-version *app*))))
               (:div :class &quot;clear-fix&quot;))
              ;; Main Menu

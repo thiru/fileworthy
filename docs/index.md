@@ -518,8 +518,8 @@
                             (parse-timestring time)
                             time)))
 
-        (setf format-desc '(:short-weekday " " :short-month " " :day
-                            ", " :hour12 ":" (:min 2) " " :ampm))
+        (setf format-desc '(:short-weekday " " :short-month " " :day " "
+                            :year ", " :hour12 ":" (:min 2) " " :ampm))
 
         (format-timestring nil timestamp :format format-desc))))
 
@@ -656,7 +656,7 @@
                "Fileworthy "
                (:span
                  :id "version"
-                 :title (sf "Updated ~A" (app-last-updated *app*))
+                 :title (sf "Updated ~A" (pretty-time (app-last-updated *app*)))
                  (sf "~A" (app-version *app*))))
               (:div :class "clear-fix"))
              ;; Main Menu

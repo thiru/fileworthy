@@ -200,11 +200,11 @@ nav a
 .file-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
+  border-collapse: collapse;
   float: right;
   overflow-x: auto;
-  width: 20%;
 }
-.file-names li a
+.file-names a
 {
   display: block;
   padding: 0.3rem 0.5rem;
@@ -212,12 +212,11 @@ nav a
 }
 .file-names .download
 {
-  display: none;
-  float: right;
+  visibility: collapse;
 }
-.file-names li:hover .download
+.file-names tr:hover .download
 {
-  display: block;
+  visibility: visible;
 }
 
 #raw-file-content

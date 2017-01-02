@@ -705,7 +705,7 @@
                                 (non-empty? abs-fs-path))
                          (file-exists-p abs-fs-path)))
          (binary-file? nil)
-         (loaded-file-name "")
+         (curr-file-name "")
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content "")
@@ -720,8 +720,8 @@
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
+      (setf curr-file-name (last1 path-segs))
       (when (or (not binary-file?) (get-parameter "force-show"))
-        (setf loaded-file-name (last1 path-segs))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
     (when (and dir-exists? (= 1 (length file-names)))
@@ -729,30 +729,31 @@
                                      (to-string abs-fs-path)
                                      (first file-names)))
       (setf binary-file? (is-file-binary? abs-fs-path))
+      (setf curr-file-name (first file-names))
       (when (or (not binary-file?) (get-parameter "force-show"))
-        (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
       (if (empty? rel-fs-path) "Home" rel-fs-path)
       (markup
-        (:ul :id "files" :class "file-names"
-         (loop
+        (:table :id "files" :class "file-names"
+         (:tbody
+          (loop
            :for file-name :in file-names
            :collect
            (markup
-             (:li
-               (:a
-                 :class "download"
-                 :href
-                 (sf "~A?download" file-name)
-                 (:i :class "fa fa-download" ""))
-               (:a
-                 :class
-                 (if (string= file-name loaded-file-name)
-                   "selected"
-                   nil)
-                 :href file-name
-                 file-name)))))
+             (:tr
+               :class
+               (if (string= file-name curr-file-name)
+                 "selected"
+                 nil)
+               (:td
+                 (:a :href file-name file-name))
+               (:td
+                 (:a
+                   :class "download"
+                   :href (sf "~A?download" file-name)
+                   :title "Download file"
+                   (:i :class "fa fa-download" ""))))))))
         (:p
           (:i
             :class
@@ -776,11 +777,11 @@
                (:p
                  "You can "
                  (:a
-                   :href (sf "~A?download" loaded-file-name)
+                   :href (sf "~A?download" curr-file-name)
                    "download the file")
                  " or try to "
                  (:a
-                   :href (sf "~A?force-show" loaded-file-name)
+                   :href (sf "~A?force-show" curr-file-name)
                    "display it anyway."))))))))))
 
 (defun get-fs-path-from-url (path-name)

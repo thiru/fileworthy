@@ -903,7 +903,7 @@ defined before we compile the source files that depend on it<ul>
                                 (non-empty? abs-fs-path))
                          (file-exists-p abs-fs-path)))
          (binary-file? nil)
-         (loaded-file-name &quot;&quot;)
+         (curr-file-name &quot;&quot;)
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path (app-working-dir *app*))))
          (file-content &quot;&quot;)
@@ -918,8 +918,8 @@ defined before we compile the source files that depend on it<ul>
     ;; File requested
     (when file-exists?
       (setf binary-file? (is-file-binary? abs-fs-path))
+      (setf curr-file-name (last1 path-segs))
       (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
-        (setf loaded-file-name (last1 path-segs))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
     (when (and dir-exists? (= 1 (length file-names)))
@@ -927,30 +927,31 @@ defined before we compile the source files that depend on it<ul>
                                      (to-string abs-fs-path)
                                      (first file-names)))
       (setf binary-file? (is-file-binary? abs-fs-path))
+      (setf curr-file-name (first file-names))
       (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
-        (setf loaded-file-name (first file-names))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
       (markup
-        (:ul :id &quot;files&quot; :class &quot;file-names&quot;
-         (loop
+        (:table :id &quot;files&quot; :class &quot;file-names&quot;
+         (:tbody
+          (loop
            :for file-name :in file-names
            :collect
            (markup
-             (:li
-               (:a
-                 :class &quot;download&quot;
-                 :href
-                 (sf &quot;~A?download&quot; file-name)
-                 (:i :class &quot;fa fa-download&quot; &quot;&quot;))
-               (:a
-                 :class
-                 (if (string= file-name loaded-file-name)
-                   &quot;selected&quot;
-                   nil)
-                 :href file-name
-                 file-name)))))
+             (:tr
+               :class
+               (if (string= file-name curr-file-name)
+                 &quot;selected&quot;
+                 nil)
+               (:td
+                 (:a :href file-name file-name))
+               (:td
+                 (:a
+                   :class &quot;download&quot;
+                   :href (sf &quot;~A?download&quot; file-name)
+                   :title &quot;Download file&quot;
+                   (:i :class &quot;fa fa-download&quot; &quot;&quot;))))))))
         (:p
           (:i
             :class
@@ -974,11 +975,11 @@ defined before we compile the source files that depend on it<ul>
                (:p
                  &quot;You can &quot;
                  (:a
-                   :href (sf &quot;~A?download&quot; loaded-file-name)
+                   :href (sf &quot;~A?download&quot; curr-file-name)
                    &quot;download the file&quot;)
                  &quot; or try to &quot;
                  (:a
-                   :href (sf &quot;~A?force-show&quot; loaded-file-name)
+                   :href (sf &quot;~A?force-show&quot; curr-file-name)
                    &quot;display it anyway.&quot;))))))))))
 
 (defun get-fs-path-from-url (path-name)

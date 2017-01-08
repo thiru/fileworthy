@@ -26,11 +26,28 @@
 ;;; Taken from PCL -------------------------------------------------------------
 
 ;;; Generic Utils --------------------------------------------------------------
+(defmacro 1st (obj)
+  "Gets the first item in OBJ if it's a list, otherwise OBJ is simply returned."
+  `(if (listp ,obj) (first ,obj) ,obj))
+
+(defmacro 2nd (obj &optional fallback)
+  "Gets the second item in OBJ if it's a list of at least two items, otherwise
+   FALLBACK."
+  `(cond ((atom ,obj)
+          ,fallback)
+         ((and (listp ,obj) (> (length ,obj) 1))
+          (second ,obj))
+         (t ,fallback)))
+
 (defmacro last1 (lst)
   "Get the last item in lst. If lst is not a list it simply returns it."
   `(if (listp ,lst)
      (car (last ,lst))
      ,lst))
+
+(defun blank? (str)
+  "Determine whether `STR` contains only whitespace characters."
+  (cl-ppcre:scan "^\\s+$" str))
 
 (defmacro -> (obj slot)
   "Gets the value of a slot."
@@ -39,19 +56,6 @@
 (defmacro => (obj slot val)
   "Sets the value of a slot."
   `(setf (slot-value ,obj ',slot) ,val))
-
-(defmacro empty? (val)
-  "Determine whether 'val' is considered empty. I.e. is null, an empty
-   sequence, string or path."
-  `(or (null ,val)
-       (and (typep ,val 'PATHNAME) (= 0 (length (princ-to-string ,val))))
-       (and (listp ,val) (= 0 (length ,val)))
-       (and (stringp ,val) (= 0 (length, val)))))
-
-(defmacro non-empty? (val)
-  "Determine whether VAL is not empty. I.e. it is either a non-nil atom, a
-   non-empty list, or a non-empty string."
-  `(not (empty? ,val)))
 
 (defmacro loose-parse-int (str &key (fallback 0))
   "Very lenient parsing of STR to an integer."
@@ -76,6 +80,52 @@
   "Shortcut of `PRINC-TO-STRING'"
   `(princ-to-string ,obj))
 ;;; Generic Utils --------------------------------------------------------------
+
+;;; Empty
+(defvar empty/*objects*
+  (let ((hash (make-hash-table)))
+    (setf (gethash 'pathname hash) #P"")
+    hash)
+  "A hash table of 'empty' objects, keyed by their respective type.")
+
+(defun empty (type &key unless)
+  "Get the registered 'empty' object (if any) unless `UNLESS` is non-nil.
+   This is an idiomatic way of ensuring the given `UNLESS` object is always
+   non-nil."
+  (if (not (null unless))
+    (return-from empty unless))
+
+  (if (stringp unless)
+    (return-from empty unless))
+
+  (if (eq 'string type)
+    (return-from empty ""))
+
+  (gethash type empty/*objects*))
+
+(defun empty=> (obj)
+  "Register `OBJ` as the canonical 'empty' instance of it's respective type."
+  (setf (gethash (type-of obj) empty/*objects*) obj))
+
+(defgeneric empty? (obj)
+  (:documentation
+    "Determine whether `OBJ` is considered an 'empty' instance of it's
+     respective data-type. E.g. a null object, an empty string, an empty list,
+     etc."))
+
+(defmethod empty? ((obj pathname))
+  (zerop (length (princ-to-string obj))))
+
+(defmethod empty? ((obj string))
+  (zerop (length obj)))
+
+(defmethod empty? ((obj list))
+  (zerop (length obj)))
+
+(defmethod empty? ((obj t))
+  (or (null obj)
+      (eq obj (empty (type-of obj)))))
+;;; Empty ----------------------------------------------------------------------
 
 ;;; Validation
 (defparameter levels '(:success 2

@@ -283,6 +283,8 @@
 ## APP
 
 * The `APP` struct groups general, high-level app details including
+  * `DEBUG`
+    * whether the site is running in a debug mode
   * `NAME`
     * the user-specified name of this instance of the app
     * this will default to the name of the directory specified in `working-dir`
@@ -291,6 +293,8 @@
   * `WORKING-DIR`
     * the current/working directory for the app
     * this will be the root path from which the website is generated
+  * `MIN-PASSWORD-LENGTH`
+    * the minimum allowed password length
   * `VERSION`
     * the current version of the app
   * `LAST-UPDATED`
@@ -298,16 +302,27 @@
     * based on the last write time of the [version file](../version)
   * `WEB-STATIC-DIR`
     * the directory containing static client-side web resources
+  * `CONFIG-FILE-PATH`
+    * the fully qualified path to the config file
+  * `CONFIG`
+    * the configuration details of the site
 
 ```lisp
 (defstruct app
   "Contains general, high-level app details."
+  (debug t)
   (name "" :type STRING)
-  (app-dir nil :type PATHNAME)
-  (working-dir nil :type PATHNAME)
+  (app-dir (empty 'pathname) :type PATHNAME)
+  (working-dir (empty 'pathname) :type PATHNAME)
+  (min-password-length 4 :type INTEGER)
   (version "0.0" :type STRING)
-  (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME))
+  (last-updated (empty 'timestamp) :type TIMESTAMP)
+  (web-static-dir (empty 'pathname) :type PATHNAME)
+  (config-file-path (empty 'pathname) :type PATHNAME)
+  (config nil))
+
+(empty=> (local-time:encode-timestamp 0 0 0 0 1 1 1))
+(empty=> (make-app))
 
 
 ```
@@ -321,14 +336,16 @@
     * and it's easily modified and read from
 
 ```lisp
-(defun create-app ()
+(defun create-app (debug)
   "Create APP instance."
-  (let ((app-dir (asdf:system-source-directory :fileworthy))
-        (working-dir (get-pathname-defaults))
-        (version-file-path (asdf:system-relative-pathname
-                            :fileworthy
-                            "version")))
-    (make-app :name
+  (let* ((app-dir (asdf:system-source-directory :fileworthy))
+         (working-dir (get-pathname-defaults))
+         (version-file-path (asdf:system-relative-pathname
+                              :fileworthy
+                              "version"))
+         (config-file-path (merge-pathnames* "fileworthyrc" app-dir)))
+    (make-app :debug debug
+              :name
               (last1 
                 (split-sequence
                   #\/
@@ -340,7 +357,9 @@
               :last-updated
               (universal-to-timestamp
                 (file-write-date version-file-path))
-              :web-static-dir (merge-pathnames #P"static/" app-dir))))
+              :web-static-dir (merge-pathnames #P"static/" app-dir)
+              :config-file-path config-file-path
+              :config (load-config config-file-path))))
 
 
 ```
@@ -384,7 +403,7 @@
       (format t (r-message res))
       (return-from start-app res)))
 
-  (setf *app* (create-app))
+  (setf *app* (create-app debug))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
 
@@ -429,9 +448,8 @@
 ```lisp
 (defun restart-app ()
   "Restarts the app."
-  (stop)
-  (start))
-
+  (stop-app)
+  (start-app))
 
 
 ```
@@ -459,6 +477,90 @@
 ```
 
 ## Core Domain Logic
+
+### `USER`
+
+* This struct encapsulates a user account
+
+```lisp
+(defstruct user
+  (id 0 :type INTEGER)
+  (name "" :type STRING)
+  (email "" :type STRING)
+  (password "" :type STRING)
+  (salt "" :type STRING)
+  (admin? nil :type BOOLEAN))
+
+(empty=> (make-user))
+
+(defun get-user (&key (id 0 id-given?) name email)
+  "Get user with one or more of the specified parameters."
+  (if (or id-given? name email)
+    (find-if (λ (user)
+                (and (or (not id-given?) (= id (user-id user)))
+                     (or (null name) (string-equal name (user-name user)))
+                     (or (null email) (string-equal email (user-email user)))))
+             (fileworthyrc-users (app-config *app*)))))
+
+(defun authenticate-user (user pwd)
+  "Authenticate the given user."
+  (and user
+       (not (blank? pwd))
+       (string= (gen-hash pwd (user-salt user))
+                (user-password user))))
+
+
+```
+
+### `FILEWORTHYRC`
+
+```lisp
+(defstruct fileworthyrc
+  (port 9090 :type INTEGER)
+  (users-id-seed 1 :type INTEGER)
+  (users '() :type LIST)
+  (working-dir "" :type STRING))
+
+(empty=> (make-fileworthyrc))
+
+(defun load-config (path)
+  "Load an instance of `FILEWORTHYRC` from the config file."
+  (read-file-form path))
+
+
+```
+
+### `RANDOM-STRING`
+
+* The Iron Clad function is wrapped in `TO-STRING` so that it prints like a
+  regular string (e.g. used when saving config to disk)
+  * otherwise the printed representation has "COERCE..."
+
+```lisp
+(defun random-string (&optional (n 16))
+  "Return a random hex string with N digits."
+  (to-string (ironclad:byte-array-to-hex-string (ironclad:make-random-salt n))))
+
+
+```
+
+### `GEN-HASH`
+
+* The Iron Clad function is wrapped in `TO-STRING` so that it prints like a
+  regular string (e.g. used when saving config to disk)
+  * otherwise the printed representation has "COERCE..."
+
+```lisp
+(defun gen-hash (to-hash &optional salt)
+  "Generate a hash of TO-HASH."
+  (to-string
+    (ironclad:byte-array-to-hex-string
+      (ironclad:digest-sequence :sha512
+                                (ironclad:ascii-string-to-byte-array
+                                  (sf "~A~A" to-hash (or salt "")))))))
+
+
+```
 
 ### `GET-DIR-NAMES`
 
@@ -554,15 +656,121 @@
 
 ```
 
-## Web Utils
-
-* This section contains utility functions common to most web functionality
+### `CREATE-CONFIG-LOCK-FILE`
 
 ```lisp
+(defun create-config-lock-file ()
+  "Create a file indicating that the config file is locked."
+  (let* ((lock-file (sf "~A.lck" (app-config-file-path *app*))))
+    (with-open-file (stream
+                      lock-file
+                      :direction :output
+                      :if-exists nil
+                      :if-does-not-exist :create)
+      (if (null stream)
+        (new-r :warning "Config file is already locked.")
+        (progn
+          (format stream "~A" (get-universal-time))
+          (new-r :success "Config file lock created."))))))
+
+
+```
+
+### `DELETE-CONFIG-LOCK-FILE
+
+```lisp
+(defun delete-config-lock-file ()
+  "Delete config lock file."
+  (delete-file-if-exists (sf "~A.lck" (app-config-file-path *app*))))
+
+
+```
+
+### `SAVE-CONFIG`
+
+* `CHANGE-FN` is a function that performs the work of making changes to the
+  global `(APP-CONFIG *APP*)` object
+* This function is only called if the config file lock is successfully obtained
+
+```lisp
+(defun save-config (change-fn)
+  "Save/update config file with contents of `(APP-CONFIG *APP*)."
+  (let* ((lockedR (create-config-lock-file)))
+    (if (failed? lockedR)
+      (return-from save-config lockedR))
+    (with-open-file (stream
+                      (app-config-file-path *app*)
+                      :direction :output
+                      :if-exists :supersede
+                      :if-does-not-exist :create)
+      (funcall change-fn)
+      (write (app-config *app*) :stream stream :readably t))
+    (delete-config-lock-file))
+  (new-r :success "Config updated."))
+
+
+```
+
+## Web Utils
+
+* This section contains common utility functions for the web-related code
+
+### `SESSION-COOKIE-NAME`
+
+* Let's use a custom session name
+  * rather than the default: "hunchentoot-session"
+
+```lisp
+(defmethod session-cookie-name ((acceptor easy-acceptor))
+  "fileworthy-session")
 
 (defun set-http-code (code)
   "Set the current request's HTTP status code to `CODE`."
   (setf (return-code*) code))
+
+(defun url-for (section-or-obj)
+  "Create URL for a particular section/object"
+  (cond ((eq 'about section-or-obj)
+         "/fileworthy/about")
+        ((eq 'users section-or-obj)
+         "/fileworthy/users")
+        ((typep section-or-obj 'user)
+         (if (= 0 (user-id section-or-obj))
+           "/fileworthy/users/new"
+           (sf "/fileworthy/users/~A/~(~A~)"
+               (user-id section-or-obj)
+               (user-name section-or-obj))))
+        (t "")))
+
+(defun json-result (result &optional data)
+  "Converts the given R instance to a JSON string."
+  (json:encode-json-plist-to-string
+    `(level ,(r-level result)
+            message ,(r-message result)
+            data ,data)))
+
+(defun json-error (status-code)
+  "Create a JSON response indicating an error with the specified HTTP status
+   code."
+  (set-http-code status-code)
+  (json:encode-json-plist-to-string
+    '(level error
+            message "Sorry, you don't have permission to perform this request.")))
+
+(defun set-auth-cookie (name value)
+  "Create a secure cookie."
+  (set-cookie name
+              :value value
+              ;; Expire a month from now
+              :max-age (* 60 60 24 30)
+              :path "/"
+              :secure (not (app-debug *app*))
+              :http-only t))
+
+(defun parse-js-bool (val)
+  "Parse a Javascript boolean taken from a post parameter to a Lisp bool."
+  (or (string-equal "true" val)
+      (string-equal "1" val)))
 
 
 ```
@@ -590,10 +798,39 @@
             (merge-pathnames* "js/" (app-web-static-dir *app*)))
 
           ;; About page
-          (create-regex-dispatcher "^/fileworthy/about/?$" #'page-about)
+          (create-regex-dispatcher
+            "^/fileworthy/about/?$"
+            #'page-about)
+
+          ;; User list page
+          (create-regex-dispatcher
+            "^/fileworthy/users/?$"
+            #'page-user-list)
+
+          ;; User detail page
+          (create-regex-dispatcher
+            "^/fileworthy/users/.+/?$"
+            #'page-user-detail)
+
+          ;; User save API
+          (create-regex-dispatcher
+            "^/fileworthy/api/users/.+/?$"
+            #'api-user-save)
+
+          ;; Login API
+          (create-regex-dispatcher
+            "^/fileworthy/api/login/?$"
+            #'api-login)
+
+          ;; Logout page
+          (create-regex-dispatcher
+            "^/fileworthy/logout/?$"
+            #'page-logout)
 
           ;; File-system path page
-          (create-regex-dispatcher "^/*" #'page-fs-path))))
+          (create-regex-dispatcher
+            "^/*"
+            #'page-fs-path))))
 
 
 ```
@@ -612,14 +849,17 @@
       * suffixed with the site's name and project name (Fileworthy)
       * and separated by a hyphen
       * e.g. "Home - My Documents - Fileworthy"
+  * `PAGE-ID`
+    * the unique id of the page set on main element
   * `CONTENT`
     * the HTML of the page as a raw string
     * note that the caller is responsible for properly escaping special characters
 
 ```lisp
-(defun page-template (title content)
+(defun page-template (title page-id content)
   "Base template for all web pages."
-  (let* ((path-name (script-name* *request*))
+  (let* ((user (empty 'user :unless (session-value 'user)))
+         (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang "en"
@@ -644,33 +884,62 @@
              (:script :src "/deps/lodash/lodash.min.js" "")
              (:script :src "/deps/momentjs/moment.min.js" "")
              (:script :src "/deps/markedjs/marked.min.js" "")
-             (:script :src "/deps/highlightjs/highlight.pack.js" ""))
+             (:script :src "/deps/highlightjs/highlight.pack.js" "")
+             (:script :src "/js/utils.js" "")
+             (:script :src "/js/main.js" ""))
            (:body
+             ;; Overlay (for dialogs)
+             (:div :id "overlay" :class "hidden" "&nbsp;")
              ;; Top Bar
              (:header :id "top-bar"
-              ;; Menu Bar
+              ;; Menu Bar Icon
               (:a
                 :id "menu-bar"
-                :href "javascript:toggleMenu()"
+                :href "javascript:site.toggleMenu()"
                 :title "Main menu"
                (:i :class "fa fa-bars" " "))
               ;; Site Name
               (:a :id "app-name" :href "/"
                (app-name *app*))
-              ;; App Name & Version
-              (:a :id "project-name" :href "/"
-               "Fileworthy "
-               (:span
-                 :id "version"
-                 :title (sf "Updated ~A" (pretty-time (app-last-updated *app*)))
-                 (sf "~A" (app-version *app*))))
+              ;; User Info
+              (:div :id "user-info"
+               (if (empty? user)
+                 ;; Logged Out
+                 (raw
+                   (markup
+                     (:a :href "javascript:site.showLogin()"
+                      (:i :class "fa fa-sign-in" "")
+                      " Log In")))
+                 ;; Logged In
+                 (raw
+                   (markup
+                     (:a
+                       :href (url-for user)
+                       (user-name user))
+                     (:span " ")
+                     (:a
+                       :href "/fileworthy/logout"
+                       :title "Log Out"
+                       (:i :class "fa fa-sign-out" ""))))))
               (:div :class "clear-fix"))
              ;; Main Menu
              (:ul :id "main-menu" :class "hidden"
               (:li
                 (:a :href "/fileworthy/about" "About"))
+              (if (not (empty? user))
+                (raw
+                  (markup
+                    (:li
+                      (:a
+                        :href (url-for user)
+                        "Account")))))
+              (if (user-admin? user)
+                (raw
+                  (markup
+                    (:li
+                      (:a :href (url-for 'users) "Users")))))
               (:li
-                (:a :href "javascript:toggleMenu()" "Close")))
+                (:a :href "javascript:site.toggleMenu()" "Close")))
              (:nav
                ;; Root Folders
                (:ul :id "root-folder-names"
@@ -696,7 +965,7 @@
                                              expanded-dirs)))
                  (loop :for sub-dir-names :in sub-dir-name-lst
                        :for i :from 0
-                       :when (non-empty? sub-dir-names) 
+                       :when (not (empty? sub-dir-names))
                        :collect
                        (markup
                          (:ul :class "sub-folder-names"
@@ -714,10 +983,45 @@
                                                 (nth i expanded-dirs)
                                                 dir-name)
                                       dir-name)))))))))
-             (:main
+             (:main :id page-id
                (raw content))
-             (:script :src "/js/utils.js" "")
-             (:script :src "/js/main.js" "")))))
+             ;; Login Dialog
+             (:section :id "login-dialog" :class "dialog"
+              (:div :class "dialog-content"
+               (:h2 "Welcome!")
+               (:p
+                 (:input
+                   :id "login-email-address"
+                   :class "full-width"
+                   :onkeyup "ui.onEnter(event, site.login)"
+                   :placeholder "Email Address"
+                   :title "Email Address"
+                   :type "text"))
+               (:p
+                 (:input
+                   :id "login-pwd"
+                   :class "full-width"
+                   :onkeyup "ui.onEnter(event, site.login)"
+                   :placeholder "Password"
+                   :title "Password"
+                   :type "password"))
+               (:p :id "login-result")
+               (:p
+                 (:a
+                   :id "login-btn"
+                   :class "button full-width"
+                   :href "javascript:site.login()"
+                   "Log In"))
+               (:p
+                 (:a
+                   :id "forgot-pwd"
+                   :href "javascript:forgotPwd()"
+                   :style "float:left"
+                   "Forgot password")
+                 (:a
+                   :href "javascript:site.closeLogin()"
+                   :style "float:right"
+                  "Close"))))))))
 
 
 ```
@@ -731,7 +1035,7 @@
   "Expand all the path segments in PATH-NAME to a list of sub-directories."
   (let* ((path-name (string-trim '(#\/) (or path-name ""))))
     (if (empty? path-name)
-      (return-from expand-sub-dirs nil))
+      (return-from expand-sub-dirs '()))
     (loop :for c :across path-name
           :for i :from 0
           :when (char= #\/ c)
@@ -748,6 +1052,7 @@
   (set-http-code +http-not-found+)
   (page-template
     "Not Found"
+    "not-found-page"
     (markup
       (:h2 "Not Found")
       (:p "The page or resource you requested could not be found.")
@@ -759,11 +1064,26 @@
 (defmethod acceptor-status-message (acceptor (http-status-code (eql 404)) &key)
   (page-error-not-found))
 
+(defun page-error-not-authorised ()
+  "Not authorised error page."
+  (set-http-code +http-forbidden+)
+  (page-template
+    "Not Authorised"
+    "not-authorised-page"
+    (markup
+      (:h2 "Not Authorised")
+      (:p "Sorry, you don't have permission to view this page or resource.")
+      (:p
+        (:a :href "/"
+         (:i :class "fa fa-home" "")
+         (:b " Go back to the home page"))))))
+
 (defun page-error-server ()
   "Internal server error page."
   (set-http-code +http-internal-server-error+)
   (page-template
     "Server Error"
+    "server-error-page"
     (markup
       (:h2 "Server Error")
       (:p (sf '("Sorry, it looks like something went wrong on the server. "
@@ -786,6 +1106,7 @@
   "About page."
   (page-template
     "About"
+    "about-page"
     (markup
       (:h2 "About Fileworthy")
       (:p (sf '("Fileworthy aims to be a simple solution to managing your "
@@ -813,6 +1134,281 @@
 
 ```
 
+### `PAGE-USER-LIST`
+
+```lisp
+(defun page-user-list ()
+  "User listing page."
+  (let* ((curr-user (session-value 'user)))
+    ;; Only admins can view this page
+    (if (or (null curr-user)
+            (not (user-admin? curr-user)))
+      (return-from page-user-list (page-error-not-authorised)))
+    (page-template
+      "Users"
+      "user-list-page"
+      (markup
+        (:a
+          :id "new-user-btn"
+          :class "button"
+          :href (url-for (empty 'user))
+          "New User")
+        (:ul :class "big-list"
+          (loop
+            :for user :in (fileworthyrc-users (app-config *app*))
+            :collect
+            (markup
+              (:li
+                (:a
+                  :href (url-for user)
+                  (user-name user))))))))))
+
+
+```
+
+### `PAGE-USER-DETAIL`
+
+```lisp
+(defun page-user-detail ()
+  "User details page."
+  (let* ((curr-user (empty 'user :unless (session-value 'user)))
+         (path-segs (split-sequence #\/ (script-name*) :remove-empty-subseqs t))
+         (user-id-str (nth 2 path-segs))
+         (new-user? (string-equal "new" user-id-str))
+         (req-user (empty
+                     'user
+                     :unless (get-user :id (loose-parse-int user-id-str)))))
+    ;; Redirect to Not Found page if user not found
+    (if (and (not new-user?) (empty? req-user))
+      (return-from page-user-detail (page-error-not-found)))
+    ;; Redirect to Forbidden page if not admin and not current user
+    (if (and (not (user-admin? curr-user))
+             (not (eq curr-user req-user)))
+      (return-from page-user-detail (page-error-not-authorised)))
+    (page-template
+      (if new-user? "New User" (user-name req-user))
+      "user-detail-page"
+      (markup
+        (:h2 :id "name-heading" :data-user-id user-id-str
+         (if new-user? "New User" (user-name req-user)))
+        (:div :id "input-fields"
+         (:input
+           :id "user-name"
+           :placeholder "Name"
+           :title "Name"
+           :type "text"
+           :value (user-name req-user))
+         (:input
+           :id "email-address"
+           :placeholder "Email Address"
+           :title "Email Address"
+           :type "email"
+           :value (user-email req-user))
+         (if (user-admin? curr-user)
+           (raw
+             (markup
+               (:label
+                 (if (user-admin? req-user)
+                   (raw
+                     (markup
+                       (:input :id "is-admin" :checked "" :type "checkbox")))
+                   (raw
+                     (markup
+                       (:input :id "is-admin" :type "checkbox"))))
+                 " Administrator"))))
+         (:div
+           :class (if new-user? "hidden" "")
+           (:a
+             :id "show-pwds-btn"
+             :class "button"
+             :href "javascript:page.toggleChangePwd()"
+             "Change Password")
+           (:a
+             :id "hide-pwds-btn"
+             :class "button hidden"
+             :href "javascript:page.toggleChangePwd()"
+             "Don't Change Password"))
+         (:div
+           :id "password-fields"
+           :class (if new-user? "" "hidden")
+           (:input
+             :id "current-pwd"
+             :class (if new-user? "hidden" "")
+             :placeholder "Current Password"
+             :title "Current Password"
+             :type "password")
+           (:input
+             :id "new-pwd"
+             :placeholder "New Password"
+             :title "New Password"
+             :type "password")
+           (:input
+             :id "new-pwd-confirm"
+             :placeholder "Confirm New Password"
+             :title "Confirm New Password"
+             :type "password")))
+        (:p :id "save-result" "")
+        (:a
+          :id "save-btn"
+          :class "button full-width"
+          :href "javascript:page.save()"
+          "Save")))))
+
+
+```
+
+### `API-USER-SAVE`
+
+```lisp
+(defun api-user-save ()
+  "User save API."
+  (setf (content-type*) "application/json")
+  (let* ((curr-user (empty 'user :unless (session-value 'user)))
+         (path-segs (split-sequence #\/ (script-name*) :remove-empty-subseqs t))
+         (id (loose-parse-int (nth 3 path-segs)))
+         (new-user? (zerop id))
+         (req-user (empty 'user :unless (get-user :id id)))
+         (name (post-parameter "name"))
+         (email (post-parameter "email"))
+         (admin? (and (user-admin? curr-user)
+                      (parse-js-bool (post-parameter "isAdmin"))))
+         (current-pwd (post-parameter "currentPwd"))
+         (new-pwd (post-parameter "newPwd"))
+         (save-res (new-r :error "User save unexpectedly aborted.")))
+
+    ;; Validation
+    (if (empty? curr-user)
+      (return-from api-user-save (json-error +http-forbidden+)))
+    (if (and (not new-user?) (empty? req-user))
+      (return-from
+        api-user-save
+        (json-result (new-r :error "User with id ~A not found." id))))
+    (if (empty? name)
+      (return-from
+        api-user-save
+        (json-result (new-r :error "No user name provided."))))
+    (if (empty? email)
+      (return-from
+        api-user-save
+        (json-result (new-r :error "No email address provided."))))
+    (if (and (empty? new-pwd)
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result (new-r :error "No password provided."))))
+    (if (and (blank? new-pwd)
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result (new-r :error "Password can't be blank."))))
+    (if (and (> (app-min-password-length *app*) (length new-pwd))
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result
+          (new-r :error
+                 (sf "Password must be at least ~A characters."
+                     (app-min-password-length *app*))))))
+    (if (and (not new-user?)
+             (not (empty? current-pwd))
+             (not (authenticate-user req-user current-pwd)))
+      (return-from
+        api-user-save
+        (json-result
+          (new-r :error "Current password is incorrect."))))
+
+    ;; Persist
+    (setf save-res
+          (save-config
+            (λ ()
+               (let* ((curr-config (app-config *app*))
+                      (salt (random-string)))
+                 (if new-user?
+                   (progn
+                     (push
+                       (make-user
+                         :id (fileworthyrc-users-id-seed curr-config)
+                         :name name
+                         :email email
+                         :admin? admin?
+                         :salt salt
+                         :password (gen-hash new-pwd salt))
+                       (fileworthyrc-users curr-config))
+                     (incf (fileworthyrc-users-id-seed curr-config)))
+                   (progn
+                     (setf (user-name req-user) name)
+                     (setf (user-email req-user) email)
+                     (setf (user-admin? req-user) admin?)
+                     (when (and (not (empty? current-pwd))
+                                (not (empty? new-pwd)))
+                       (setf (user-salt req-user) salt)
+                       (setf (user-password req-user)
+                             (gen-hash new-pwd salt)))))))))
+
+    ;; Return success/failure
+    (if (succeeded? save-res)
+      (json-result (new-r :success
+                          (if new-user?
+                            (sf "Saved new user, ~A." name)
+                            (sf "Updated ~A's account." name))))
+      (json-result save-res))))
+
+```
+
+### `API-LOGIN`
+
+```lisp
+(defun api-login ()
+  "User login API."
+  (setf (content-type*) "application/json")
+  (let* ((email (post-parameter "email"))
+         (pwd (post-parameter "pwd"))
+         (user (get-user :email email)))
+    (if (empty? email)
+      (return-from
+        api-login
+        (json-result (new-r :error "No email address provided."))))
+    (if (empty? pwd)
+      (return-from
+        api-login
+        (json-result (new-r :error "No password provided."))))
+    (when (not (authenticate-user user pwd))
+      (sleep 2)
+      (return-from
+        api-login
+        (json-result (new-r :error "Incorrect credentials."))))
+
+    ;; Create session for user
+    (setf (session-value 'user) user)
+
+    (json-result (new-r :success (sf "Welcome ~A." (user-name user))))))
+
+
+```
+
+### `PAGE-LOGOUT`
+
+```lisp
+(defun page-logout ()
+  (when *session*
+    (delete-session-value 'user)
+    (remove-session *session*))
+  (page-template
+    "Logout"
+    "logout-page"
+    (markup
+    (:h2 "Thank you, come again!")
+    (:p
+     (:a :class "full-width"
+         :href "/"
+         "Go back to Home page")))))
+
+
+```
+
 ### `PAGE-FS-PATH`
 
 * This page displays a file-system path
@@ -825,11 +1421,11 @@
   "File-system path page."
   (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (get-fs-path-from-url path-name))
-         (dir-exists? (if (non-empty? abs-fs-path)
+         (abs-fs-path (empty 'string :unless (get-fs-path-from-url path-name)))
+         (dir-exists? (if (not (empty? abs-fs-path))
                         (directory-exists-p abs-fs-path)))
          (file-exists? (if (and (not dir-exists?)
-                                (non-empty? abs-fs-path))
+                                (not (empty? abs-fs-path)))
                          (file-exists-p abs-fs-path)))
          (binary-file? nil)
          (curr-file-name "")
@@ -861,6 +1457,7 @@
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
       (if (empty? rel-fs-path) "Home" rel-fs-path)
+      "fs-path-page"
       (markup
         (:table :id "files" :class "file-names"
          (:tbody

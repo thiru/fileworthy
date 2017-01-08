@@ -420,6 +420,10 @@ defined before we compile the source files that depend on it<ul>
 <h2 id="app">APP</h2>
 <ul>
 <li>The <code>APP</code> struct groups general, high-level app details including<ul>
+<li><code>DEBUG</code><ul>
+<li>whether the site is running in a debug mode</li>
+</ul>
+</li>
 <li><code>NAME</code><ul>
 <li>the user-specified name of this instance of the app</li>
 <li>this will default to the name of the directory specified in <code>working-dir</code></li>
@@ -432,6 +436,10 @@ defined before we compile the source files that depend on it<ul>
 <li><code>WORKING-DIR</code><ul>
 <li>the current/working directory for the app</li>
 <li>this will be the root path from which the website is generated</li>
+</ul>
+</li>
+<li><code>MIN-PASSWORD-LENGTH</code><ul>
+<li>the minimum allowed password length</li>
 </ul>
 </li>
 <li><code>VERSION</code><ul>
@@ -447,17 +455,32 @@ defined before we compile the source files that depend on it<ul>
 <li>the directory containing static client-side web resources</li>
 </ul>
 </li>
+<li><code>CONFIG-FILE-PATH</code><ul>
+<li>the fully qualified path to the config file</li>
+</ul>
+</li>
+<li><code>CONFIG</code><ul>
+<li>the configuration details of the site</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defstruct app
   &quot;Contains general, high-level app details.&quot;
+  (debug t)
   (name &quot;&quot; :type STRING)
-  (app-dir nil :type PATHNAME)
-  (working-dir nil :type PATHNAME)
+  (app-dir (empty &#39;pathname) :type PATHNAME)
+  (working-dir (empty &#39;pathname) :type PATHNAME)
+  (min-password-length 4 :type INTEGER)
   (version &quot;0.0&quot; :type STRING)
-  (last-updated nil :type TIMESTAMP)
-  (web-static-dir nil :type PATHNAME))
+  (last-updated (empty &#39;timestamp) :type TIMESTAMP)
+  (web-static-dir (empty &#39;pathname) :type PATHNAME)
+  (config-file-path (empty &#39;pathname) :type PATHNAME)
+  (config nil))
+
+(empty=&gt; (local-time:encode-timestamp 0 0 0 0 1 1 1))
+(empty=&gt; (make-app))
 </code></pre>
 <h3 id="create-app">CREATE-APP</h3>
 <ul>
@@ -474,14 +497,16 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun create-app ()
+<pre><code class="lang-lisp">(defun create-app (debug)
   &quot;Create APP instance.&quot;
-  (let ((app-dir (asdf:system-source-directory :fileworthy))
-        (working-dir (get-pathname-defaults))
-        (version-file-path (asdf:system-relative-pathname
-                            :fileworthy
-                            &quot;version&quot;)))
-    (make-app :name
+  (let* ((app-dir (asdf:system-source-directory :fileworthy))
+         (working-dir (get-pathname-defaults))
+         (version-file-path (asdf:system-relative-pathname
+                              :fileworthy
+                              &quot;version&quot;))
+         (config-file-path (merge-pathnames* &quot;fileworthyrc&quot; app-dir)))
+    (make-app :debug debug
+              :name
               (last1 
                 (split-sequence
                   #\/
@@ -493,7 +518,9 @@ defined before we compile the source files that depend on it<ul>
               :last-updated
               (universal-to-timestamp
                 (file-write-date version-file-path))
-              :web-static-dir (merge-pathnames #P&quot;static/&quot; app-dir))))
+              :web-static-dir (merge-pathnames #P&quot;static/&quot; app-dir)
+              :config-file-path config-file-path
+              :config (load-config config-file-path))))
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
@@ -555,7 +582,7 @@ defined before we compile the source files that depend on it<ul>
       (format t (r-message res))
       (return-from start-app res)))
 
-  (setf *app* (create-app))
+  (setf *app* (create-app debug))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
 
@@ -596,8 +623,8 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(defun restart-app ()
   &quot;Restarts the app.&quot;
-  (stop)
-  (start))
+  (stop-app)
+  (start-app))
 </code></pre>
 <h3 id="-create-web-acceptor-"><code>CREATE-WEB-ACCEPTOR</code></h3>
 <ul>
@@ -620,6 +647,77 @@ defined before we compile the source files that depend on it<ul>
                                             &quot;tbnl-message.log&quot;)))
 </code></pre>
 <h2 id="core-domain-logic">Core Domain Logic</h2>
+<h3 id="-user-"><code>USER</code></h3>
+<ul>
+<li>This struct encapsulates a user account</li>
+</ul>
+<pre><code class="lang-lisp">(defstruct user
+  (id 0 :type INTEGER)
+  (name &quot;&quot; :type STRING)
+  (email &quot;&quot; :type STRING)
+  (password &quot;&quot; :type STRING)
+  (salt &quot;&quot; :type STRING)
+  (admin? nil :type BOOLEAN))
+
+(empty=&gt; (make-user))
+
+(defun get-user (&amp;key (id 0 id-given?) name email)
+  &quot;Get user with one or more of the specified parameters.&quot;
+  (if (or id-given? name email)
+    (find-if (λ (user)
+                (and (or (not id-given?) (= id (user-id user)))
+                     (or (null name) (string-equal name (user-name user)))
+                     (or (null email) (string-equal email (user-email user)))))
+             (fileworthyrc-users (app-config *app*)))))
+
+(defun authenticate-user (user pwd)
+  &quot;Authenticate the given user.&quot;
+  (and user
+       (not (blank? pwd))
+       (string= (gen-hash pwd (user-salt user))
+                (user-password user))))
+</code></pre>
+<h3 id="-fileworthyrc-"><code>FILEWORTHYRC</code></h3>
+<pre><code class="lang-lisp">(defstruct fileworthyrc
+  (port 9090 :type INTEGER)
+  (users-id-seed 1 :type INTEGER)
+  (users &#39;() :type LIST)
+  (working-dir &quot;&quot; :type STRING))
+
+(empty=&gt; (make-fileworthyrc))
+
+(defun load-config (path)
+  &quot;Load an instance of `FILEWORTHYRC` from the config file.&quot;
+  (read-file-form path))
+</code></pre>
+<h3 id="-random-string-"><code>RANDOM-STRING</code></h3>
+<ul>
+<li>The Iron Clad function is wrapped in <code>TO-STRING</code> so that it prints like a
+regular string (e.g. used when saving config to disk)<ul>
+<li>otherwise the printed representation has &quot;COERCE...&quot;</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun random-string (&amp;optional (n 16))
+  &quot;Return a random hex string with N digits.&quot;
+  (to-string (ironclad:byte-array-to-hex-string (ironclad:make-random-salt n))))
+</code></pre>
+<h3 id="-gen-hash-"><code>GEN-HASH</code></h3>
+<ul>
+<li>The Iron Clad function is wrapped in <code>TO-STRING</code> so that it prints like a
+regular string (e.g. used when saving config to disk)<ul>
+<li>otherwise the printed representation has &quot;COERCE...&quot;</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun gen-hash (to-hash &amp;optional salt)
+  &quot;Generate a hash of TO-HASH.&quot;
+  (to-string
+    (ironclad:byte-array-to-hex-string
+      (ironclad:digest-sequence :sha512
+                                (ironclad:ascii-string-to-byte-array
+                                  (sf &quot;~A~A&quot; to-hash (or salt &quot;&quot;)))))))
+</code></pre>
 <h3 id="-get-dir-names-"><code>GET-DIR-NAMES</code></h3>
 <ul>
 <li>This function gets a list of directory names relative to either<ul>
@@ -700,14 +798,108 @@ defined before we compile the source files that depend on it<ul>
           :do (return-from is-file-binary? t)))
   nil)
 </code></pre>
+<h3 id="-create-config-lock-file-"><code>CREATE-CONFIG-LOCK-FILE</code></h3>
+<pre><code class="lang-lisp">(defun create-config-lock-file ()
+  &quot;Create a file indicating that the config file is locked.&quot;
+  (let* ((lock-file (sf &quot;~A.lck&quot; (app-config-file-path *app*))))
+    (with-open-file (stream
+                      lock-file
+                      :direction :output
+                      :if-exists nil
+                      :if-does-not-exist :create)
+      (if (null stream)
+        (new-r :warning &quot;Config file is already locked.&quot;)
+        (progn
+          (format stream &quot;~A&quot; (get-universal-time))
+          (new-r :success &quot;Config file lock created.&quot;))))))
+</code></pre>
+<h3 id="-delete-config-lock-file">`DELETE-CONFIG-LOCK-FILE</h3>
+<pre><code class="lang-lisp">(defun delete-config-lock-file ()
+  &quot;Delete config lock file.&quot;
+  (delete-file-if-exists (sf &quot;~A.lck&quot; (app-config-file-path *app*))))
+</code></pre>
+<h3 id="-save-config-"><code>SAVE-CONFIG</code></h3>
+<ul>
+<li><code>CHANGE-FN</code> is a function that performs the work of making changes to the
+global <code>(APP-CONFIG *APP*)</code> object</li>
+<li>This function is only called if the config file lock is successfully obtained</li>
+</ul>
+<pre><code class="lang-lisp">(defun save-config (change-fn)
+  &quot;Save/update config file with contents of `(APP-CONFIG *APP*).&quot;
+  (let* ((lockedR (create-config-lock-file)))
+    (if (failed? lockedR)
+      (return-from save-config lockedR))
+    (with-open-file (stream
+                      (app-config-file-path *app*)
+                      :direction :output
+                      :if-exists :supersede
+                      :if-does-not-exist :create)
+      (funcall change-fn)
+      (write (app-config *app*) :stream stream :readably t))
+    (delete-config-lock-file))
+  (new-r :success &quot;Config updated.&quot;))
+</code></pre>
 <h2 id="web-utils">Web Utils</h2>
 <ul>
-<li>This section contains utility functions common to most web functionality</li>
+<li>This section contains common utility functions for the web-related code</li>
 </ul>
-<pre><code class="lang-lisp">
+<h3 id="-session-cookie-name-"><code>SESSION-COOKIE-NAME</code></h3>
+<ul>
+<li>Let&#39;s use a custom session name<ul>
+<li>rather than the default: &quot;hunchentoot-session&quot;</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defmethod session-cookie-name ((acceptor easy-acceptor))
+  &quot;fileworthy-session&quot;)
+
 (defun set-http-code (code)
   &quot;Set the current request&#39;s HTTP status code to `CODE`.&quot;
   (setf (return-code*) code))
+
+(defun url-for (section-or-obj)
+  &quot;Create URL for a particular section/object&quot;
+  (cond ((eq &#39;about section-or-obj)
+         &quot;/fileworthy/about&quot;)
+        ((eq &#39;users section-or-obj)
+         &quot;/fileworthy/users&quot;)
+        ((typep section-or-obj &#39;user)
+         (if (= 0 (user-id section-or-obj))
+           &quot;/fileworthy/users/new&quot;
+           (sf &quot;/fileworthy/users/~A/~(~A~)&quot;
+               (user-id section-or-obj)
+               (user-name section-or-obj))))
+        (t &quot;&quot;)))
+
+(defun json-result (result &amp;optional data)
+  &quot;Converts the given R instance to a JSON string.&quot;
+  (json:encode-json-plist-to-string
+    `(level ,(r-level result)
+            message ,(r-message result)
+            data ,data)))
+
+(defun json-error (status-code)
+  &quot;Create a JSON response indicating an error with the specified HTTP status
+   code.&quot;
+  (set-http-code status-code)
+  (json:encode-json-plist-to-string
+    &#39;(level error
+            message &quot;Sorry, you don&#39;t have permission to perform this request.&quot;)))
+
+(defun set-auth-cookie (name value)
+  &quot;Create a secure cookie.&quot;
+  (set-cookie name
+              :value value
+              ;; Expire a month from now
+              :max-age (* 60 60 24 30)
+              :path &quot;/&quot;
+              :secure (not (app-debug *app*))
+              :http-only t))
+
+(defun parse-js-bool (val)
+  &quot;Parse a Javascript boolean taken from a post parameter to a Lisp bool.&quot;
+  (or (string-equal &quot;true&quot; val)
+      (string-equal &quot;1&quot; val)))
 </code></pre>
 <h2 id="web-resource-routes">Web Resource Routes</h2>
 <ul>
@@ -733,10 +925,39 @@ defined before we compile the source files that depend on it<ul>
             (merge-pathnames* &quot;js/&quot; (app-web-static-dir *app*)))
 
           ;; About page
-          (create-regex-dispatcher &quot;^/fileworthy/about/?$&quot; #&#39;page-about)
+          (create-regex-dispatcher
+            &quot;^/fileworthy/about/?$&quot;
+            #&#39;page-about)
+
+          ;; User list page
+          (create-regex-dispatcher
+            &quot;^/fileworthy/users/?$&quot;
+            #&#39;page-user-list)
+
+          ;; User detail page
+          (create-regex-dispatcher
+            &quot;^/fileworthy/users/.+/?$&quot;
+            #&#39;page-user-detail)
+
+          ;; User save API
+          (create-regex-dispatcher
+            &quot;^/fileworthy/api/users/.+/?$&quot;
+            #&#39;api-user-save)
+
+          ;; Login API
+          (create-regex-dispatcher
+            &quot;^/fileworthy/api/login/?$&quot;
+            #&#39;api-login)
+
+          ;; Logout page
+          (create-regex-dispatcher
+            &quot;^/fileworthy/logout/?$&quot;
+            #&#39;page-logout)
 
           ;; File-system path page
-          (create-regex-dispatcher &quot;^/*&quot; #&#39;page-fs-path))))
+          (create-regex-dispatcher
+            &quot;^/*&quot;
+            #&#39;page-fs-path))))
 </code></pre>
 <h2 id="web-pages">Web Pages</h2>
 <ul>
@@ -756,6 +977,10 @@ defined before we compile the source files that depend on it<ul>
 </li>
 </ul>
 </li>
+<li><code>PAGE-ID</code><ul>
+<li>the unique id of the page set on main element</li>
+</ul>
+</li>
 <li><code>CONTENT</code><ul>
 <li>the HTML of the page as a raw string</li>
 <li>note that the caller is responsible for properly escaping special characters</li>
@@ -764,9 +989,10 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun page-template (title content)
+<pre><code class="lang-lisp">(defun page-template (title page-id content)
   &quot;Base template for all web pages.&quot;
-  (let* ((path-name (script-name* *request*))
+  (let* ((user (empty &#39;user :unless (session-value &#39;user)))
+         (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs)))
     (html5 :lang &quot;en&quot;
@@ -791,33 +1017,62 @@ defined before we compile the source files that depend on it<ul>
              (:script :src &quot;/deps/lodash/lodash.min.js&quot; &quot;&quot;)
              (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
              (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;)
-             (:script :src &quot;/deps/highlightjs/highlight.pack.js&quot; &quot;&quot;))
+             (:script :src &quot;/deps/highlightjs/highlight.pack.js&quot; &quot;&quot;)
+             (:script :src &quot;/js/utils.js&quot; &quot;&quot;)
+             (:script :src &quot;/js/main.js&quot; &quot;&quot;))
            (:body
+             ;; Overlay (for dialogs)
+             (:div :id &quot;overlay&quot; :class &quot;hidden&quot; &quot;&amp;nbsp;&quot;)
              ;; Top Bar
              (:header :id &quot;top-bar&quot;
-              ;; Menu Bar
+              ;; Menu Bar Icon
               (:a
                 :id &quot;menu-bar&quot;
-                :href &quot;javascript:toggleMenu()&quot;
+                :href &quot;javascript:site.toggleMenu()&quot;
                 :title &quot;Main menu&quot;
                (:i :class &quot;fa fa-bars&quot; &quot; &quot;))
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
                (app-name *app*))
-              ;; App Name &amp; Version
-              (:a :id &quot;project-name&quot; :href &quot;/&quot;
-               &quot;Fileworthy &quot;
-               (:span
-                 :id &quot;version&quot;
-                 :title (sf &quot;Updated ~A&quot; (pretty-time (app-last-updated *app*)))
-                 (sf &quot;~A&quot; (app-version *app*))))
+              ;; User Info
+              (:div :id &quot;user-info&quot;
+               (if (empty? user)
+                 ;; Logged Out
+                 (raw
+                   (markup
+                     (:a :href &quot;javascript:site.showLogin()&quot;
+                      (:i :class &quot;fa fa-sign-in&quot; &quot;&quot;)
+                      &quot; Log In&quot;)))
+                 ;; Logged In
+                 (raw
+                   (markup
+                     (:a
+                       :href (url-for user)
+                       (user-name user))
+                     (:span &quot; &quot;)
+                     (:a
+                       :href &quot;/fileworthy/logout&quot;
+                       :title &quot;Log Out&quot;
+                       (:i :class &quot;fa fa-sign-out&quot; &quot;&quot;))))))
               (:div :class &quot;clear-fix&quot;))
              ;; Main Menu
              (:ul :id &quot;main-menu&quot; :class &quot;hidden&quot;
               (:li
                 (:a :href &quot;/fileworthy/about&quot; &quot;About&quot;))
+              (if (not (empty? user))
+                (raw
+                  (markup
+                    (:li
+                      (:a
+                        :href (url-for user)
+                        &quot;Account&quot;)))))
+              (if (user-admin? user)
+                (raw
+                  (markup
+                    (:li
+                      (:a :href (url-for &#39;users) &quot;Users&quot;)))))
               (:li
-                (:a :href &quot;javascript:toggleMenu()&quot; &quot;Close&quot;)))
+                (:a :href &quot;javascript:site.toggleMenu()&quot; &quot;Close&quot;)))
              (:nav
                ;; Root Folders
                (:ul :id &quot;root-folder-names&quot;
@@ -843,7 +1098,7 @@ defined before we compile the source files that depend on it<ul>
                                              expanded-dirs)))
                  (loop :for sub-dir-names :in sub-dir-name-lst
                        :for i :from 0
-                       :when (non-empty? sub-dir-names) 
+                       :when (not (empty? sub-dir-names))
                        :collect
                        (markup
                          (:ul :class &quot;sub-folder-names&quot;
@@ -861,10 +1116,45 @@ defined before we compile the source files that depend on it<ul>
                                                 (nth i expanded-dirs)
                                                 dir-name)
                                       dir-name)))))))))
-             (:main
+             (:main :id page-id
                (raw content))
-             (:script :src &quot;/js/utils.js&quot; &quot;&quot;)
-             (:script :src &quot;/js/main.js&quot; &quot;&quot;)))))
+             ;; Login Dialog
+             (:section :id &quot;login-dialog&quot; :class &quot;dialog&quot;
+              (:div :class &quot;dialog-content&quot;
+               (:h2 &quot;Welcome!&quot;)
+               (:p
+                 (:input
+                   :id &quot;login-email-address&quot;
+                   :class &quot;full-width&quot;
+                   :onkeyup &quot;ui.onEnter(event, site.login)&quot;
+                   :placeholder &quot;Email Address&quot;
+                   :title &quot;Email Address&quot;
+                   :type &quot;text&quot;))
+               (:p
+                 (:input
+                   :id &quot;login-pwd&quot;
+                   :class &quot;full-width&quot;
+                   :onkeyup &quot;ui.onEnter(event, site.login)&quot;
+                   :placeholder &quot;Password&quot;
+                   :title &quot;Password&quot;
+                   :type &quot;password&quot;))
+               (:p :id &quot;login-result&quot;)
+               (:p
+                 (:a
+                   :id &quot;login-btn&quot;
+                   :class &quot;button full-width&quot;
+                   :href &quot;javascript:site.login()&quot;
+                   &quot;Log In&quot;))
+               (:p
+                 (:a
+                   :id &quot;forgot-pwd&quot;
+                   :href &quot;javascript:forgotPwd()&quot;
+                   :style &quot;float:left&quot;
+                   &quot;Forgot password&quot;)
+                 (:a
+                   :href &quot;javascript:site.closeLogin()&quot;
+                   :style &quot;float:right&quot;
+                  &quot;Close&quot;))))))))
 </code></pre>
 <ul>
 <li>An example call of the following is:<ul>
@@ -876,7 +1166,7 @@ defined before we compile the source files that depend on it<ul>
   &quot;Expand all the path segments in PATH-NAME to a list of sub-directories.&quot;
   (let* ((path-name (string-trim &#39;(#\/) (or path-name &quot;&quot;))))
     (if (empty? path-name)
-      (return-from expand-sub-dirs nil))
+      (return-from expand-sub-dirs &#39;()))
     (loop :for c :across path-name
           :for i :from 0
           :when (char= #\/ c)
@@ -889,6 +1179,7 @@ defined before we compile the source files that depend on it<ul>
   (set-http-code +http-not-found+)
   (page-template
     &quot;Not Found&quot;
+    &quot;not-found-page&quot;
     (markup
       (:h2 &quot;Not Found&quot;)
       (:p &quot;The page or resource you requested could not be found.&quot;)
@@ -900,11 +1191,26 @@ defined before we compile the source files that depend on it<ul>
 (defmethod acceptor-status-message (acceptor (http-status-code (eql 404)) &amp;key)
   (page-error-not-found))
 
+(defun page-error-not-authorised ()
+  &quot;Not authorised error page.&quot;
+  (set-http-code +http-forbidden+)
+  (page-template
+    &quot;Not Authorised&quot;
+    &quot;not-authorised-page&quot;
+    (markup
+      (:h2 &quot;Not Authorised&quot;)
+      (:p &quot;Sorry, you don&#39;t have permission to view this page or resource.&quot;)
+      (:p
+        (:a :href &quot;/&quot;
+         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+         (:b &quot; Go back to the home page&quot;))))))
+
 (defun page-error-server ()
   &quot;Internal server error page.&quot;
   (set-http-code +http-internal-server-error+)
   (page-template
     &quot;Server Error&quot;
+    &quot;server-error-page&quot;
     (markup
       (:h2 &quot;Server Error&quot;)
       (:p (sf &#39;(&quot;Sorry, it looks like something went wrong on the server. &quot;
@@ -922,6 +1228,7 @@ defined before we compile the source files that depend on it<ul>
   &quot;About page.&quot;
   (page-template
     &quot;About&quot;
+    &quot;about-page&quot;
     (markup
       (:h2 &quot;About Fileworthy&quot;)
       (:p (sf &#39;(&quot;Fileworthy aims to be a simple solution to managing your &quot;
@@ -946,6 +1253,257 @@ defined before we compile the source files that depend on it<ul>
          (:td &quot;Copyright&quot;)
          (:td &quot;2017 Thirushanth Thirunavukarasu&quot;))))))
 </code></pre>
+<h3 id="-page-user-list-"><code>PAGE-USER-LIST</code></h3>
+<pre><code class="lang-lisp">(defun page-user-list ()
+  &quot;User listing page.&quot;
+  (let* ((curr-user (session-value &#39;user)))
+    ;; Only admins can view this page
+    (if (or (null curr-user)
+            (not (user-admin? curr-user)))
+      (return-from page-user-list (page-error-not-authorised)))
+    (page-template
+      &quot;Users&quot;
+      &quot;user-list-page&quot;
+      (markup
+        (:a
+          :id &quot;new-user-btn&quot;
+          :class &quot;button&quot;
+          :href (url-for (empty &#39;user))
+          &quot;New User&quot;)
+        (:ul :class &quot;big-list&quot;
+          (loop
+            :for user :in (fileworthyrc-users (app-config *app*))
+            :collect
+            (markup
+              (:li
+                (:a
+                  :href (url-for user)
+                  (user-name user))))))))))
+</code></pre>
+<h3 id="-page-user-detail-"><code>PAGE-USER-DETAIL</code></h3>
+<pre><code class="lang-lisp">(defun page-user-detail ()
+  &quot;User details page.&quot;
+  (let* ((curr-user (empty &#39;user :unless (session-value &#39;user)))
+         (path-segs (split-sequence #\/ (script-name*) :remove-empty-subseqs t))
+         (user-id-str (nth 2 path-segs))
+         (new-user? (string-equal &quot;new&quot; user-id-str))
+         (req-user (empty
+                     &#39;user
+                     :unless (get-user :id (loose-parse-int user-id-str)))))
+    ;; Redirect to Not Found page if user not found
+    (if (and (not new-user?) (empty? req-user))
+      (return-from page-user-detail (page-error-not-found)))
+    ;; Redirect to Forbidden page if not admin and not current user
+    (if (and (not (user-admin? curr-user))
+             (not (eq curr-user req-user)))
+      (return-from page-user-detail (page-error-not-authorised)))
+    (page-template
+      (if new-user? &quot;New User&quot; (user-name req-user))
+      &quot;user-detail-page&quot;
+      (markup
+        (:h2 :id &quot;name-heading&quot; :data-user-id user-id-str
+         (if new-user? &quot;New User&quot; (user-name req-user)))
+        (:div :id &quot;input-fields&quot;
+         (:input
+           :id &quot;user-name&quot;
+           :placeholder &quot;Name&quot;
+           :title &quot;Name&quot;
+           :type &quot;text&quot;
+           :value (user-name req-user))
+         (:input
+           :id &quot;email-address&quot;
+           :placeholder &quot;Email Address&quot;
+           :title &quot;Email Address&quot;
+           :type &quot;email&quot;
+           :value (user-email req-user))
+         (if (user-admin? curr-user)
+           (raw
+             (markup
+               (:label
+                 (if (user-admin? req-user)
+                   (raw
+                     (markup
+                       (:input :id &quot;is-admin&quot; :checked &quot;&quot; :type &quot;checkbox&quot;)))
+                   (raw
+                     (markup
+                       (:input :id &quot;is-admin&quot; :type &quot;checkbox&quot;))))
+                 &quot; Administrator&quot;))))
+         (:div
+           :class (if new-user? &quot;hidden&quot; &quot;&quot;)
+           (:a
+             :id &quot;show-pwds-btn&quot;
+             :class &quot;button&quot;
+             :href &quot;javascript:page.toggleChangePwd()&quot;
+             &quot;Change Password&quot;)
+           (:a
+             :id &quot;hide-pwds-btn&quot;
+             :class &quot;button hidden&quot;
+             :href &quot;javascript:page.toggleChangePwd()&quot;
+             &quot;Don&#39;t Change Password&quot;))
+         (:div
+           :id &quot;password-fields&quot;
+           :class (if new-user? &quot;&quot; &quot;hidden&quot;)
+           (:input
+             :id &quot;current-pwd&quot;
+             :class (if new-user? &quot;hidden&quot; &quot;&quot;)
+             :placeholder &quot;Current Password&quot;
+             :title &quot;Current Password&quot;
+             :type &quot;password&quot;)
+           (:input
+             :id &quot;new-pwd&quot;
+             :placeholder &quot;New Password&quot;
+             :title &quot;New Password&quot;
+             :type &quot;password&quot;)
+           (:input
+             :id &quot;new-pwd-confirm&quot;
+             :placeholder &quot;Confirm New Password&quot;
+             :title &quot;Confirm New Password&quot;
+             :type &quot;password&quot;)))
+        (:p :id &quot;save-result&quot; &quot;&quot;)
+        (:a
+          :id &quot;save-btn&quot;
+          :class &quot;button full-width&quot;
+          :href &quot;javascript:page.save()&quot;
+          &quot;Save&quot;)))))
+</code></pre>
+<h3 id="-api-user-save-"><code>API-USER-SAVE</code></h3>
+<pre><code class="lang-lisp">(defun api-user-save ()
+  &quot;User save API.&quot;
+  (setf (content-type*) &quot;application/json&quot;)
+  (let* ((curr-user (empty &#39;user :unless (session-value &#39;user)))
+         (path-segs (split-sequence #\/ (script-name*) :remove-empty-subseqs t))
+         (id (loose-parse-int (nth 3 path-segs)))
+         (new-user? (zerop id))
+         (req-user (empty &#39;user :unless (get-user :id id)))
+         (name (post-parameter &quot;name&quot;))
+         (email (post-parameter &quot;email&quot;))
+         (admin? (and (user-admin? curr-user)
+                      (parse-js-bool (post-parameter &quot;isAdmin&quot;))))
+         (current-pwd (post-parameter &quot;currentPwd&quot;))
+         (new-pwd (post-parameter &quot;newPwd&quot;))
+         (save-res (new-r :error &quot;User save unexpectedly aborted.&quot;)))
+
+    ;; Validation
+    (if (empty? curr-user)
+      (return-from api-user-save (json-error +http-forbidden+)))
+    (if (and (not new-user?) (empty? req-user))
+      (return-from
+        api-user-save
+        (json-result (new-r :error &quot;User with id ~A not found.&quot; id))))
+    (if (empty? name)
+      (return-from
+        api-user-save
+        (json-result (new-r :error &quot;No user name provided.&quot;))))
+    (if (empty? email)
+      (return-from
+        api-user-save
+        (json-result (new-r :error &quot;No email address provided.&quot;))))
+    (if (and (empty? new-pwd)
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result (new-r :error &quot;No password provided.&quot;))))
+    (if (and (blank? new-pwd)
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result (new-r :error &quot;Password can&#39;t be blank.&quot;))))
+    (if (and (&gt; (app-min-password-length *app*) (length new-pwd))
+             (or new-user?
+                 (and (not new-user?) (not (empty? current-pwd)))))
+      (return-from
+        api-user-save
+        (json-result
+          (new-r :error
+                 (sf &quot;Password must be at least ~A characters.&quot;
+                     (app-min-password-length *app*))))))
+    (if (and (not new-user?)
+             (not (empty? current-pwd))
+             (not (authenticate-user req-user current-pwd)))
+      (return-from
+        api-user-save
+        (json-result
+          (new-r :error &quot;Current password is incorrect.&quot;))))
+
+    ;; Persist
+    (setf save-res
+          (save-config
+            (λ ()
+               (let* ((curr-config (app-config *app*))
+                      (salt (random-string)))
+                 (if new-user?
+                   (progn
+                     (push
+                       (make-user
+                         :id (fileworthyrc-users-id-seed curr-config)
+                         :name name
+                         :email email
+                         :admin? admin?
+                         :salt salt
+                         :password (gen-hash new-pwd salt))
+                       (fileworthyrc-users curr-config))
+                     (incf (fileworthyrc-users-id-seed curr-config)))
+                   (progn
+                     (setf (user-name req-user) name)
+                     (setf (user-email req-user) email)
+                     (setf (user-admin? req-user) admin?)
+                     (when (and (not (empty? current-pwd))
+                                (not (empty? new-pwd)))
+                       (setf (user-salt req-user) salt)
+                       (setf (user-password req-user)
+                             (gen-hash new-pwd salt)))))))))
+
+    ;; Return success/failure
+    (if (succeeded? save-res)
+      (json-result (new-r :success
+                          (if new-user?
+                            (sf &quot;Saved new user, ~A.&quot; name)
+                            (sf &quot;Updated ~A&#39;s account.&quot; name))))
+      (json-result save-res))))
+</code></pre>
+<h3 id="-api-login-"><code>API-LOGIN</code></h3>
+<pre><code class="lang-lisp">(defun api-login ()
+  &quot;User login API.&quot;
+  (setf (content-type*) &quot;application/json&quot;)
+  (let* ((email (post-parameter &quot;email&quot;))
+         (pwd (post-parameter &quot;pwd&quot;))
+         (user (get-user :email email)))
+    (if (empty? email)
+      (return-from
+        api-login
+        (json-result (new-r :error &quot;No email address provided.&quot;))))
+    (if (empty? pwd)
+      (return-from
+        api-login
+        (json-result (new-r :error &quot;No password provided.&quot;))))
+    (when (not (authenticate-user user pwd))
+      (sleep 2)
+      (return-from
+        api-login
+        (json-result (new-r :error &quot;Incorrect credentials.&quot;))))
+
+    ;; Create session for user
+    (setf (session-value &#39;user) user)
+
+    (json-result (new-r :success (sf &quot;Welcome ~A.&quot; (user-name user))))))
+</code></pre>
+<h3 id="-page-logout-"><code>PAGE-LOGOUT</code></h3>
+<pre><code class="lang-lisp">(defun page-logout ()
+  (when *session*
+    (delete-session-value &#39;user)
+    (remove-session *session*))
+  (page-template
+    &quot;Logout&quot;
+    &quot;logout-page&quot;
+    (markup
+    (:h2 &quot;Thank you, come again!&quot;)
+    (:p
+     (:a :class &quot;full-width&quot;
+         :href &quot;/&quot;
+         &quot;Go back to Home page&quot;)))))
+</code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <ul>
 <li>This page displays a file-system path<ul>
@@ -959,11 +1517,11 @@ defined before we compile the source files that depend on it<ul>
   &quot;File-system path page.&quot;
   (let* ((path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (get-fs-path-from-url path-name))
-         (dir-exists? (if (non-empty? abs-fs-path)
+         (abs-fs-path (empty &#39;string :unless (get-fs-path-from-url path-name)))
+         (dir-exists? (if (not (empty? abs-fs-path))
                         (directory-exists-p abs-fs-path)))
          (file-exists? (if (and (not dir-exists?)
-                                (non-empty? abs-fs-path))
+                                (not (empty? abs-fs-path)))
                          (file-exists-p abs-fs-path)))
          (binary-file? nil)
          (curr-file-name &quot;&quot;)
@@ -995,6 +1553,7 @@ defined before we compile the source files that depend on it<ul>
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
+      &quot;fs-path-page&quot;
       (markup
         (:table :id &quot;files&quot; :class &quot;file-names&quot;
          (:tbody
@@ -1051,4 +1610,4 @@ defined before we compile the source files that depend on it<ul>
     (if (subpathp path (app-working-dir *app*))
       path)))
 </code></pre>
-   </body></html>
+     </body></html>

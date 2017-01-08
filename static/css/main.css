@@ -229,43 +229,24 @@ nav a
   float: right;
 }
 
-#menu-bar
-{
-  margin-right: 0.5rem;
-}
-#main-menu
-{
-  border: solid 0.2rem #EFEFEF; /* VAR GREY-LIGHT */
-  margin: 0.5rem 1rem;
-}
-#main-menu li:nth-child(odd)
-{
-  background-color: #EFEFEF; /* VAR GREY-LIGHT */
-}
-#main-menu a
-{
-  display: block;
-  text-decoration: none;
-}
-
-#root-folder-names, .sub-folder-names
+#main-menu-items, .sub-menu-items
 {
   text-align: center;
 }
-#root-folder-names
+#main-menu-items
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
   font-size: 1.5rem;
 }
-.sub-folder-names
+.sub-menu-items
 {
   border-bottom: solid 1px #EFEFEF;
 }
-#root-folder-names li, .sub-folder-names li
+#main-menu-items li, .sub-menu-items li
 {
   display: inline-block;
 }
-#root-folder-names li a, .sub-folder-names li a
+#main-menu-items li a, .sub-menu-items li a
 {
   display: inline-block;
   padding: 0.5em;

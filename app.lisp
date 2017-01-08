@@ -792,7 +792,8 @@
   (let* ((user (empty 'user :unless (session-value 'user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (first-path-seg (first path-segs)))
+         (first-path-seg (first path-segs))
+         (fw-info-page? (string-equal "fileworthy" first-path-seg)))
     (html5 :lang "en"
            (:head
              (:meta :charset "utf-8")
@@ -824,11 +825,7 @@
              ;; Top Bar
              (:header :id "top-bar"
               ;; Menu Bar Icon
-              (:a
-                :id "menu-bar"
-                :href "javascript:site.toggleMenu()"
-                :title "Main menu"
-               (:i :class "fa fa-bars" " "))
+              
               ;; Site Name
               (:a :id "app-name" :href "/"
                (app-name *app*))
@@ -853,30 +850,19 @@
                        :title "Log Out"
                        (:i :class "fa fa-sign-out" ""))))))
               (:div :class "clear-fix"))
-             ;; Main Menu
-             (:ul :id "main-menu" :class "hidden"
-              (:li
-                (:a :href "/fileworthy/about" "About"))
-              (if (not (empty? user))
-                (raw
-                  (markup
-                    (:li
-                      (:a
-                        :href (url-for user)
-                        "Account")))))
-              (if (user-admin? user)
-                (raw
-                  (markup
-                    (:li
-                      (:a :href (url-for 'users) "Users")))))
-              (:li
-                (:a :href "javascript:site.toggleMenu()" "Close")))
              (:nav
-               ;; Root Folders
-               (:ul :id "root-folder-names"
+               (:ul :id "main-menu-items"
+                ;; Home Folder Icon
                 (:li
+                  :class (if (empty? first-path-seg) "selected")
                   (:a :href "/" :title "Home"
                    (:i :class "fa fa-home" "")))
+                ;; Menu Icon
+                (:li
+                  :class (if fw-info-page? "selected")
+                  (:a :href "javascript:site.toggleMenu()" :title "Main menu"
+                   (:i :class "fa fa-bars" " ")))
+                ;; Root Folders
                 (loop
                   :for dir-name :in (get-dir-names)
                   :collect (markup
@@ -888,6 +874,36 @@
                                   nil)
                                 :href (sf "/~A/" dir-name)
                                 dir-name)))))
+               ;; Fileworthy Info/Settings
+               (:ul
+                 :id "main-menu"
+                 :class (if fw-info-page?
+                          "sub-menu-items"
+                          "sub-menu-items hidden")
+                (:li
+                  :class (if (string-equal "about" (nth 1 path-segs)) "selected")
+                  (:a :href "/fileworthy/about" "About"))
+                (if (not (empty? user))
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (and (string-equal "users"
+                                                      (nth 1 path-segs))
+                                        (string-equal (to-string (user-id user))
+                                                      (nth 2 path-segs)))
+                                 "selected")
+                        (:a
+                          :href (url-for user)
+                          "My Account")))))
+                (if (user-admin? user)
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (and (string-equal "users"
+                                                      (nth 1 path-segs))
+                                        (empty? (nth 2 path-segs)))
+                                 "selected")
+                        (:a :href (url-for 'users) "Users"))))))
                ;; Sub-folders
                (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map 'list
@@ -899,7 +915,7 @@
                        :when (not (empty? sub-dir-names))
                        :collect
                        (markup
-                         (:ul :class "sub-folder-names"
+                         (:ul :class "sub-menu-items"
                           (loop :for dir-name :in sub-dir-names
                                 :collect
                                 (markup

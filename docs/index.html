@@ -994,7 +994,8 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
   (let* ((user (empty &#39;user :unless (session-value &#39;user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (first-path-seg (first path-segs)))
+         (first-path-seg (first path-segs))
+         (fw-info-page? (string-equal &quot;fileworthy&quot; first-path-seg)))
     (html5 :lang &quot;en&quot;
            (:head
              (:meta :charset &quot;utf-8&quot;)
@@ -1026,11 +1027,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
              ;; Top Bar
              (:header :id &quot;top-bar&quot;
               ;; Menu Bar Icon
-              (:a
-                :id &quot;menu-bar&quot;
-                :href &quot;javascript:site.toggleMenu()&quot;
-                :title &quot;Main menu&quot;
-               (:i :class &quot;fa fa-bars&quot; &quot; &quot;))
+
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
                (app-name *app*))
@@ -1055,30 +1052,19 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                        :title &quot;Log Out&quot;
                        (:i :class &quot;fa fa-sign-out&quot; &quot;&quot;))))))
               (:div :class &quot;clear-fix&quot;))
-             ;; Main Menu
-             (:ul :id &quot;main-menu&quot; :class &quot;hidden&quot;
-              (:li
-                (:a :href &quot;/fileworthy/about&quot; &quot;About&quot;))
-              (if (not (empty? user))
-                (raw
-                  (markup
-                    (:li
-                      (:a
-                        :href (url-for user)
-                        &quot;Account&quot;)))))
-              (if (user-admin? user)
-                (raw
-                  (markup
-                    (:li
-                      (:a :href (url-for &#39;users) &quot;Users&quot;)))))
-              (:li
-                (:a :href &quot;javascript:site.toggleMenu()&quot; &quot;Close&quot;)))
              (:nav
-               ;; Root Folders
-               (:ul :id &quot;root-folder-names&quot;
+               (:ul :id &quot;main-menu-items&quot;
+                ;; Home Folder Icon
                 (:li
+                  :class (if (empty? first-path-seg) &quot;selected&quot;)
                   (:a :href &quot;/&quot; :title &quot;Home&quot;
                    (:i :class &quot;fa fa-home&quot; &quot;&quot;)))
+                ;; Menu Icon
+                (:li
+                  :class (if fw-info-page? &quot;selected&quot;)
+                  (:a :href &quot;javascript:site.toggleMenu()&quot; :title &quot;Main menu&quot;
+                   (:i :class &quot;fa fa-bars&quot; &quot; &quot;)))
+                ;; Root Folders
                 (loop
                   :for dir-name :in (get-dir-names)
                   :collect (markup
@@ -1090,6 +1076,36 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                                   nil)
                                 :href (sf &quot;/~A/&quot; dir-name)
                                 dir-name)))))
+               ;; Fileworthy Info/Settings
+               (:ul
+                 :id &quot;main-menu&quot;
+                 :class (if fw-info-page?
+                          &quot;sub-menu-items&quot;
+                          &quot;sub-menu-items hidden&quot;)
+                (:li
+                  :class (if (string-equal &quot;about&quot; (nth 1 path-segs)) &quot;selected&quot;)
+                  (:a :href &quot;/fileworthy/about&quot; &quot;About&quot;))
+                (if (not (empty? user))
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (and (string-equal &quot;users&quot;
+                                                      (nth 1 path-segs))
+                                        (string-equal (to-string (user-id user))
+                                                      (nth 2 path-segs)))
+                                 &quot;selected&quot;)
+                        (:a
+                          :href (url-for user)
+                          &quot;My Account&quot;)))))
+                (if (user-admin? user)
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (and (string-equal &quot;users&quot;
+                                                      (nth 1 path-segs))
+                                        (empty? (nth 2 path-segs)))
+                                 &quot;selected&quot;)
+                        (:a :href (url-for &#39;users) &quot;Users&quot;))))))
                ;; Sub-folders
                (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map &#39;list
@@ -1101,7 +1117,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                        :when (not (empty? sub-dir-names))
                        :collect
                        (markup
-                         (:ul :class &quot;sub-folder-names&quot;
+                         (:ul :class &quot;sub-menu-items&quot;
                           (loop :for dir-name :in sub-dir-names
                                 :collect
                                 (markup

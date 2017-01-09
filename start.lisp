@@ -1,3 +1,3 @@
 (ql:quickload :fileworthy)
 
-(fileworthy:start)
+(fileworthy:start-app :debug nil)

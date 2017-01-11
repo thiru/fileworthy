@@ -486,7 +486,8 @@
 ### `FILEWORTHYRC`
 ||#
 (defstruct fileworthyrc
-  (port 9090 :type INTEGER)
+  (port 0 :type INTEGER)
+  (reserved-resource-path "" :type STRING)
   (next-user-id 1 :type INTEGER)
   (users '() :type LIST)
   (working-dir "" :type STRING))
@@ -668,13 +669,17 @@
 (defun url-for (section-or-obj)
   "Create URL for a particular section/object"
   (cond ((eq 'about section-or-obj)
-         "/fileworthy/about")
+         (sf "/~A/about"
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
         ((eq 'users section-or-obj)
-         "/fileworthy/users")
+         (sf "/~A/users"
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
         ((typep section-or-obj 'user)
          (if (= 0 (user-id section-or-obj))
-           "/fileworthy/users/new"
-           (sf "/fileworthy/users/~A/~(~A~)"
+           (sf "/~A/users/new"
+               (fileworthyrc-reserved-resource-path (app-config *app*)))
+           (sf "/~A/users/~A/~(~A~)"
+               (fileworthyrc-reserved-resource-path (app-config *app*))
                (user-id section-or-obj)
                (user-name section-or-obj))))
         (t "")))
@@ -722,43 +727,52 @@
         (list
           ;; Static files
           (create-folder-dispatcher-and-handler
-            "/css/"
+            (sf "/~A/css/"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* "css/" (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
-            "/deps/"
+            (sf "/~A/deps/"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* "deps/" (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
-            "/js/"
+            (sf "/~A/js/"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* "js/" (app-web-static-dir *app*)))
 
           ;; About page
           (create-regex-dispatcher
-            "^/fileworthy/about/?$"
+            (sf "^/~A/about/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'page-about)
 
           ;; User list page
           (create-regex-dispatcher
-            "^/fileworthy/users/?$"
+            (sf "^/~A/users/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'page-user-list)
 
           ;; User detail page
           (create-regex-dispatcher
-            "^/fileworthy/users/.+/?$"
+            (sf "^/~A/users/.+/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'page-user-detail)
 
           ;; User save API
           (create-regex-dispatcher
-            "^/fileworthy/api/users/.+/?$"
+            (sf "^/~A/api/users/.+/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'api-user-save)
 
           ;; Login API
           (create-regex-dispatcher
-            "^/fileworthy/api/login/?$"
+            (sf "^/~A/api/login/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'api-login)
 
           ;; Logout page
           (create-regex-dispatcher
-            "^/fileworthy/logout/?$"
+            (sf "^/~A/logout/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'page-logout)
 
           ;; File-system path page
@@ -789,11 +803,12 @@
 ||#
 (defun page-template (title page-id content)
   "Base template for all web pages."
-  (let* ((user (empty 'user :unless (session-value 'user)))
+  (let* ((rrp (fileworthyrc-reserved-resource-path (app-config *app*)))
+         (user (empty 'user :unless (session-value 'user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs))
-         (fw-info-page? (string-equal "fileworthy" first-path-seg)))
+         (fw-info-page? (string-equal rrp first-path-seg)))
     (html5 :lang "en"
            (:head
              (:meta :charset "utf-8")
@@ -805,21 +820,24 @@
 
              (:link :href "/images/favicon.ico" :rel "shortcut icon")
              (:link
-               :href "/deps/font-awesome/css/font-awesome.min.css"
+               :href
+               (sf "/~A/deps/font-awesome/css/font-awesome.min.css" rrp)
                :rel "stylesheet"
                :type "text/css")
              (:link
-               :href "/deps/highlightjs/styles/github.css"
+               :href (sf "/~A/deps/highlightjs/styles/github.css" rrp)
                :rel "stylesheet")
-             (:link :href "/css/main.css" :rel "stylesheet")
+             (:link :href (sf "/~A/css/main.css" rrp) :rel "stylesheet")
 
-             (:script :src "/deps/lodash/lodash.min.js" "")
-             (:script :src "/deps/momentjs/moment.min.js" "")
-             (:script :src "/deps/markedjs/marked.min.js" "")
-             (:script :src "/deps/highlightjs/highlight.pack.js" "")
-             (:script :src "/js/utils.js" "")
-             (:script :src "/js/main.js" ""))
+             (:script :src (sf "/~A/deps/lodash/lodash.min.js" rrp) "")
+             (:script :src (sf "/~A/deps/momentjs/moment.min.js" rrp) "")
+             (:script :src (sf "/~A/deps/markedjs/marked.min.js" rrp) "")
+             (:script
+               :src (sf "/~A/deps/highlightjs/highlight.pack.js" rrp) "")
+             (:script :src (sf "/~A/js/utils.js" rrp) "")
+             (:script :src (sf "/~A/js/main.js" rrp) ""))
            (:body
+             :data-rrp rrp
              ;; Overlay (for dialogs)
              (:div :id "overlay" :class "hidden" "&nbsp;")
              ;; Top Bar
@@ -846,7 +864,7 @@
                        (user-name user))
                      (:span " ")
                      (:a
-                       :href "/fileworthy/logout"
+                       :href (sf "/~A/logout" rrp)
                        :title "Log Out"
                        (:i :class "fa fa-sign-out" ""))))))
               (:div :class "clear-fix"))
@@ -882,7 +900,7 @@
                           "sub-menu-items hidden")
                 (:li
                   :class (if (string-equal "about" (nth 1 path-segs)) "selected")
-                  (:a :href "/fileworthy/about" "About"))
+                  (:a :href (url-for 'about) "About"))
                 (if (not (empty? user))
                   (raw
                     (markup

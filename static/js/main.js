@@ -1,4 +1,6 @@
 ui.ready(function() {
+  site.rrp = document.body.dataset.rrp;
+
   hljs.initHighlightingOnLoad();
 
   if (ui.get("user-detail-page"))
@@ -58,7 +60,7 @@ var site = {
 
     // Send request
     utils.post(
-        '/fileworthy/api/login',
+        '/' + site.rrp + '/api/login',
         formData,
         function (result) {
           ui.showResult(login.resultEl, result);
@@ -136,7 +138,7 @@ page.initUserDetailPage = function() {
 
     // Send request
     utils.post(
-        '/fileworthy/api/users/' + user.id,
+        '/' + site.rrp + '/api/users/' + user.id,
         formData,
         function (result) {
           ui.showResult(els.saveRes, result);

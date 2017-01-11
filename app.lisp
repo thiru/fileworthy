@@ -1121,7 +1121,9 @@
       (if new-user? "New User" (user-name req-user))
       "user-detail-page"
       (markup
-        (:h2 :id "name-heading" :data-user-id user-id-str
+        (:h2
+          :id "name-heading"
+          :data-user-id (to-string (user-id req-user))
          (if new-user? "New User" (user-name req-user)))
         (:div :id "input-fields"
          (:input

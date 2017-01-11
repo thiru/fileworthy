@@ -487,7 +487,7 @@
 ||#
 (defstruct fileworthyrc
   (port 9090 :type INTEGER)
-  (users-id-seed 1 :type INTEGER)
+  (next-user-id 1 :type INTEGER)
   (users '() :type LIST)
   (working-dir "" :type STRING))
 
@@ -1259,14 +1259,14 @@
                    (progn
                      (push
                        (make-user
-                         :id (fileworthyrc-users-id-seed curr-config)
+                         :id (fileworthyrc-next-user-id curr-config)
                          :name name
                          :email email
                          :admin? admin?
                          :salt salt
                          :password (gen-hash new-pwd salt))
                        (fileworthyrc-users curr-config))
-                     (incf (fileworthyrc-users-id-seed curr-config)))
+                     (incf (fileworthyrc-next-user-id curr-config)))
                    (progn
                      (setf (user-name req-user) name)
                      (setf (user-email req-user) email)

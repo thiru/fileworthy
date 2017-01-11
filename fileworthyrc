@@ -1,6 +1,6 @@
 #S(FILEWORTHY::FILEWORTHYRC
    :PORT 9090
-   :USERS-ID-SEED 3
+   :NEXT-USER-ID 3
    :USERS (#S(FILEWORTHY::USER
               :ID 1
               :NAME "Administrator"

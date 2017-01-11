@@ -671,6 +671,9 @@
   (cond ((eq 'about section-or-obj)
          (sf "/~A/about"
              (fileworthyrc-reserved-resource-path (app-config *app*))))
+        ((eq 'settings section-or-obj)
+         (sf "/~A/settings"
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
         ((eq 'users section-or-obj)
          (sf "/~A/users"
              (fileworthyrc-reserved-resource-path (app-config *app*))))
@@ -744,6 +747,12 @@
             (sf "^/~A/about/?$"
                 (fileworthyrc-reserved-resource-path (app-config *app*)))
             #'page-about)
+
+          ;; Settings page
+          (create-regex-dispatcher
+            (sf "^/~A/settings/?$"
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
+            #'page-settings)
 
           ;; User list page
           (create-regex-dispatcher
@@ -901,6 +910,14 @@
                 (:li
                   :class (if (string-equal "about" (nth 1 path-segs)) "selected")
                   (:a :href (url-for 'about) "About"))
+                (if (user-admin? user)
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (string-equal "settings" (nth 1 path-segs))
+                                 "selected")
+                        (:a :href (url-for 'settings) "Settings")
+                        ))))
                 (if (not (empty? user))
                   (raw
                     (markup
@@ -1086,6 +1103,45 @@
        (:tr
          (:td "Copyright")
          (:td "2017 Thirushanth Thirunavukarasu"))))))
+
+#||
+### `PAGE-SETTINGS`
+||#
+(defun page-settings ()
+  "App settings page."
+  (let* ((curr-user (session-value 'user))
+         (fwrc (app-config *app*)))
+    ;; Only admins can view this page
+    (if (or (null curr-user)
+            (not (user-admin? curr-user)))
+      (return-from page-settings (page-error-not-authorised)))
+    (page-template
+      "Settings"
+      "settings-page"
+      (markup
+        (:h2 "Settings")
+        (:table :class "simple-table full-width"
+         (:tr
+           (:td "Port")
+           (:td
+             (:input
+               :class "full-width"
+               :value
+               (to-string (fileworthyrc-port fwrc)))))
+         (:tr
+           (:td "Reserved Resource Path")
+           (:td
+             (:input
+               :class "full-width"
+               :value
+               (fileworthyrc-reserved-resource-path fwrc))))
+         (:tr
+           (:td "Next User ID")
+           (:td
+             (:input
+               :class "full-width"
+               :value
+               (to-string (fileworthyrc-next-user-id fwrc))))))))))
 
 #||
 ### `PAGE-USER-LIST`

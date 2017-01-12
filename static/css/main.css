@@ -104,13 +104,6 @@ h2, h3, h4, h5, h6
   margin-bottom: 0.5rem;
 }
 
-ul, ol
-{
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 .hidden
 {
   display: none;
@@ -175,6 +168,13 @@ ul, ol
 .simple-table td:first-child
 {
   font-weight: bold;
+}
+
+.flat-list, .big-list
+{
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .big-list li > *

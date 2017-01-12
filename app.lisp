@@ -878,7 +878,7 @@
                        (:i :class "fa fa-sign-out" ""))))))
               (:div :class "clear-fix"))
              (:nav
-               (:ul :id "main-menu-items"
+               (:ul :id "main-menu-items" :class "flat-list"
                 ;; Home Folder Icon
                 (:li
                   :class (if (empty? first-path-seg) "selected")
@@ -905,8 +905,8 @@
                (:ul
                  :id "main-menu"
                  :class (if fw-info-page?
-                          "sub-menu-items"
-                          "sub-menu-items hidden")
+                          "sub-menu-items flat-list"
+                          "sub-menu-items flat-list hidden")
                 (:li
                   :class (if (string-equal "about" (nth 1 path-segs)) "selected")
                   (:a :href (url-for 'about) "About"))
@@ -950,7 +950,7 @@
                        :when (not (empty? sub-dir-names))
                        :collect
                        (markup
-                         (:ul :class "sub-menu-items"
+                         (:ul :class "sub-menu-items flat-list"
                           (loop :for dir-name :in sub-dir-names
                                 :collect
                                 (markup

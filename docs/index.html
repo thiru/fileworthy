@@ -679,8 +679,9 @@ defined before we compile the source files that depend on it<ul>
 </code></pre>
 <h3 id="-fileworthyrc-"><code>FILEWORTHYRC</code></h3>
 <pre><code class="lang-lisp">(defstruct fileworthyrc
-  (port 9090 :type INTEGER)
-  (users-id-seed 1 :type INTEGER)
+  (port 0 :type INTEGER)
+  (reserved-resource-path &quot;&quot; :type STRING)
+  (next-user-id 1 :type INTEGER)
   (users &#39;() :type LIST)
   (working-dir &quot;&quot; :type STRING))
 
@@ -860,13 +861,20 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 (defun url-for (section-or-obj)
   &quot;Create URL for a particular section/object&quot;
   (cond ((eq &#39;about section-or-obj)
-         &quot;/fileworthy/about&quot;)
+         (sf &quot;/~A/about&quot;
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
+        ((eq &#39;settings section-or-obj)
+         (sf &quot;/~A/settings&quot;
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
         ((eq &#39;users section-or-obj)
-         &quot;/fileworthy/users&quot;)
+         (sf &quot;/~A/users&quot;
+             (fileworthyrc-reserved-resource-path (app-config *app*))))
         ((typep section-or-obj &#39;user)
          (if (= 0 (user-id section-or-obj))
-           &quot;/fileworthy/users/new&quot;
-           (sf &quot;/fileworthy/users/~A/~(~A~)&quot;
+           (sf &quot;/~A/users/new&quot;
+               (fileworthyrc-reserved-resource-path (app-config *app*)))
+           (sf &quot;/~A/users/~A/~(~A~)&quot;
+               (fileworthyrc-reserved-resource-path (app-config *app*))
                (user-id section-or-obj)
                (user-name section-or-obj))))
         (t &quot;&quot;)))
@@ -915,43 +923,58 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
         (list
           ;; Static files
           (create-folder-dispatcher-and-handler
-            &quot;/css/&quot;
+            (sf &quot;/~A/css/&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* &quot;css/&quot; (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
-            &quot;/deps/&quot;
+            (sf &quot;/~A/deps/&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* &quot;deps/&quot; (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
-            &quot;/js/&quot;
+            (sf &quot;/~A/js/&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             (merge-pathnames* &quot;js/&quot; (app-web-static-dir *app*)))
 
           ;; About page
           (create-regex-dispatcher
-            &quot;^/fileworthy/about/?$&quot;
+            (sf &quot;^/~A/about/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;page-about)
+
+          ;; Settings page
+          (create-regex-dispatcher
+            (sf &quot;^/~A/settings/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
+            #&#39;page-settings)
 
           ;; User list page
           (create-regex-dispatcher
-            &quot;^/fileworthy/users/?$&quot;
+            (sf &quot;^/~A/users/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;page-user-list)
 
           ;; User detail page
           (create-regex-dispatcher
-            &quot;^/fileworthy/users/.+/?$&quot;
+            (sf &quot;^/~A/users/.+/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;page-user-detail)
 
           ;; User save API
           (create-regex-dispatcher
-            &quot;^/fileworthy/api/users/.+/?$&quot;
+            (sf &quot;^/~A/api/users/.+/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;api-user-save)
 
           ;; Login API
           (create-regex-dispatcher
-            &quot;^/fileworthy/api/login/?$&quot;
+            (sf &quot;^/~A/api/login/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;api-login)
 
           ;; Logout page
           (create-regex-dispatcher
-            &quot;^/fileworthy/logout/?$&quot;
+            (sf &quot;^/~A/logout/?$&quot;
+                (fileworthyrc-reserved-resource-path (app-config *app*)))
             #&#39;page-logout)
 
           ;; File-system path page
@@ -991,11 +1014,12 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 </ul>
 <pre><code class="lang-lisp">(defun page-template (title page-id content)
   &quot;Base template for all web pages.&quot;
-  (let* ((user (empty &#39;user :unless (session-value &#39;user)))
+  (let* ((rrp (fileworthyrc-reserved-resource-path (app-config *app*)))
+         (user (empty &#39;user :unless (session-value &#39;user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs))
-         (fw-info-page? (string-equal &quot;fileworthy&quot; first-path-seg)))
+         (fw-info-page? (string-equal rrp first-path-seg)))
     (html5 :lang &quot;en&quot;
            (:head
              (:meta :charset &quot;utf-8&quot;)
@@ -1007,21 +1031,24 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 
              (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
-               :href &quot;/deps/font-awesome/css/font-awesome.min.css&quot;
+               :href
+               (sf &quot;/~A/deps/font-awesome/css/font-awesome.min.css&quot; rrp)
                :rel &quot;stylesheet&quot;
                :type &quot;text/css&quot;)
              (:link
-               :href &quot;/deps/highlightjs/styles/github.css&quot;
+               :href (sf &quot;/~A/deps/highlightjs/styles/github.css&quot; rrp)
                :rel &quot;stylesheet&quot;)
-             (:link :href &quot;/css/main.css&quot; :rel &quot;stylesheet&quot;)
+             (:link :href (sf &quot;/~A/css/main.css&quot; rrp) :rel &quot;stylesheet&quot;)
 
-             (:script :src &quot;/deps/lodash/lodash.min.js&quot; &quot;&quot;)
-             (:script :src &quot;/deps/momentjs/moment.min.js&quot; &quot;&quot;)
-             (:script :src &quot;/deps/markedjs/marked.min.js&quot; &quot;&quot;)
-             (:script :src &quot;/deps/highlightjs/highlight.pack.js&quot; &quot;&quot;)
-             (:script :src &quot;/js/utils.js&quot; &quot;&quot;)
-             (:script :src &quot;/js/main.js&quot; &quot;&quot;))
+             (:script :src (sf &quot;/~A/deps/lodash/lodash.min.js&quot; rrp) &quot;&quot;)
+             (:script :src (sf &quot;/~A/deps/momentjs/moment.min.js&quot; rrp) &quot;&quot;)
+             (:script :src (sf &quot;/~A/deps/markedjs/marked.min.js&quot; rrp) &quot;&quot;)
+             (:script
+               :src (sf &quot;/~A/deps/highlightjs/highlight.pack.js&quot; rrp) &quot;&quot;)
+             (:script :src (sf &quot;/~A/js/utils.js&quot; rrp) &quot;&quot;)
+             (:script :src (sf &quot;/~A/js/main.js&quot; rrp) &quot;&quot;))
            (:body
+             :data-rrp rrp
              ;; Overlay (for dialogs)
              (:div :id &quot;overlay&quot; :class &quot;hidden&quot; &quot;&amp;nbsp;&quot;)
              ;; Top Bar
@@ -1048,12 +1075,12 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                        (user-name user))
                      (:span &quot; &quot;)
                      (:a
-                       :href &quot;/fileworthy/logout&quot;
+                       :href (sf &quot;/~A/logout&quot; rrp)
                        :title &quot;Log Out&quot;
                        (:i :class &quot;fa fa-sign-out&quot; &quot;&quot;))))))
               (:div :class &quot;clear-fix&quot;))
              (:nav
-               (:ul :id &quot;main-menu-items&quot;
+               (:ul :id &quot;main-menu-items&quot; :class &quot;flat-list&quot;
                 ;; Home Folder Icon
                 (:li
                   :class (if (empty? first-path-seg) &quot;selected&quot;)
@@ -1080,11 +1107,19 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                (:ul
                  :id &quot;main-menu&quot;
                  :class (if fw-info-page?
-                          &quot;sub-menu-items&quot;
-                          &quot;sub-menu-items hidden&quot;)
+                          &quot;sub-menu-items flat-list&quot;
+                          &quot;sub-menu-items flat-list hidden&quot;)
                 (:li
                   :class (if (string-equal &quot;about&quot; (nth 1 path-segs)) &quot;selected&quot;)
-                  (:a :href &quot;/fileworthy/about&quot; &quot;About&quot;))
+                  (:a :href (url-for &#39;about) &quot;About&quot;))
+                (if (user-admin? user)
+                  (raw
+                    (markup
+                      (:li
+                        :class (if (string-equal &quot;settings&quot; (nth 1 path-segs))
+                                 &quot;selected&quot;)
+                        (:a :href (url-for &#39;settings) &quot;Settings&quot;)
+                        ))))
                 (if (not (empty? user))
                   (raw
                     (markup
@@ -1117,7 +1152,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                        :when (not (empty? sub-dir-names))
                        :collect
                        (markup
-                         (:ul :class &quot;sub-menu-items&quot;
+                         (:ul :class &quot;sub-menu-items flat-list&quot;
                           (loop :for dir-name :in sub-dir-names
                                 :collect
                                 (markup
@@ -1269,6 +1304,43 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
          (:td &quot;Copyright&quot;)
          (:td &quot;2017 Thirushanth Thirunavukarasu&quot;))))))
 </code></pre>
+<h3 id="-page-settings-"><code>PAGE-SETTINGS</code></h3>
+<pre><code class="lang-lisp">(defun page-settings ()
+  &quot;App settings page.&quot;
+  (let* ((curr-user (session-value &#39;user))
+         (fwrc (app-config *app*)))
+    ;; Only admins can view this page
+    (if (or (null curr-user)
+            (not (user-admin? curr-user)))
+      (return-from page-settings (page-error-not-authorised)))
+    (page-template
+      &quot;Settings&quot;
+      &quot;settings-page&quot;
+      (markup
+        (:h2 &quot;Settings&quot;)
+        (:table :class &quot;simple-table full-width&quot;
+         (:tr
+           (:td &quot;Port&quot;)
+           (:td
+             (:input
+               :class &quot;full-width&quot;
+               :value
+               (to-string (fileworthyrc-port fwrc)))))
+         (:tr
+           (:td &quot;Reserved Resource Path&quot;)
+           (:td
+             (:input
+               :class &quot;full-width&quot;
+               :value
+               (fileworthyrc-reserved-resource-path fwrc))))
+         (:tr
+           (:td &quot;Next User ID&quot;)
+           (:td
+             (:input
+               :class &quot;full-width&quot;
+               :value
+               (to-string (fileworthyrc-next-user-id fwrc))))))))))
+</code></pre>
 <h3 id="-page-user-list-"><code>PAGE-USER-LIST</code></h3>
 <pre><code class="lang-lisp">(defun page-user-list ()
   &quot;User listing page.&quot;
@@ -1317,7 +1389,9 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
       (if new-user? &quot;New User&quot; (user-name req-user))
       &quot;user-detail-page&quot;
       (markup
-        (:h2 :id &quot;name-heading&quot; :data-user-id user-id-str
+        (:h2
+          :id &quot;name-heading&quot;
+          :data-user-id (to-string (user-id req-user))
          (if new-user? &quot;New User&quot; (user-name req-user)))
         (:div :id &quot;input-fields&quot;
          (:input
@@ -1453,14 +1527,14 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                    (progn
                      (push
                        (make-user
-                         :id (fileworthyrc-users-id-seed curr-config)
+                         :id (fileworthyrc-next-user-id curr-config)
                          :name name
                          :email email
                          :admin? admin?
                          :salt salt
                          :password (gen-hash new-pwd salt))
                        (fileworthyrc-users curr-config))
-                     (incf (fileworthyrc-users-id-seed curr-config)))
+                     (incf (fileworthyrc-next-user-id curr-config)))
                    (progn
                      (setf (user-name req-user) name)
                      (setf (user-email req-user) email)

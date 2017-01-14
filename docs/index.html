@@ -526,7 +526,30 @@ defined before we compile the source files that depend on it<ul>
          (version-file-path (asdf:system-relative-pathname
                               :fileworthy
                               &quot;version&quot;))
-         (config-file-path (merge-pathnames* &quot;fileworthyrc&quot; app-dir)))
+         (xdg-config-home (xdg-config-home))
+         (config-file-name &quot;config&quot;)
+         (config-file-dir &quot;&quot;)
+         (config-file-path &quot;&quot;))
+
+    ;; If $XDG_CONFIG_HOME not set, set it to ~/.config
+    (if (empty? xdg-config-home)
+      (setf xdg-config-home (merge-pathnames* &quot;.config&quot; (user-homedir-pathname))))
+
+    (setf config-file-dir (merge-pathnames* &quot;fileworthy/&quot; xdg-config-home))
+    (setf config-file-path (merge-pathnames* config-file-name config-file-dir))
+
+    (when (not (directory-exists-p config-file-dir))
+      (format t
+              &quot;Creating &#39;~A&#39; as it doesn&#39;t exist.~%&quot;
+              config-file-dir)
+      (ensure-directories-exist config-file-dir))
+
+    (when (not (file-exists-p config-file-path))
+      (format t
+              &quot;Creating &#39;~A&#39; from default config as it doesn&#39;t exist.~%&quot;
+              config-file-path)
+      (copy-file (merge-pathnames* &quot;config&quot; app-dir) config-file-path))
+
     (make-app :debug debug
               :app-dir app-dir 
               :version (asdf::read-file-form version-file-path)

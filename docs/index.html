@@ -467,12 +467,22 @@ defined before we compile the source files that depend on it<ul>
 
 (empty=&gt; (make-config))
 
+;; TODO: expand environment variables in ROOT-DIR
 (defun load-config (path)
   &quot;Load an instance of `CONFIG` from the config file.&quot;
   (let* ((config (read-file-form path)))
+    ;; If no root dir is specified, use user&#39;s home dir
     (if (blank? (config-root-dir config))
       (setf (config-root-dir config)
             (to-string (uiop/common-lisp:user-homedir-pathname))))
+    (if (not (char-equal #\/
+                         (char (config-root-dir config)
+                               (1- (length (config-root-dir config))))))
+      (setf (config-root-dir config)
+            (sf &quot;~A/&quot; (config-root-dir config))))
+    (if (not (directory-exists-p (config-root-dir config)))
+      (error (sf &quot;Directory &#39;~A&#39; not found or inaccessible.&quot;
+                 (config-root-dir config))))
     config))
 </code></pre>
 <h2 id="global-variables">Global Variables</h2>
@@ -517,7 +527,6 @@ defined before we compile the source files that depend on it<ul>
                               :fileworthy
                               &quot;version&quot;))
          (config-file-path (merge-pathnames* &quot;fileworthyrc&quot; app-dir)))
-
     (make-app :debug debug
               :app-dir app-dir 
               :version (asdf::read-file-form version-file-path)

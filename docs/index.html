@@ -394,29 +394,6 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(in-package :fileworthy)
 </code></pre>
-<h2 id="global-variables">Global Variables</h2>
-<ul>
-<li>I&#39;m trying to keep the number of global objects as small as possible</li>
-<li><code>*APP*</code> will contain most of the common properties grouped in a single struct</li>
-<li>It will be initialised/reinitialised when <code>START-APP</code> or <code>RESTART-APP</code> is called<ul>
-<li>so we don&#39;t bother initialising it here</li>
-</ul>
-</li>
-</ul>
-<pre><code class="lang-lisp">(defvar *app*
-  nil
-  &quot;Singleton instance containing general app details.&quot;)
-</code></pre>
-<ul>
-<li><code>*ACCEPTOR*</code> gets initialised/reinitialised when <code>START-APP</code> or <code>RESTART-APP</code> is called<ul>
-<li>so we don&#39;t bother initialising it here</li>
-</ul>
-</li>
-</ul>
-<pre><code class="lang-lisp">(defvar *acceptor*
-  nil
-  &quot;Singleton Hunchentoot web handler.&quot;)
-</code></pre>
 <h2 id="app">APP</h2>
 <ul>
 <li>The <code>APP</code> struct groups general, high-level app details including<ul>
@@ -426,11 +403,6 @@ defined before we compile the source files that depend on it<ul>
 </li>
 <li><code>APP-DIR</code><ul>
 <li>the root directory of the app&#39;s source/binaries</li>
-</ul>
-</li>
-<li><code>WORKING-DIR</code><ul>
-<li>the current/working directory for the app</li>
-<li>this will be the root path from which the website is generated</li>
 </ul>
 </li>
 <li><code>MIN-PASSWORD-LENGTH</code><ul>
@@ -452,10 +424,7 @@ defined before we compile the source files that depend on it<ul>
 </li>
 <li><code>CONFIG-FILE-PATH</code><ul>
 <li>the fully qualified path to the config file</li>
-</ul>
-</li>
-<li><code>CONFIG</code><ul>
-<li>the configuration details of the site</li>
+<li>which is an instance of <code>CONFIG</code></li>
 </ul>
 </li>
 </ul>
@@ -465,16 +434,66 @@ defined before we compile the source files that depend on it<ul>
   &quot;Contains general, high-level app details.&quot;
   (debug t)
   (app-dir (empty &#39;pathname) :type PATHNAME)
-  (working-dir (empty &#39;pathname) :type PATHNAME)
   (min-password-length 4 :type INTEGER)
   (version &quot;0.0&quot; :type STRING)
   (last-updated (empty &#39;timestamp) :type TIMESTAMP)
   (web-static-dir (empty &#39;pathname) :type PATHNAME)
-  (config-file-path (empty &#39;pathname) :type PATHNAME)
-  (config nil))
+  (config-file-path (empty &#39;pathname) :type PATHNAME))
 
 (empty=&gt; (local-time:encode-timestamp 0 0 0 0 1 1 1))
 (empty=&gt; (make-app))
+</code></pre>
+<h3 id="-config-"><code>CONFIG</code></h3>
+<ul>
+<li>This struct encapsulates user-configurable settings<ul>
+<li><code>SITE-NAME</code><ul>
+<li>the name for the website</li>
+</ul>
+</li>
+<li><code>ROOT-DIR</code><ul>
+<li>the root directory from which the website is generated</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defstruct config
+  (site-name &quot;&quot; :type STRING)
+  (root-dir &quot;&quot; :type STRING)
+  (port 0 :type INTEGER)
+  (reserved-resource-path &quot;&quot; :type STRING)
+  (next-user-id 1 :type INTEGER)
+  (users &#39;() :type LIST))
+
+(empty=&gt; (make-config))
+
+(defun load-config (path)
+  &quot;Load an instance of `CONFIG` from the config file.&quot;
+  (let* ((config (read-file-form path)))
+    (if (blank? (config-root-dir config))
+      (setf (config-root-dir config)
+            (to-string (uiop/common-lisp:user-homedir-pathname))))
+    config))
+</code></pre>
+<h2 id="global-variables">Global Variables</h2>
+<ul>
+<li>I&#39;m trying to keep the number of global objects as small as possible</li>
+<li>All of the following will be initialised when <code>START-APP</code> is called<ul>
+<li>so we don&#39;t bother initialising them here</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defvar *app*
+  (empty &#39;app)
+  &quot;Singleton instance containing general app details.&quot;)
+
+(defvar *config*
+  (empty &#39;config)
+  &quot;Singleton instance contain config details.&quot;)
+
+(defvar *acceptor*
+  nil
+  &quot;Singleton Hunchentoot web handler.&quot;)
 </code></pre>
 <h3 id="create-app">CREATE-APP</h3>
 <ul>
@@ -494,21 +513,19 @@ defined before we compile the source files that depend on it<ul>
 <pre><code class="lang-lisp">(defun create-app (debug)
   &quot;Create APP instance.&quot;
   (let* ((app-dir (asdf:system-source-directory :fileworthy))
-         (working-dir (get-pathname-defaults))
          (version-file-path (asdf:system-relative-pathname
                               :fileworthy
                               &quot;version&quot;))
          (config-file-path (merge-pathnames* &quot;fileworthyrc&quot; app-dir)))
+
     (make-app :debug debug
               :app-dir app-dir 
-              :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
               :last-updated
               (universal-to-timestamp
                 (file-write-date version-file-path))
               :web-static-dir (merge-pathnames #P&quot;static/&quot; app-dir)
-              :config-file-path config-file-path
-              :config (load-config config-file-path))))
+              :config-file-path config-file-path)))
 </code></pre>
 <h2 id="startup-and-shutdown">Startup and Shutdown</h2>
 <ul>
@@ -524,7 +541,7 @@ defined before we compile the source files that depend on it<ul>
 <li>Parameters:<ul>
 <li><code>PORT</code><ul>
 <li>the port of the web server</li>
-<li>if no value is specified here it is taken from the config, <code>FILEWORTHYRC</code></li>
+<li>if no value is specified here it is taken from the config, <code>CONFIG</code></li>
 </ul>
 </li>
 <li><code>DEBUG</code><ul>
@@ -572,9 +589,10 @@ defined before we compile the source files that depend on it<ul>
       (return-from start-app res)))
 
   (setf *app* (create-app debug))
+  (setf *config* (load-config (app-config-file-path *app*)))
 
   (if (not port-given?)
-    (setf port (fileworthyrc-port (app-config *app*))))
+    (setf port (config-port *config*)))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
 
@@ -588,7 +606,9 @@ defined before we compile the source files that depend on it<ul>
 
   (let* ((res (new-r :success
                      (sf &quot;Fileworthy ~A started on port ~A, working out of &#39;~A&#39;.&quot;
-                         (app-version *app*) port (app-working-dir *app*)))))
+                         (app-version *app*)
+                         port
+                         (config-root-dir *config*)))))
     (format t (r-message res))
     res))
 </code></pre>
@@ -660,7 +680,7 @@ defined before we compile the source files that depend on it<ul>
                 (and (or (not id-given?) (= id (user-id user)))
                      (or (null name) (string-equal name (user-name user)))
                      (or (null email) (string-equal email (user-email user)))))
-             (fileworthyrc-users (app-config *app*)))))
+             (config-users *config*))))
 
 (defun authenticate-user (user pwd)
   &quot;Authenticate the given user.&quot;
@@ -668,31 +688,6 @@ defined before we compile the source files that depend on it<ul>
        (not (blank? pwd))
        (string= (gen-hash pwd (user-salt user))
                 (user-password user))))
-</code></pre>
-<h3 id="-fileworthyrc-"><code>FILEWORTHYRC</code></h3>
-<ul>
-<li>This struct encapsulates user-configurable settings<ul>
-<li><code>SITE-NAME</code><ul>
-<li>the name displayed on the website</li>
-<li>this will default to the name of the directory specified in <code>WORKING-DIR</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<pre><code class="lang-lisp">(defstruct fileworthyrc
-  (site-name &quot;&quot; :type STRING)
-  (port 0 :type INTEGER)
-  (reserved-resource-path &quot;&quot; :type STRING)
-  (next-user-id 1 :type INTEGER)
-  (users &#39;() :type LIST)
-  (working-dir &quot;&quot; :type STRING))
-
-(empty=&gt; (make-fileworthyrc))
-
-(defun load-config (path)
-  &quot;Load an instance of `FILEWORTHYRC` from the config file.&quot;
-  (read-file-form path))
 </code></pre>
 <h3 id="-random-string-"><code>RANDOM-STRING</code></h3>
 <ul>
@@ -726,7 +721,7 @@ regular string (e.g. used when saving config to disk)<ul>
 <ul>
 <li>This function gets a list of directory names relative to either<ul>
 <li>the given directory, <code>PARENT</code></li>
-<li>or the root working folder as specified by <code>APP-WORKING-DIR</code></li>
+<li>or the root working folder as specified by <code>CONFIG-ROOT-DIR</code></li>
 </ul>
 </li>
 </ul>
@@ -737,13 +732,15 @@ regular string (e.g. used when saving config to disk)<ul>
           (last1 (split-sequence #\/
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
-       (uiop/filesystem:subdirectories (or parent (app-working-dir *app*)))))
+       (uiop/filesystem:subdirectories
+         (or parent
+             (config-root-dir *config*)))))
 </code></pre>
 <h3 id="-get-file-names-"><code>GET-FILE-NAMES</code></h3>
 <ul>
 <li>This function gets a list of file names relative to either<ul>
 <li>the given directory <code>PARENT</code></li>
-<li>or the root working folder as specified by <code>APP-WORKING-DIR</code></li>
+<li>or the root working folder as specified by <code>CONFIG-ROOT-DIR</code></li>
 </ul>
 </li>
 </ul>
@@ -755,7 +752,7 @@ regular string (e.g. used when saving config to disk)<ul>
                                  (princ-to-string abs-file)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:directory-files
-         (or parent (app-working-dir *app*)))))
+         (or parent (config-root-dir *config*)))))
 </code></pre>
 <h3 id="-get-file-content-"><code>GET-FILE-CONTENT</code></h3>
 <pre><code class="lang-lisp">(defun get-file-content (path)
@@ -825,11 +822,11 @@ regular string (e.g. used when saving config to disk)<ul>
 <h3 id="-save-config-"><code>SAVE-CONFIG</code></h3>
 <ul>
 <li><code>CHANGE-FN</code> is a function that performs the work of making changes to the
-global <code>(APP-CONFIG *APP*)</code> object</li>
+global <code>*CONFIG*</code> object</li>
 <li>This function is only called if the config file lock is successfully obtained</li>
 </ul>
 <pre><code class="lang-lisp">(defun save-config (change-fn)
-  &quot;Save/update config file with contents of `(APP-CONFIG *APP*).&quot;
+  &quot;Save/update config file with contents of `*CONFIG*`.&quot;
   (let* ((lockedR (create-config-lock-file)))
     (if (failed? lockedR)
       (return-from save-config lockedR))
@@ -839,7 +836,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
                       :if-exists :supersede
                       :if-does-not-exist :create)
       (funcall change-fn)
-      (write (app-config *app*) :stream stream :readably t))
+      (write *config* :stream stream :readably t))
     (delete-config-lock-file))
   (new-r :success &quot;Config updated.&quot;))
 </code></pre>
@@ -865,19 +862,19 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
   &quot;Create URL for a particular section/object&quot;
   (cond ((eq &#39;about section-or-obj)
          (sf &quot;/~A/about&quot;
-             (fileworthyrc-reserved-resource-path (app-config *app*))))
+             (config-reserved-resource-path *config*)))
         ((eq &#39;settings section-or-obj)
          (sf &quot;/~A/settings&quot;
-             (fileworthyrc-reserved-resource-path (app-config *app*))))
+             (config-reserved-resource-path *config*)))
         ((eq &#39;users section-or-obj)
          (sf &quot;/~A/users&quot;
-             (fileworthyrc-reserved-resource-path (app-config *app*))))
+             (config-reserved-resource-path *config*)))
         ((typep section-or-obj &#39;user)
          (if (= 0 (user-id section-or-obj))
            (sf &quot;/~A/users/new&quot;
-               (fileworthyrc-reserved-resource-path (app-config *app*)))
+               (config-reserved-resource-path *config*))
            (sf &quot;/~A/users/~A/~(~A~)&quot;
-               (fileworthyrc-reserved-resource-path (app-config *app*))
+               (config-reserved-resource-path *config*)
                (user-id section-or-obj)
                (user-name section-or-obj))))
         (t &quot;&quot;)))
@@ -927,57 +924,57 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
           ;; Static files
           (create-folder-dispatcher-and-handler
             (sf &quot;/~A/css/&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             (merge-pathnames* &quot;css/&quot; (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
             (sf &quot;/~A/deps/&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             (merge-pathnames* &quot;deps/&quot; (app-web-static-dir *app*)))
           (create-folder-dispatcher-and-handler
             (sf &quot;/~A/js/&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             (merge-pathnames* &quot;js/&quot; (app-web-static-dir *app*)))
 
           ;; About page
           (create-regex-dispatcher
             (sf &quot;^/~A/about/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;page-about)
 
           ;; Settings page
           (create-regex-dispatcher
             (sf &quot;^/~A/settings/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;page-settings)
 
           ;; User list page
           (create-regex-dispatcher
             (sf &quot;^/~A/users/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;page-user-list)
 
           ;; User detail page
           (create-regex-dispatcher
             (sf &quot;^/~A/users/.+/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;page-user-detail)
 
           ;; User save API
           (create-regex-dispatcher
             (sf &quot;^/~A/api/users/.+/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;api-user-save)
 
           ;; Login API
           (create-regex-dispatcher
             (sf &quot;^/~A/api/login/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;api-login)
 
           ;; Logout page
           (create-regex-dispatcher
             (sf &quot;^/~A/logout/?$&quot;
-                (fileworthyrc-reserved-resource-path (app-config *app*)))
+                (config-reserved-resource-path *config*))
             #&#39;page-logout)
 
           ;; File-system path page
@@ -1017,7 +1014,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 </ul>
 <pre><code class="lang-lisp">(defun page-template (title page-id content)
   &quot;Base template for all web pages.&quot;
-  (let* ((rrp (fileworthyrc-reserved-resource-path (app-config *app*)))
+  (let* ((rrp (config-reserved-resource-path *config*))
          (user (empty &#39;user :unless (session-value &#39;user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
@@ -1033,7 +1030,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
              (:title
                (sf &quot;~A - ~A - Fileworthy&quot;
                    title
-                   (fileworthyrc-site-name (app-config *app*))))
+                   (config-site-name *config*)))
 
              (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
@@ -1063,7 +1060,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
-               (fileworthyrc-site-name (app-config *app*)))
+               (config-site-name *config*))
               ;; User Info
               (:div :id &quot;user-info&quot;
                (if (empty? user)
@@ -1314,7 +1311,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 <pre><code class="lang-lisp">(defun page-settings ()
   &quot;App settings page.&quot;
   (let* ((curr-user (session-value &#39;user))
-         (fwrc (app-config *app*)))
+         (fwrc *config*))
     ;; Only admins can view this page
     (if (or (null curr-user)
             (not (user-admin? curr-user)))
@@ -1331,21 +1328,21 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
              (:input
                :class &quot;full-width&quot;
                :value
-               (to-string (fileworthyrc-port fwrc)))))
+               (to-string (config-port fwrc)))))
          (:tr
            (:td &quot;Reserved Resource Path&quot;)
            (:td
              (:input
                :class &quot;full-width&quot;
                :value
-               (fileworthyrc-reserved-resource-path fwrc))))
+               (config-reserved-resource-path fwrc))))
          (:tr
            (:td &quot;Next User ID&quot;)
            (:td
              (:input
                :class &quot;full-width&quot;
                :value
-               (to-string (fileworthyrc-next-user-id fwrc))))))))))
+               (to-string (config-next-user-id fwrc))))))))))
 </code></pre>
 <h3 id="-page-user-list-"><code>PAGE-USER-LIST</code></h3>
 <pre><code class="lang-lisp">(defun page-user-list ()
@@ -1366,7 +1363,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
           &quot;New User&quot;)
         (:ul :class &quot;big-list&quot;
           (loop
-            :for user :in (fileworthyrc-users (app-config *app*))
+            :for user :in (config-users *config*)
             :collect
             (markup
               (:li
@@ -1527,20 +1524,20 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
     (setf save-res
           (save-config
             (λ ()
-               (let* ((curr-config (app-config *app*))
+               (let* ((curr-config *config*)
                       (salt (random-string)))
                  (if new-user?
                    (progn
                      (push
                        (make-user
-                         :id (fileworthyrc-next-user-id curr-config)
+                         :id (config-next-user-id curr-config)
                          :name name
                          :email email
                          :admin? admin?
                          :salt salt
                          :password (gen-hash new-pwd salt))
-                       (fileworthyrc-users curr-config))
-                     (incf (fileworthyrc-next-user-id curr-config)))
+                       (config-users curr-config))
+                     (incf (config-next-user-id curr-config)))
                    (progn
                      (setf (user-name req-user) name)
                      (setf (user-email req-user) email)
@@ -1622,7 +1619,8 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
          (binary-file? nil)
          (curr-file-name &quot;&quot;)
          (rel-fs-path (if abs-fs-path
-                        (subpathp abs-fs-path (app-working-dir *app*))))
+                        (subpathp abs-fs-path
+                                  (config-root-dir *config*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
     ;; Show 404 page if dir/file not found
@@ -1702,8 +1700,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 
 (defun get-fs-path-from-url (path-name)
   &quot;Gets an absolute local file-system path from the given path name.&quot;
-  (let* ((path (merge-pathnames* (string-left-trim &#39;(#\/) path-name))))
-    (if (subpathp path (app-working-dir *app*))
-      path)))
+  (concatenate &#39;string (config-root-dir *config*)
+               (string-left-trim &#39;(#\/) path-name)))
 </code></pre>
      </body></html>

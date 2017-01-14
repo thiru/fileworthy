@@ -47,7 +47,8 @@
 
 (defun blank? (str)
   "Determine whether `STR` contains only whitespace characters."
-  (cl-ppcre:scan "^\\s+$" str))
+  (or (empty? str)
+      (cl-ppcre:scan "^\\s+$" str)))
 
 (defmacro -> (obj slot)
   "Gets the value of a slot."

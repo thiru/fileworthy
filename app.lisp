@@ -539,7 +539,7 @@
   * the given directory, `PARENT`
   * or the root working folder as specified by `CONFIG-ROOT-DIR`
 ||#
-(defun get-dir-names (&optional parent)
+(defun get-dir-names (&optional (parent ""))
   "Get directory names."
   (map 'list
        (λ (abs-dir)
@@ -547,8 +547,9 @@
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:subdirectories
-         (or parent
-             (config-root-dir *config*)))))
+         (concatenate 'string
+                      (config-root-dir *config*)
+                      (string-left-trim '(#\/) parent)))))
 #||
 ### `GET-FILE-NAMES`
 
@@ -1024,7 +1025,7 @@
   * "root/sub1/sub1a" ==> '("root", "root/sub1", "root/sub1/sub1a")
 ||#
 (defun expand-sub-dirs (path-name)
-  "Expand all the path segments in PATH-NAME to a list of sub-directories."
+  "Expand all the path segments in `PATH-NAME` to a list of sub-directories."
   (let* ((path-name (string-trim '(#\/) (or path-name ""))))
     (if (empty? path-name)
       (return-from expand-sub-dirs '()))

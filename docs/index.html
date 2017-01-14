@@ -734,7 +734,7 @@ regular string (e.g. used when saving config to disk)<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun get-dir-names (&amp;optional parent)
+<pre><code class="lang-lisp">(defun get-dir-names (&amp;optional (parent &quot;&quot;))
   &quot;Get directory names.&quot;
   (map &#39;list
        (λ (abs-dir)
@@ -742,8 +742,9 @@ regular string (e.g. used when saving config to disk)<ul>
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:subdirectories
-         (or parent
-             (config-root-dir *config*)))))
+         (concatenate &#39;string
+                      (config-root-dir *config*)
+                      (string-left-trim &#39;(#\/) parent)))))
 </code></pre>
 <h3 id="-get-file-names-"><code>GET-FILE-NAMES</code></h3>
 <ul>
@@ -1226,7 +1227,7 @@ global <code>*CONFIG*</code> object</li>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun expand-sub-dirs (path-name)
-  &quot;Expand all the path segments in PATH-NAME to a list of sub-directories.&quot;
+  &quot;Expand all the path segments in `PATH-NAME` to a list of sub-directories.&quot;
   (let* ((path-name (string-trim &#39;(#\/) (or path-name &quot;&quot;))))
     (if (empty? path-name)
       (return-from expand-sub-dirs &#39;()))

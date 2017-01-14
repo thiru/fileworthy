@@ -575,7 +575,7 @@
   * or the root working folder as specified by `CONFIG-ROOT-DIR`
 
 ```lisp
-(defun get-dir-names (&optional parent)
+(defun get-dir-names (&optional (parent ""))
   "Get directory names."
   (map 'list
        (λ (abs-dir)
@@ -583,8 +583,9 @@
                                  (princ-to-string abs-dir)
                                  :remove-empty-subseqs t)))
        (uiop/filesystem:subdirectories
-         (or parent
-             (config-root-dir *config*)))))
+         (concatenate 'string
+                      (config-root-dir *config*)
+                      (string-left-trim '(#\/) parent)))))
 
 ```
 
@@ -1093,7 +1094,7 @@
 
 ```lisp
 (defun expand-sub-dirs (path-name)
-  "Expand all the path segments in PATH-NAME to a list of sub-directories."
+  "Expand all the path segments in `PATH-NAME` to a list of sub-directories."
   (let* ((path-name (string-trim '(#\/) (or path-name ""))))
     (if (empty? path-name)
       (return-from expand-sub-dirs '()))

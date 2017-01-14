@@ -424,11 +424,6 @@ defined before we compile the source files that depend on it<ul>
 <li>whether the site is running in a debug mode</li>
 </ul>
 </li>
-<li><code>NAME</code><ul>
-<li>the user-specified name of this instance of the app</li>
-<li>this will default to the name of the directory specified in <code>working-dir</code></li>
-</ul>
-</li>
 <li><code>APP-DIR</code><ul>
 <li>the root directory of the app&#39;s source/binaries</li>
 </ul>
@@ -469,7 +464,6 @@ defined before we compile the source files that depend on it<ul>
 <pre><code class="lang-lisp">(defstruct app
   &quot;Contains general, high-level app details.&quot;
   (debug t)
-  (name &quot;&quot; :type STRING)
   (app-dir (empty &#39;pathname) :type PATHNAME)
   (working-dir (empty &#39;pathname) :type PATHNAME)
   (min-password-length 4 :type INTEGER)
@@ -506,12 +500,6 @@ defined before we compile the source files that depend on it<ul>
                               &quot;version&quot;))
          (config-file-path (merge-pathnames* &quot;fileworthyrc&quot; app-dir)))
     (make-app :debug debug
-              :name
-              (last1 
-                (split-sequence
-                  #\/
-                  (princ-to-string (uiop/filesystem:truename* working-dir))
-                  :remove-empty-subseqs t))
               :app-dir app-dir 
               :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
@@ -682,7 +670,18 @@ defined before we compile the source files that depend on it<ul>
                 (user-password user))))
 </code></pre>
 <h3 id="-fileworthyrc-"><code>FILEWORTHYRC</code></h3>
+<ul>
+<li>This struct encapsulates user-configurable settings<ul>
+<li><code>SITE-NAME</code><ul>
+<li>the name displayed on the website</li>
+<li>this will default to the name of the directory specified in <code>WORKING-DIR</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <pre><code class="lang-lisp">(defstruct fileworthyrc
+  (site-name &quot;&quot; :type STRING)
   (port 0 :type INTEGER)
   (reserved-resource-path &quot;&quot; :type STRING)
   (next-user-id 1 :type INTEGER)
@@ -1031,7 +1030,10 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
              (:meta
                :name &quot;viewport&quot;
                :content &quot;width=device-width, initial-scale=1&quot;)
-             (:title (sf &quot;~A - ~A - Fileworthy&quot; title (app-name *app*)))
+             (:title
+               (sf &quot;~A - ~A - Fileworthy&quot;
+                   title
+                   (fileworthyrc-site-name (app-config *app*))))
 
              (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
@@ -1061,7 +1063,7 @@ global <code>(APP-CONFIG *APP*)</code> object</li>
 
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
-               (app-name *app*))
+               (fileworthyrc-site-name (app-config *app*)))
               ;; User Info
               (:div :id &quot;user-info&quot;
                (if (empty? user)

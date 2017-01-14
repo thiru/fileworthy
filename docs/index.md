@@ -285,9 +285,6 @@
 * The `APP` struct groups general, high-level app details including
   * `DEBUG`
     * whether the site is running in a debug mode
-  * `NAME`
-    * the user-specified name of this instance of the app
-    * this will default to the name of the directory specified in `working-dir`
   * `APP-DIR`
     * the root directory of the app's source/binaries
   * `WORKING-DIR`
@@ -311,7 +308,6 @@
 (defstruct app
   "Contains general, high-level app details."
   (debug t)
-  (name "" :type STRING)
   (app-dir (empty 'pathname) :type PATHNAME)
   (working-dir (empty 'pathname) :type PATHNAME)
   (min-password-length 4 :type INTEGER)
@@ -345,12 +341,6 @@
                               "version"))
          (config-file-path (merge-pathnames* "fileworthyrc" app-dir)))
     (make-app :debug debug
-              :name
-              (last1 
-                (split-sequence
-                  #\/
-                  (princ-to-string (uiop/filesystem:truename* working-dir))
-                  :remove-empty-subseqs t))
               :app-dir app-dir 
               :working-dir working-dir
               :version (asdf::read-file-form version-file-path)
@@ -518,8 +508,14 @@
 
 ### `FILEWORTHYRC`
 
+* This struct encapsulates user-configurable settings
+  * `SITE-NAME`
+    * the name displayed on the website
+    * this will default to the name of the directory specified in `WORKING-DIR`
+
 ```lisp
 (defstruct fileworthyrc
+  (site-name "" :type STRING)
   (port 0 :type INTEGER)
   (reserved-resource-path "" :type STRING)
   (next-user-id 1 :type INTEGER)
@@ -898,7 +894,10 @@
              (:meta
                :name "viewport"
                :content "width=device-width, initial-scale=1")
-             (:title (sf "~A - ~A - Fileworthy" title (app-name *app*)))
+             (:title
+               (sf "~A - ~A - Fileworthy"
+                   title
+                   (fileworthyrc-site-name (app-config *app*))))
 
              (:link :href "/images/favicon.ico" :rel "shortcut icon")
              (:link
@@ -928,7 +927,7 @@
               
               ;; Site Name
               (:a :id "app-name" :href "/"
-               (app-name *app*))
+               (fileworthyrc-site-name (app-config *app*)))
               ;; User Info
               (:div :id "user-info"
                (if (empty? user)

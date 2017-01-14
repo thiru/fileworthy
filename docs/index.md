@@ -376,6 +376,7 @@
 * Parameters:
   * `PORT`
     * the port of the web server
+    * if no value is specified here it is taken from the config, `FILEWORTHYRC`
   * `DEBUG`
     * whether to start the web server in debug mode where:
       * errors are caught by the debugger
@@ -395,7 +396,7 @@
     * which has its own side-effects
 
 ```lisp
-(defun start-app (&key (port 9090) (debug t))
+(defun start-app (&key (port 9090 port-given?) (debug t))
   "Starts the app."
 
   (if *acceptor*
@@ -404,6 +405,9 @@
       (return-from start-app res)))
 
   (setf *app* (create-app debug))
+
+  (if (not port-given?)
+    (setf port (fileworthyrc-port (app-config *app*))))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
 

@@ -536,6 +536,7 @@ defined before we compile the source files that depend on it<ul>
 <li>Parameters:<ul>
 <li><code>PORT</code><ul>
 <li>the port of the web server</li>
+<li>if no value is specified here it is taken from the config, <code>FILEWORTHYRC</code></li>
 </ul>
 </li>
 <li><code>DEBUG</code><ul>
@@ -574,7 +575,7 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun start-app (&amp;key (port 9090) (debug t))
+<pre><code class="lang-lisp">(defun start-app (&amp;key (port 9090 port-given?) (debug t))
   &quot;Starts the app.&quot;
 
   (if *acceptor*
@@ -583,6 +584,9 @@ defined before we compile the source files that depend on it<ul>
       (return-from start-app res)))
 
   (setf *app* (create-app debug))
+
+  (if (not port-given?)
+    (setf port (fileworthyrc-port (app-config *app*))))
 
   (setf *acceptor* (create-web-acceptor :port port :debug debug))
 

@@ -97,6 +97,7 @@ page.initSettingsPage = function() {
       siteName: ui.get('site-name').value,
       rootDir: ui.get('root-dir').value,
       port: parseInt(ui.get('port').value),
+      anonRead: (ui.get('anon-read') || {}).checked,
       rrp: ui.get('rrp').value.replace(/^\/+|\/+$/g, '')
     };
 
@@ -120,6 +121,7 @@ page.initSettingsPage = function() {
     formData.append('siteName', settings.siteName);
     formData.append('rootDir', settings.rootDir);
     formData.append('port', settings.port);
+    formData.append('anonRead', settings.anonRead);
     formData.append('rrp', settings.rrp);
 
     // Send request

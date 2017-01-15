@@ -454,6 +454,28 @@ defined before we compile the source files that depend on it<ul>
 <li>the root directory from which the website is generated</li>
 </ul>
 </li>
+<li><code>ALLOW-ANONYMOUS-READ</code><ul>
+<li>whether users that are not logged in are able to access the website</li>
+</ul>
+</li>
+<li><code>RESERVED-RESOURCE-PATH</code><ul>
+<li>the path within the site that is reserved for app-specific resources</li>
+<li>essentially everything outside of a file-system path designation:<ul>
+<li>static files (javascript, css, etc)</li>
+<li>admin pages</li>
+<li>other custom pages</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>NEXT-USER-ID</code><ul>
+<li>holds the identifier that will be used for the next new user</li>
+</ul>
+</li>
+<li><code>USERS</code><ul>
+<li>all registered users</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -461,6 +483,7 @@ defined before we compile the source files that depend on it<ul>
   (site-name &quot;&quot; :type STRING)
   (root-dir &quot;&quot; :type STRING)
   (port 0 :type INTEGER)
+  (allow-anonymous-read t)
   (reserved-resource-path &quot;&quot; :type STRING)
   (next-user-id 1 :type INTEGER)
   (users &#39;() :type LIST))
@@ -1134,17 +1157,19 @@ global <code>*CONFIG*</code> object</li>
                   (:a :href &quot;javascript:site.toggleMenu()&quot; :title &quot;Main menu&quot;
                    (:i :class &quot;fa fa-bars&quot; &quot; &quot;)))
                 ;; Root Folders
-                (loop
-                  :for dir-name :in (get-dir-names)
-                  :collect (markup
-                            (:li
-                              (:a
-                                :class
-                                (if (string= first-path-seg dir-name)
-                                  &quot;selected&quot;
-                                  nil)
-                                :href (sf &quot;/~A/&quot; dir-name)
-                                dir-name)))))
+                (if (or (config-allow-anonymous-read *config*)
+                        (not (empty? user)))
+                  (loop
+                    :for dir-name :in (get-dir-names)
+                    :collect (markup
+                               (:li
+                                 (:a
+                                   :class
+                                   (if (string= first-path-seg dir-name)
+                                     &quot;selected&quot;
+                                     nil)
+                                   :href (sf &quot;/~A/&quot; dir-name)
+                                   dir-name))))))
                ;; Fileworthy Info/Settings
                (:ul
                  :id &quot;main-menu&quot;
@@ -1377,6 +1402,17 @@ global <code>*CONFIG*</code> object</li>
              (:div :class &quot;clear-fix&quot;)))
          (:li
            (:label
+             (:span &quot;Allow anonymous read access&quot;)
+             (if (config-allow-anonymous-read *config*)
+               (raw
+                 (markup
+                   (:input :id &quot;anon-read&quot; :checked &quot;&quot; :type &quot;checkbox&quot;)))
+               (raw
+                 (markup
+                   (:input :id &quot;anon-read&quot; :type &quot;checkbox&quot;))))
+             (:div :class &quot;clear-fix&quot;)))
+         (:li
+           (:label
              (:span &quot;Reserved Resource Path&quot;)
              (:input
                :id &quot;rrp&quot;
@@ -1398,6 +1434,7 @@ global <code>*CONFIG*</code> object</li>
          (root-dir (post-parameter &quot;rootDir&quot;))
          (port (loose-parse-int (post-parameter &quot;port&quot;)))
          (port-changed? (/= port (config-port *config*)))
+         (anon-read? (parse-js-bool (post-parameter &quot;anonRead&quot;)))
          (rrp (post-parameter &quot;rrp&quot;))
          (rrp-changed? (not (string= rrp
                                      (config-reserved-resource-path *config*))))
@@ -1423,6 +1460,7 @@ global <code>*CONFIG*</code> object</li>
                (setf (config-site-name *config*) site-name)
                (setf (config-root-dir *config*) root-dir)
                (setf (config-port *config*) port)
+               (setf (config-allow-anonymous-read *config*) anon-read?)
                (setf (config-reserved-resource-path *config*) rrp))))
 
     ;; Return success/failure
@@ -1703,7 +1741,8 @@ global <code>*CONFIG*</code> object</li>
 </ul>
 <pre><code class="lang-lisp">(defun page-fs-path ()
   &quot;File-system path page.&quot;
-  (let* ((path-name (script-name* *request*))
+  (let* ((user (empty &#39;user :unless (session-value &#39;user)))
+         (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (empty &#39;string :unless (get-fs-path-from-url path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
@@ -1718,6 +1757,10 @@ global <code>*CONFIG*</code> object</li>
                                   (config-root-dir *config*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
+    ;; Check anonymous access
+    (if (and (empty? user)
+             (not (config-allow-anonymous-read *config*)))
+      (return-from page-fs-path (page-error-not-authorised)))
     ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
       (return-from page-fs-path (page-error-not-found)))

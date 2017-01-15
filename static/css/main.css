@@ -356,6 +356,10 @@ nav a
 {
   width: 66%;
 }
+#settings-page #inputs label input[type=checkbox]
+{
+  width: auto;
+}
 
 #settings-page #save-btn
 {

@@ -298,12 +298,25 @@
     * the name for the website
   * `ROOT-DIR`
     * the root directory from which the website is generated
+  * `ALLOW-ANONYMOUS-READ`
+    * whether users that are not logged in are able to access the website
+  * `RESERVED-RESOURCE-PATH`
+    * the path within the site that is reserved for app-specific resources
+    * essentially everything outside of a file-system path designation:
+      * static files (javascript, css, etc)
+      * admin pages
+      * other custom pages
+  * `NEXT-USER-ID`
+    * holds the identifier that will be used for the next new user
+  * `USERS`
+    * all registered users
 
 ```lisp
 (defstruct config
   (site-name "" :type STRING)
   (root-dir "" :type STRING)
   (port 0 :type INTEGER)
+  (allow-anonymous-read t)
   (reserved-resource-path "" :type STRING)
   (next-user-id 1 :type INTEGER)
   (users '() :type LIST))
@@ -999,17 +1012,19 @@
                   (:a :href "javascript:site.toggleMenu()" :title "Main menu"
                    (:i :class "fa fa-bars" " ")))
                 ;; Root Folders
-                (loop
-                  :for dir-name :in (get-dir-names)
-                  :collect (markup
-                            (:li
-                              (:a
-                                :class
-                                (if (string= first-path-seg dir-name)
-                                  "selected"
-                                  nil)
-                                :href (sf "/~A/" dir-name)
-                                dir-name)))))
+                (if (or (config-allow-anonymous-read *config*)
+                        (not (empty? user)))
+                  (loop
+                    :for dir-name :in (get-dir-names)
+                    :collect (markup
+                               (:li
+                                 (:a
+                                   :class
+                                   (if (string= first-path-seg dir-name)
+                                     "selected"
+                                     nil)
+                                   :href (sf "/~A/" dir-name)
+                                   dir-name))))))
                ;; Fileworthy Info/Settings
                (:ul
                  :id "main-menu"
@@ -1258,6 +1273,17 @@
              (:div :class "clear-fix")))
          (:li
            (:label
+             (:span "Allow anonymous read access")
+             (if (config-allow-anonymous-read *config*)
+               (raw
+                 (markup
+                   (:input :id "anon-read" :checked "" :type "checkbox")))
+               (raw
+                 (markup
+                   (:input :id "anon-read" :type "checkbox"))))
+             (:div :class "clear-fix")))
+         (:li
+           (:label
              (:span "Reserved Resource Path")
              (:input
                :id "rrp"
@@ -1284,6 +1310,7 @@
          (root-dir (post-parameter "rootDir"))
          (port (loose-parse-int (post-parameter "port")))
          (port-changed? (/= port (config-port *config*)))
+         (anon-read? (parse-js-bool (post-parameter "anonRead")))
          (rrp (post-parameter "rrp"))
          (rrp-changed? (not (string= rrp
                                      (config-reserved-resource-path *config*))))
@@ -1309,6 +1336,7 @@
                (setf (config-site-name *config*) site-name)
                (setf (config-root-dir *config*) root-dir)
                (setf (config-port *config*) port)
+               (setf (config-allow-anonymous-read *config*) anon-read?)
                (setf (config-reserved-resource-path *config*) rrp))))
 
     ;; Return success/failure
@@ -1615,7 +1643,8 @@
 ```lisp
 (defun page-fs-path ()
   "File-system path page."
-  (let* ((path-name (script-name* *request*))
+  (let* ((user (empty 'user :unless (session-value 'user)))
+         (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (abs-fs-path (empty 'string :unless (get-fs-path-from-url path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
@@ -1630,6 +1659,10 @@
                                   (config-root-dir *config*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
+    ;; Check anonymous access
+    (if (and (empty? user)
+             (not (config-allow-anonymous-read *config*)))
+      (return-from page-fs-path (page-error-not-authorised)))
     ;; Show 404 page if dir/file not found
     (if (and (null dir-exists?) (null file-exists?))
       (return-from page-fs-path (page-error-not-found)))

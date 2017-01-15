@@ -331,6 +331,39 @@ nav a
 
 /* ========== File Contents Page [END] ========== */
 
+/* ========== Admin Settings Page [START] ========== */
+
+#settings-page #inputs
+{
+  margin: 1rem 0;
+}
+#settings-page #inputs label
+{
+  display: block;
+  margin-bottom: 0.5rem;
+}
+#settings-page #inputs label span,
+#settings-page #inputs label input
+{
+  display: block;
+  float: left;
+}
+#settings-page #inputs label span
+{
+  width: 33%;
+}
+#settings-page #inputs label input
+{
+  width: 66%;
+}
+
+#settings-page #save-btn
+{
+  margin-top: 1rem;
+}
+
+/* ========== Admin Settings Page [END] ========== */
+
 /* ========== Account Page [START] ========== */
 
 #input-fields input

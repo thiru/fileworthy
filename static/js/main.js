@@ -3,10 +3,12 @@ ui.ready(function() {
 
   hljs.initHighlightingOnLoad();
 
-  if (ui.get("user-detail-page"))
+  if (ui.get('user-detail-page'))
     page.initUserDetailPage();
-  else if (ui.get("fs-path-page"))
+  else if (ui.get('fs-path-page'))
     page.initFileSystemPathPage();
+  else if (ui.get('settings-page'))
+    page.initSettingsPage();
 });
 
 // Site-Wide -------------------------------------------------------------------
@@ -82,6 +84,56 @@ var site = {
 // Site-Wide -------------------------------------------------------------------
 
 var page = {};
+
+// Admin - Settings Page -------------------------------------------------------
+page.initSettingsPage = function() {
+  page.save = function() {
+    var els = {
+      saveBtn: ui.get('save-btn'),
+      saveRes: ui.get('save-result'),
+    };
+
+    var settings = {
+      siteName: ui.get('site-name').value,
+      rootDir: ui.get('root-dir').value,
+      port: parseInt(ui.get('port').value),
+      rrp: ui.get('rrp').value.replace(/^\/+|\/+$/g, '')
+    };
+
+    ui.clear(els.saveRes);
+
+    // Validate
+    if (isNaN(settings.port) || settings.port <= 0)
+      return ui.showResult(
+          els.saveRes,
+          Result.error('Port must be a positive integer.'));
+    else if (utils.isBlank(settings.rrp))
+      return ui.showResult(
+          els.saveRes,
+          Result.error('Reserved Resource Path is required.'));
+
+    // Loading
+    ui.showLoading(els.saveRes, 'Saving settings...');
+    els.saveBtn.disabled = true;
+
+    var formData = new FormData();
+    formData.append('siteName', settings.siteName);
+    formData.append('rootDir', settings.rootDir);
+    formData.append('port', settings.port);
+    formData.append('rrp', settings.rrp);
+
+    // Send request
+    utils.post(
+        '/' + site.rrp + '/api/settings/',
+        formData,
+        function (result) {
+          ui.showResult(els.saveRes, result);
+          els.saveBtn.disabled = false;
+        });
+
+  }
+}
+// Admin - Settings Page -------------------------------------------------------
 
 // Admin - User Detail Page ----------------------------------------------------
 page.initUserDetailPage = function() {

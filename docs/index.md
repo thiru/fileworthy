@@ -493,10 +493,10 @@
   * including the underlying web server
 
 ```lisp
-(defun restart-app ()
+(defun restart-app (&key (debug t))
   "Restarts the app."
   (stop-app)
-  (start-app))
+  (start-app :debug debug))
 
 
 ```
@@ -850,6 +850,12 @@
             (sf "^/~A/settings/?$"
                 (config-reserved-resource-path *config*))
             #'page-settings)
+
+          ;; Settings save API
+          (create-regex-dispatcher
+            (sf "^/~A/api/settings/?$"
+                (config-reserved-resource-path *config*))
+            #'api-settings-save)
 
           ;; User list page
           (create-regex-dispatcher
@@ -1224,8 +1230,7 @@
 ```lisp
 (defun page-settings ()
   "App settings page."
-  (let* ((curr-user (session-value 'user))
-         (fwrc *config*))
+  (let* ((curr-user (session-value 'user)))
     ;; Only admins can view this page
     (if (or (null curr-user)
             (not (user-admin? curr-user)))
@@ -1235,28 +1240,90 @@
       "settings-page"
       (markup
         (:h2 "Settings")
-        (:table :class "simple-table full-width"
-         (:tr
-           (:td "Port")
-           (:td
+        (:ul :id "inputs" :class "flat-list"
+         (:li
+           (:label
+             (:span "Site Name")
+             (:input :id "site-name" :value (config-site-name *config*))
+             (:div :class "clear-fix")))
+         (:li
+           (:label
+             (:span "Root Directory")
+             (:input :id "root-dir" :value (config-root-dir *config*))
+             (:div :class "clear-fix")))
+         (:li
+           (:label
+             (:span "Port")
+             (:input :id "port" :value (to-string (config-port *config*)))
+             (:div :class "clear-fix")))
+         (:li
+           (:label
+             (:span "Reserved Resource Path")
              (:input
-               :class "full-width"
-               :value
-               (to-string (config-port fwrc)))))
-         (:tr
-           (:td "Reserved Resource Path")
-           (:td
-             (:input
-               :class "full-width"
-               :value
-               (config-reserved-resource-path fwrc))))
-         (:tr
-           (:td "Next User ID")
-           (:td
-             (:input
-               :class "full-width"
-               :value
-               (to-string (config-next-user-id fwrc))))))))))
+               :id "rrp"
+               :value (config-reserved-resource-path *config*))
+             (:div :class "clear-fix"))))
+        (:div :id "save-result" "")
+        (:button
+          :id "save-btn"
+          :class "button full-width"
+          :onclick "page.save()"
+          "Save")))))
+
+
+```
+
+### `API-SETTINGS-SAVE`
+
+```lisp
+(defun api-settings-save ()
+  "Settings save API."
+  (setf (content-type*) "application/json")
+  (let* ((curr-user (empty 'user :unless (session-value 'user)))
+         (site-name (post-parameter "siteName"))
+         (root-dir (post-parameter "rootDir"))
+         (port (loose-parse-int (post-parameter "port")))
+         (port-changed? (/= port (config-port *config*)))
+         (rrp (post-parameter "rrp"))
+         (rrp-changed? (not (string= rrp
+                                     (config-reserved-resource-path *config*))))
+         (save-res (new-r :error "Settings save unexpectedly aborted.")))
+
+    ;; Validation
+    (if (or (empty? curr-user)
+            (not (user-admin? curr-user))) 
+      (return-from api-settings-save (json-error +http-forbidden+)))
+    (if (not (plusp port))
+      (return-from
+        api-settings-save
+        (json-result (new-r :error "Port must be a positive integer."))))
+    (if (blank? rrp)
+      (return-from
+        api-settings-save
+        (json-result (new-r :error "Reserved Resource Path is required."))))
+
+    ;; Persist
+    (setf save-res
+          (save-config
+            (λ ()
+               (setf (config-site-name *config*) site-name)
+               (setf (config-root-dir *config*) root-dir)
+               (setf (config-port *config*) port)
+               (setf (config-reserved-resource-path *config*) rrp))))
+
+    ;; Return success/failure
+    (if (succeeded? save-res)
+      (progn
+        (setf *config* (load-config (app-config-file-path *app*)))
+        (if rrp-changed?
+          (define-routes))
+        ;; TODO: automatically reset if the port changed
+        (if port-changed?
+          (json-result
+            (new-r :success (sf '("Config updated. Please restart the app to "
+                                  "use the new port."))))
+          (json-result save-res)))
+      (json-result save-res))))
 
 
 ```

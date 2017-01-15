@@ -665,10 +665,10 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun restart-app ()
+<pre><code class="lang-lisp">(defun restart-app (&amp;key (debug t))
   &quot;Restarts the app.&quot;
   (stop-app)
-  (start-app))
+  (start-app :debug debug))
 </code></pre>
 <h3 id="-create-web-acceptor-"><code>CREATE-WEB-ACCEPTOR</code></h3>
 <ul>
@@ -979,6 +979,12 @@ global <code>*CONFIG*</code> object</li>
             (sf &quot;^/~A/settings/?$&quot;
                 (config-reserved-resource-path *config*))
             #&#39;page-settings)
+
+          ;; Settings save API
+          (create-regex-dispatcher
+            (sf &quot;^/~A/api/settings/?$&quot;
+                (config-reserved-resource-path *config*))
+            #&#39;api-settings-save)
 
           ;; User list page
           (create-regex-dispatcher
@@ -1343,8 +1349,7 @@ global <code>*CONFIG*</code> object</li>
 <h3 id="-page-settings-"><code>PAGE-SETTINGS</code></h3>
 <pre><code class="lang-lisp">(defun page-settings ()
   &quot;App settings page.&quot;
-  (let* ((curr-user (session-value &#39;user))
-         (fwrc *config*))
+  (let* ((curr-user (session-value &#39;user)))
     ;; Only admins can view this page
     (if (or (null curr-user)
             (not (user-admin? curr-user)))
@@ -1354,28 +1359,85 @@ global <code>*CONFIG*</code> object</li>
       &quot;settings-page&quot;
       (markup
         (:h2 &quot;Settings&quot;)
-        (:table :class &quot;simple-table full-width&quot;
-         (:tr
-           (:td &quot;Port&quot;)
-           (:td
+        (:ul :id &quot;inputs&quot; :class &quot;flat-list&quot;
+         (:li
+           (:label
+             (:span &quot;Site Name&quot;)
+             (:input :id &quot;site-name&quot; :value (config-site-name *config*))
+             (:div :class &quot;clear-fix&quot;)))
+         (:li
+           (:label
+             (:span &quot;Root Directory&quot;)
+             (:input :id &quot;root-dir&quot; :value (config-root-dir *config*))
+             (:div :class &quot;clear-fix&quot;)))
+         (:li
+           (:label
+             (:span &quot;Port&quot;)
+             (:input :id &quot;port&quot; :value (to-string (config-port *config*)))
+             (:div :class &quot;clear-fix&quot;)))
+         (:li
+           (:label
+             (:span &quot;Reserved Resource Path&quot;)
              (:input
-               :class &quot;full-width&quot;
-               :value
-               (to-string (config-port fwrc)))))
-         (:tr
-           (:td &quot;Reserved Resource Path&quot;)
-           (:td
-             (:input
-               :class &quot;full-width&quot;
-               :value
-               (config-reserved-resource-path fwrc))))
-         (:tr
-           (:td &quot;Next User ID&quot;)
-           (:td
-             (:input
-               :class &quot;full-width&quot;
-               :value
-               (to-string (config-next-user-id fwrc))))))))))
+               :id &quot;rrp&quot;
+               :value (config-reserved-resource-path *config*))
+             (:div :class &quot;clear-fix&quot;))))
+        (:div :id &quot;save-result&quot; &quot;&quot;)
+        (:button
+          :id &quot;save-btn&quot;
+          :class &quot;button full-width&quot;
+          :onclick &quot;page.save()&quot;
+          &quot;Save&quot;)))))
+</code></pre>
+<h3 id="-api-settings-save-"><code>API-SETTINGS-SAVE</code></h3>
+<pre><code class="lang-lisp">(defun api-settings-save ()
+  &quot;Settings save API.&quot;
+  (setf (content-type*) &quot;application/json&quot;)
+  (let* ((curr-user (empty &#39;user :unless (session-value &#39;user)))
+         (site-name (post-parameter &quot;siteName&quot;))
+         (root-dir (post-parameter &quot;rootDir&quot;))
+         (port (loose-parse-int (post-parameter &quot;port&quot;)))
+         (port-changed? (/= port (config-port *config*)))
+         (rrp (post-parameter &quot;rrp&quot;))
+         (rrp-changed? (not (string= rrp
+                                     (config-reserved-resource-path *config*))))
+         (save-res (new-r :error &quot;Settings save unexpectedly aborted.&quot;)))
+
+    ;; Validation
+    (if (or (empty? curr-user)
+            (not (user-admin? curr-user))) 
+      (return-from api-settings-save (json-error +http-forbidden+)))
+    (if (not (plusp port))
+      (return-from
+        api-settings-save
+        (json-result (new-r :error &quot;Port must be a positive integer.&quot;))))
+    (if (blank? rrp)
+      (return-from
+        api-settings-save
+        (json-result (new-r :error &quot;Reserved Resource Path is required.&quot;))))
+
+    ;; Persist
+    (setf save-res
+          (save-config
+            (λ ()
+               (setf (config-site-name *config*) site-name)
+               (setf (config-root-dir *config*) root-dir)
+               (setf (config-port *config*) port)
+               (setf (config-reserved-resource-path *config*) rrp))))
+
+    ;; Return success/failure
+    (if (succeeded? save-res)
+      (progn
+        (setf *config* (load-config (app-config-file-path *app*)))
+        (if rrp-changed?
+          (define-routes))
+        ;; TODO: automatically reset if the port changed
+        (if port-changed?
+          (json-result
+            (new-r :success (sf &#39;(&quot;Config updated. Please restart the app to &quot;
+                                  &quot;use the new port.&quot;))))
+          (json-result save-res)))
+      (json-result save-res))))
 </code></pre>
 <h3 id="-page-user-list-"><code>PAGE-USER-LIST</code></h3>
 <pre><code class="lang-lisp">(defun page-user-list ()
@@ -1736,4 +1798,4 @@ global <code>*CONFIG*</code> object</li>
   (concatenate &#39;string (config-root-dir *config*)
                (string-left-trim &#39;(#\/) path-name)))
 </code></pre>
-     </body></html>
+      </body></html>

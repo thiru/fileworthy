@@ -1524,7 +1524,7 @@
          (file-exists? (if (and (not dir-exists?)
                                 (not (empty? abs-fs-path)))
                          (file-exists-p abs-fs-path)))
-         (binary-file? nil)
+         (binary-file? (if file-exists? (is-file-binary? abs-fs-path)))
          (curr-file-name "")
          (rel-fs-path (if abs-fs-path
                         (subpathp abs-fs-path
@@ -1535,12 +1535,11 @@
     (if (and (null dir-exists?) (null file-exists?))
       (return-from page-fs-path (page-error-not-found)))
     ;; Download file
-    (if (and (get-parameter "download")
-             file-exists?)
+    (if (and file-exists?
+             (or binary-file? (get-parameter "download")))
       (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
     (when file-exists?
-      (setf binary-file? (is-file-binary? abs-fs-path))
       (setf curr-file-name (last1 path-segs))
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
@@ -1549,7 +1548,6 @@
       (setf abs-fs-path (concatenate 'string
                                      (to-string abs-fs-path)
                                      (first file-names)))
-      (setf binary-file? (is-file-binary? abs-fs-path))
       (setf curr-file-name (first file-names))
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))

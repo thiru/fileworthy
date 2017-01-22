@@ -1656,7 +1656,6 @@ global <code>*CONFIG*</code> object</li>
                  (sf &quot;Password must be at least ~A characters.&quot;
                      (app-min-password-length *app*))))))
     (if (and (not new-user?)
-             (not (empty? current-pwd))
              (not (authenticate-user req-user current-pwd)))
       (return-from
         api-user-save

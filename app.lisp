@@ -1457,7 +1457,6 @@
                  (sf "Password must be at least ~A characters."
                      (app-min-password-length *app*))))))
     (if (and (not new-user?)
-             (not (empty? current-pwd))
              (not (authenticate-user req-user current-pwd)))
       (return-from
         api-user-save

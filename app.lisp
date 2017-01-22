@@ -895,6 +895,7 @@
                :href (sf "/~A/deps/highlightjs/styles/github.css" rrp)
                :rel "stylesheet")
              (:link :href (sf "/~A/css/main.css" rrp) :rel "stylesheet")
+             (:link :href (sf "/~A/css/main.mobile.css" rrp) :rel "stylesheet")
 
              (:script :src (sf "/~A/deps/lodash/lodash.min.js" rrp) "")
              (:script :src (sf "/~A/deps/momentjs/moment.min.js" rrp) "")

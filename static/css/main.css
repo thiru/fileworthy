@@ -30,13 +30,6 @@ body
   padding: 0;
 }
 
-@media screen and (max-width: 480px) {
-  main
-  {
-    font-size: 0.6em;
-  }
-}
-
 a
 {
   color: #333853; /* VAR PURPLE-DARK */

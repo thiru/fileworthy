@@ -4,7 +4,7 @@
    :PORT 9090
    :ALLOW-ANONYMOUS-READ T
    :RESERVED-RESOURCE-PATH "fw"
-   :NEXT-USER-ID 3
+   :NEXT-USER-ID 2
    :USERS (#S(FILEWORTHY::USER
               :ID 1
               :NAME "Administrator"

@@ -14,7 +14,7 @@ ui.ready(function() {
 // Site-Wide -------------------------------------------------------------------
 var site = {
   toggleMenu: function() {
-    ui.toggleHidden(ui.get('main-menu'));
+    ui.toggleHidden(ui.get('info-menu'));
   },
 
   showLogin: function() {

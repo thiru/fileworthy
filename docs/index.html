@@ -659,6 +659,8 @@ defined before we compile the source files that depend on it<ul>
 
   (start *acceptor*)
 
+  (setf *session-max-time* (* 60 60 24 30 3)) ; 3 months
+
   (let* ((res (new-r :success
                      (sf &quot;Fileworthy ~A started on port ~A, working out of &#39;~A&#39;.&quot;
                          (app-version *app*)
@@ -1172,7 +1174,7 @@ global <code>*CONFIG*</code> object</li>
                                    dir-name))))))
                ;; Fileworthy Info/Settings
                (:ul
-                 :id &quot;main-menu&quot;
+                 :id &quot;info-menu&quot;
                  :class (if fw-info-page?
                           &quot;sub-menu-items flat-list&quot;
                           &quot;sub-menu-items flat-list hidden&quot;)

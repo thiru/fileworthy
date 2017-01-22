@@ -963,7 +963,7 @@
                                    dir-name))))))
                ;; Fileworthy Info/Settings
                (:ul
-                 :id "main-menu"
+                 :id "info-menu"
                  :class (if fw-info-page?
                           "sub-menu-items flat-list"
                           "sub-menu-items flat-list hidden")

@@ -473,6 +473,8 @@
 
   (start *acceptor*)
 
+  (setf *session-max-time* (* 60 60 24 30 3)) ; 3 months
+
   (let* ((res (new-r :success
                      (sf "Fileworthy ~A started on port ~A, working out of '~A'."
                          (app-version *app*)
@@ -1027,7 +1029,7 @@
                                    dir-name))))))
                ;; Fileworthy Info/Settings
                (:ul
-                 :id "main-menu"
+                 :id "info-menu"
                  :class (if fw-info-page?
                           "sub-menu-items flat-list"
                           "sub-menu-items flat-list hidden")

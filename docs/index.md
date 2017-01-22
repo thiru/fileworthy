@@ -1547,6 +1547,7 @@
                  (sf "Password must be at least ~A characters."
                      (app-min-password-length *app*))))))
     (if (and (not new-user?)
+             (not (user-admin? curr-user))
              (not (authenticate-user req-user current-pwd)))
       (return-from
         api-user-save
@@ -1575,8 +1576,7 @@
                      (setf (user-name req-user) name)
                      (setf (user-email req-user) email)
                      (setf (user-admin? req-user) admin?)
-                     (when (and (not (empty? current-pwd))
-                                (not (empty? new-pwd)))
+                     (when (not (empty? new-pwd))
                        (setf (user-salt req-user) salt)
                        (setf (user-password req-user)
                              (gen-hash new-pwd salt)))))))))

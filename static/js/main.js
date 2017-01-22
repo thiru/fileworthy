@@ -171,13 +171,6 @@ page.initUserDetailPage = function() {
       return ui.showResult(
           els.saveRes,
           Result.error('New passwords don\'t match.'));
-    else if (user.id != 0 &&
-             utils.isBlank(user.currentPwd) &&
-             !utils.isBlank(user.newPwd))
-      return ui.showResult(
-          els.saveRes,
-          Result.error('Current password required when setting a new ' +
-                       'password.'));
 
     // Loading
     ui.showLoading(els.saveRes, 'Saving user...');

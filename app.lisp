@@ -458,6 +458,8 @@
 
   (start *acceptor*)
 
+  (setf *session-max-time* (* 60 60 24 30 3)) ; 3 months
+
   (let* ((res (new-r :success
                      (sf "Fileworthy ~A started on port ~A, working out of '~A'."
                          (app-version *app*)

@@ -1510,6 +1510,13 @@
       (return-from
         api-user-save
         (json-result (new-r :error "User with id ~A not found." id))))
+    ;; Non-admins cannot change another user's password
+    (if (and (not new-user?)
+             (not (user-admin? curr-user))
+             (/= (user-id curr-user) (user-id req-user)))
+      (return-from
+        api-user-save
+        (json-error +http-forbidden+)))
     (if (empty? name)
       (return-from
         api-user-save

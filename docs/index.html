@@ -1107,6 +1107,7 @@ global <code>*CONFIG*</code> object</li>
                :rel &quot;stylesheet&quot;)
              (:link :href (sf &quot;/~A/css/main.css&quot; rrp) :rel &quot;stylesheet&quot;)
              (:link :href (sf &quot;/~A/css/main.mobile.css&quot; rrp) :rel &quot;stylesheet&quot;)
+             (:link :href (sf &quot;/~A/css/main.print.css&quot; rrp) :rel &quot;stylesheet&quot;)
 
              (:script :src (sf &quot;/~A/deps/lodash/lodash.min.js&quot; rrp) &quot;&quot;)
              (:script :src (sf &quot;/~A/deps/momentjs/moment.min.js&quot; rrp) &quot;&quot;)
@@ -1828,7 +1829,7 @@ global <code>*CONFIG*</code> object</li>
                    :href (sf &quot;~A?download&quot; file-name)
                    :title &quot;Download file&quot;
                    (:i :class &quot;fa fa-download&quot; &quot;&quot;))))))))
-        (:p
+        (:p :id &quot;path-trail&quot;
           (:i
             :class
             (if dir-exists?

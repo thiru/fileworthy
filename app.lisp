@@ -918,7 +918,7 @@
            (:body
              :data-rrp rrp
              ;; Overlay (for dialogs)
-             (:div :id "overlay" :class "hidden" "&nbsp;")
+             (:div :id "overlay" :class "hidden" " ")
              ;; Top Bar
              (:header :id "top-bar"
               ;; Menu Bar Icon

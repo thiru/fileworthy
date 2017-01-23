@@ -894,17 +894,27 @@
              (:link
                :href (sf "/~A/deps/highlightjs/styles/github.css" rrp)
                :rel "stylesheet")
-             (:link :href (sf "/~A/css/main.css" rrp) :rel "stylesheet")
-             (:link :href (sf "/~A/css/main.mobile.css" rrp) :rel "stylesheet")
-             (:link :href (sf "/~A/css/main.print.css" rrp) :rel "stylesheet")
+             (:link
+               :href (sf "/~A/css/main.css?v=~A" rrp (app-version *app*))
+               :rel "stylesheet")
+             (:link
+               :href (sf "/~A/css/main.mobile.css?v=~A"
+                         rrp
+                         (app-version *app*))
+               :rel "stylesheet")
+             (:link
+               :href (sf "/~A/css/main.print.css?v=~A" rrp (app-version *app*))
+               :rel "stylesheet")
 
              (:script :src (sf "/~A/deps/lodash/lodash.min.js" rrp) "")
              (:script :src (sf "/~A/deps/momentjs/moment.min.js" rrp) "")
              (:script :src (sf "/~A/deps/markedjs/marked.min.js" rrp) "")
              (:script
                :src (sf "/~A/deps/highlightjs/highlight.pack.js" rrp) "")
-             (:script :src (sf "/~A/js/utils.js" rrp) "")
-             (:script :src (sf "/~A/js/main.js" rrp) ""))
+             (:script
+               :src (sf "/~A/js/utils.js?v=~A" rrp (app-version *app*)) "")
+             (:script
+               :src (sf "/~A/js/main.js?v=~A" rrp (app-version *app*)) ""))
            (:body
              :data-rrp rrp
              ;; Overlay (for dialogs)

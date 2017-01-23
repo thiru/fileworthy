@@ -1105,17 +1105,27 @@ global <code>*CONFIG*</code> object</li>
              (:link
                :href (sf &quot;/~A/deps/highlightjs/styles/github.css&quot; rrp)
                :rel &quot;stylesheet&quot;)
-             (:link :href (sf &quot;/~A/css/main.css&quot; rrp) :rel &quot;stylesheet&quot;)
-             (:link :href (sf &quot;/~A/css/main.mobile.css&quot; rrp) :rel &quot;stylesheet&quot;)
-             (:link :href (sf &quot;/~A/css/main.print.css&quot; rrp) :rel &quot;stylesheet&quot;)
+             (:link
+               :href (sf &quot;/~A/css/main.css?v=~A&quot; rrp (app-version *app*))
+               :rel &quot;stylesheet&quot;)
+             (:link
+               :href (sf &quot;/~A/css/main.mobile.css?v=~A&quot;
+                         rrp
+                         (app-version *app*))
+               :rel &quot;stylesheet&quot;)
+             (:link
+               :href (sf &quot;/~A/css/main.print.css?v=~A&quot; rrp (app-version *app*))
+               :rel &quot;stylesheet&quot;)
 
              (:script :src (sf &quot;/~A/deps/lodash/lodash.min.js&quot; rrp) &quot;&quot;)
              (:script :src (sf &quot;/~A/deps/momentjs/moment.min.js&quot; rrp) &quot;&quot;)
              (:script :src (sf &quot;/~A/deps/markedjs/marked.min.js&quot; rrp) &quot;&quot;)
              (:script
                :src (sf &quot;/~A/deps/highlightjs/highlight.pack.js&quot; rrp) &quot;&quot;)
-             (:script :src (sf &quot;/~A/js/utils.js&quot; rrp) &quot;&quot;)
-             (:script :src (sf &quot;/~A/js/main.js&quot; rrp) &quot;&quot;))
+             (:script
+               :src (sf &quot;/~A/js/utils.js?v=~A&quot; rrp (app-version *app*)) &quot;&quot;)
+             (:script
+               :src (sf &quot;/~A/js/main.js?v=~A&quot; rrp (app-version *app*)) &quot;&quot;))
            (:body
              :data-rrp rrp
              ;; Overlay (for dialogs)

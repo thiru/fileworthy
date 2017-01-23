@@ -1581,13 +1581,28 @@
                        (setf (user-password req-user)
                              (gen-hash new-pwd salt)))))))))
 
-    ;; Return success/failure
-    (if (succeeded? save-res)
-      (json-result (new-r :success
-                          (if new-user?
-                            (sf "Saved new user, ~A." name)
-                            (sf "Updated ~A's account." name))))
-      (json-result save-res))))
+    (if (failed? save-res)
+      (return-from api-user-save (json-result save-res)))
+
+    ;; If the password changed for an existing user, remove all session
+    ;; objects for the user, except the current session
+    (when (and (not new-user?)
+               (not (empty? new-pwd)))
+      (hunchentoot::with-session-lock-held
+        ((session-db-lock *acceptor*))
+        (setf (session-db *acceptor*)
+              (loop :for (k . v) in (session-db *acceptor*)
+                    :when (or (= (session-id v)
+                                 (session-id *session*))
+                              (/= (user-id req-user)
+                                  (user-id (session-value 'user v))))
+                    :collect (cons k v)))))
+
+    ;; Return success
+    (json-result (new-r :success
+                        (if new-user?
+                          (sf "Saved new user, ~A." name)
+                          (sf "Updated ~A's account." name))))))
 
 ```
 

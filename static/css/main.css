@@ -322,6 +322,25 @@ nav a
   white-space: pre-wrap;
 }
 
+#gen-file-content table
+{
+  border-collapse: collapse; 
+}
+#gen-file-content table th,
+#gen-file-content table td
+{
+  padding: 0.5em;
+}
+#gen-file-content table thead
+{
+  background-color: #F7EDE9; /* VAR CREAM */
+  padding: 1em;
+}
+#gen-file-content table tbody tr:nth-child(even)
+{
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+}
+
 /* ========== File Contents Page [END] ========== */
 
 /* ========== Admin Settings Page [START] ========== */

@@ -1588,6 +1588,7 @@
                      (app-min-password-length *app*))))))
     (if (and (not new-user?)
              (not (user-admin? curr-user))
+             (not (empty? new-pwd))
              (not (authenticate-user req-user current-pwd)))
       (return-from
         api-user-save

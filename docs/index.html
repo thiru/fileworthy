@@ -1192,15 +1192,18 @@ global <code>*CONFIG*</code> object</li>
                           &quot;sub-menu-items flat-list hidden&quot;)
                 (:li
                   :class (if (string-equal &quot;about&quot; (nth 1 path-segs)) &quot;selected&quot;)
-                  (:a :href (url-for &#39;about) &quot;About&quot;))
+                  (:a :href (url-for &#39;about)
+                   (:i :class &quot;fa fa-info-circle&quot; &quot;&quot;)
+                   &quot; About&quot;))
                 (if (user-admin? user)
                   (raw
                     (markup
                       (:li
                         :class (if (string-equal &quot;settings&quot; (nth 1 path-segs))
                                  &quot;selected&quot;)
-                        (:a :href (url-for &#39;settings) &quot;Settings&quot;)
-                        ))))
+                        (:a :href (url-for &#39;settings)
+                         (:i :class &quot;fa fa-cog&quot; &quot;&quot;)
+                         &quot; Settings&quot;)))))
                 (if (not (empty? user))
                   (raw
                     (markup
@@ -1212,7 +1215,8 @@ global <code>*CONFIG*</code> object</li>
                                  &quot;selected&quot;)
                         (:a
                           :href (url-for user)
-                          &quot;My Account&quot;)))))
+                          (:i :class &quot;fa fa-user&quot; &quot;&quot;)
+                          &quot; My Account&quot;)))))
                 (if (user-admin? user)
                   (raw
                     (markup
@@ -1221,7 +1225,9 @@ global <code>*CONFIG*</code> object</li>
                                                       (nth 1 path-segs))
                                         (empty? (nth 2 path-segs)))
                                  &quot;selected&quot;)
-                        (:a :href (url-for &#39;users) &quot;Users&quot;))))))
+                        (:a :href (url-for &#39;users)
+                         (:i :class &quot;fa fa-users&quot; &quot;&quot;)
+                         &quot; Users&quot;))))))
                ;; Sub-folders
                (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map &#39;list

@@ -1047,15 +1047,18 @@
                           "sub-menu-items flat-list hidden")
                 (:li
                   :class (if (string-equal "about" (nth 1 path-segs)) "selected")
-                  (:a :href (url-for 'about) "About"))
+                  (:a :href (url-for 'about)
+                   (:i :class "fa fa-info-circle" "")
+                   " About"))
                 (if (user-admin? user)
                   (raw
                     (markup
                       (:li
                         :class (if (string-equal "settings" (nth 1 path-segs))
                                  "selected")
-                        (:a :href (url-for 'settings) "Settings")
-                        ))))
+                        (:a :href (url-for 'settings)
+                         (:i :class "fa fa-cog" "")
+                         " Settings")))))
                 (if (not (empty? user))
                   (raw
                     (markup
@@ -1067,7 +1070,8 @@
                                  "selected")
                         (:a
                           :href (url-for user)
-                          "My Account")))))
+                          (:i :class "fa fa-user" "")
+                          " My Account")))))
                 (if (user-admin? user)
                   (raw
                     (markup
@@ -1076,7 +1080,9 @@
                                                       (nth 1 path-segs))
                                         (empty? (nth 2 path-segs)))
                                  "selected")
-                        (:a :href (url-for 'users) "Users"))))))
+                        (:a :href (url-for 'users)
+                         (:i :class "fa fa-users" "")
+                         " Users"))))))
                ;; Sub-folders
                (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map 'list

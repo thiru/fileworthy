@@ -245,6 +245,11 @@ nav a
   padding: 0.5em;
 }
 
+#info-menu
+{
+  background-color: #F7EDE9; /* VAR CREAM */
+}
+
 #overlay
 {
   background-color: rgba(0,0,0,0.5);

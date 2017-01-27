@@ -150,6 +150,7 @@ page.initUserDetailPage = function() {
       id: parseInt(ui.get('name-heading').dataset.userId),
       name: ui.get('user-name').value,
       email: ui.get('email-address').value,
+      rootDir: (ui.get('root-dir') || {}).value,
       isAdmin: (ui.get('is-admin') || {}).checked,
       currentPwd: ui.get('current-pwd').value,
       newPwd: ui.get('new-pwd').value,
@@ -179,6 +180,7 @@ page.initUserDetailPage = function() {
     var formData = new FormData();
     formData.append('name', user.name);
     formData.append('email', user.email);
+    formData.append('rootDir', user.rootDir);
     formData.append('isAdmin', user.isAdmin);
     formData.append('currentPwd', user.currentPwd);
     formData.append('newPwd', user.newPwd);

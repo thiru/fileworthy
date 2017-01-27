@@ -522,6 +522,7 @@
   (id 0 :type INTEGER)
   (name "" :type STRING)
   (email "" :type STRING)
+  (root-dir "" :type STRING) 
   (password "" :type STRING)
   (salt "" :type STRING)
   (admin? nil :type BOOLEAN))
@@ -571,14 +572,26 @@
                                   (sf "~A~A" to-hash (or salt "")))))))
 
 #||
+### `GET-FS-PATH-FROM-URL`
+||#
+(defun get-fs-path-from-url (curr-user path-name)
+  "Gets an absolute local file-system path from the given URL path name."
+  (concatenate 'string
+               (config-root-dir *config*)
+               (string-trim '(#\/) (user-root-dir curr-user))
+               "/"
+               (string-left-trim '(#\/) path-name)))
+
+#||
 ### `GET-DIR-NAMES`
 
 * This function gets a list of directory names relative to either
   * the given directory, `PARENT`
   * or the root working folder as specified by `CONFIG-ROOT-DIR`
+    * and possibly further restricted by the user's root dir: `USER-ROOT-DIR`
 ||#
-(defun get-dir-names (&optional (parent ""))
-  "Get directory names."
+(defun get-dir-names (curr-user &optional (parent ""))
+  "Gets directory names."
   (map 'list
        (λ (abs-dir)
           (last1 (split-sequence #\/
@@ -587,23 +600,20 @@
        (uiop/filesystem:subdirectories
          (concatenate 'string
                       (config-root-dir *config*)
+                      (string-trim '(#\/) (user-root-dir curr-user))
+                      "/"
                       (string-left-trim '(#\/) parent)))))
 #||
 ### `GET-FILE-NAMES`
-
-* This function gets a list of file names relative to either
-  * the given directory `PARENT`
-  * or the root working folder as specified by `CONFIG-ROOT-DIR`
 ||#
-(defun get-file-names (&optional parent)
-  "Get file names."
+(defun get-file-names (dir)
+  "Gets a list of file names at `DIR`."
   (map 'list
        (λ (abs-file)
           (last1 (split-sequence #\/
                                  (princ-to-string abs-file)
                                  :remove-empty-subseqs t)))
-       (uiop/filesystem:directory-files
-         (or parent (config-root-dir *config*)))))
+       (uiop/filesystem:directory-files dir)))
 
 #||
 ### `GET-FILE-CONTENT`
@@ -963,7 +973,7 @@
                 (if (or (config-allow-anonymous-read *config*)
                         (not (empty? user)))
                   (loop
-                    :for dir-name :in (get-dir-names)
+                    :for dir-name :in (get-dir-names user)
                     :collect (markup
                                (:li
                                  (:a
@@ -1021,7 +1031,7 @@
                (let* ((expanded-dirs (expand-sub-dirs path-name))
                       (sub-dir-name-lst (map 'list
                                              (λ (sub-dir)
-                                                (get-dir-names sub-dir))
+                                                (get-dir-names user sub-dir))
                                              expanded-dirs)))
                  (loop :for sub-dir-names :in sub-dir-name-lst
                        :for i :from 0
@@ -1364,6 +1374,15 @@
          (if (user-admin? curr-user)
            (raw
              (markup
+               (:input
+                 :id "root-dir"
+                 :placeholder "Root Folder"
+                 :title "Root Folder"
+                 :type "text"
+                 :value (user-root-dir req-user)))))
+         (if (user-admin? curr-user)
+           (raw
+             (markup
                (:label
                  (if (user-admin? req-user)
                    (raw
@@ -1424,6 +1443,7 @@
          (req-user (empty 'user :unless (get-user :id id)))
          (name (post-parameter "name"))
          (email (post-parameter "email"))
+         (root-dir (or (post-parameter "rootDir") ""))
          (admin? (and (user-admin? curr-user)
                       (parse-js-bool (post-parameter "isAdmin"))))
          (current-pwd (post-parameter "currentPwd"))
@@ -1494,6 +1514,10 @@
                          :id (config-next-user-id curr-config)
                          :name name
                          :email email
+                         ;; Only admins can change a user's root dir
+                         :root-dir (if (user-admin? curr-user)
+                                     root-dir
+                                     (user-root-dir req-user))
                          :admin? admin?
                          :salt salt
                          :password (gen-hash new-pwd salt))
@@ -1502,6 +1526,8 @@
                    (progn
                      (setf (user-name req-user) name)
                      (setf (user-email req-user) email)
+                     (if (user-admin? curr-user)
+                       (setf (user-root-dir req-user) root-dir))
                      (setf (user-admin? req-user) admin?)
                      (when (not (empty? new-pwd))
                        (setf (user-salt req-user) salt)
@@ -1588,7 +1614,7 @@
   (let* ((user (empty 'user :unless (session-value 'user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (empty 'string :unless (get-fs-path-from-url path-name)))
+         (abs-fs-path (empty 'string :unless (get-fs-path-from-url user path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
                         (directory-exists-p abs-fs-path)))
          (file-exists? (if (and (not dir-exists?)
@@ -1677,8 +1703,3 @@
                  (:a
                    :href (sf "~A?force-show" curr-file-name)
                    "display it anyway."))))))))))
-
-(defun get-fs-path-from-url (path-name)
-  "Gets an absolute local file-system path from the given path name."
-  (concatenate 'string (config-root-dir *config*)
-               (string-left-trim '(#\/) path-name)))

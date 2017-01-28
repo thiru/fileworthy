@@ -197,7 +197,7 @@
 * [Clack](http://clacklisp.org/)
   * Abstract web framework library
   * Sits on top of tools like Hunchentoot, Woo, etc.
-* [CL-MARKUP](https://github.com/arielnetworks/cl-markup)
+* [CL-WHO](http://weitz.de/cl-who/)
   * Easy way to generate HTML in Lisp-friendly syntax
 * [CL-PPCRE](http://weitz.de/cl-ppcre/)
   * Defacto regular expression library
@@ -712,7 +712,14 @@
 ## Web Utils
 
 * This section contains common utility functions for the web-related code
+||#
 
+(defmacro gen-html (&body body)
+  "Generate an HTML string from the given s-exp."
+  `(with-html-output-to-string (*standard-output* nil)
+    (htm ,@body)))
+
+#||
 ### `SESSION-COOKIE-NAME`
 
 * Let's use a custom session name
@@ -874,6 +881,7 @@
   * `CONTENT`
     * the HTML of the page as a raw string
     * note that the caller is responsible for properly escaping special characters
+      * TODO: review this claim
 ||#
 (defun page-template (title page-id content)
   "Base template for all web pages."
@@ -883,7 +891,9 @@
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs))
          (fw-info-page? (string-equal rrp first-path-seg)))
-    (html5 :lang "en"
+    (with-html-output-to-string
+      (*standard-output* nil :prologue t :indent t)
+      (:html :lang "en"
            (:head
              (:meta :charset "utf-8")
              (:meta :name "robots" :content "noindex, nofollow")
@@ -892,10 +902,9 @@
                :name "viewport"
                :content "width=device-width, initial-scale=1")
              (:title
-               (sf "~A - ~A - Fileworthy"
-                   title
-                   (config-site-name *config*)))
-
+               (fmt "~A - ~A - Fileworthy"
+                    title
+                    (config-site-name *config*)))
              (:link :href "/images/favicon.ico" :rel "shortcut icon")
              (:link
                :href
@@ -934,32 +943,29 @@
              (:header :id "top-bar"
               ;; Site Name
               (:a :id "app-name" :href "/"
-               (config-site-name *config*))
+               (fmt "~A" (config-site-name *config*)))
               ;; User Info
               (:div :id "user-info"
                (if (empty? user)
                  ;; Logged Out
-                 (raw
-                   (markup
+                 (htm
                      (:a :href "javascript:site.showLogin()"
                       (:i :class "fa fa-sign-in" "")
-                      " Log In")))
+                      " Log In"))
                  ;; Logged In
-                 (raw
-                   (markup
+                 (htm
                      (:a
                        :href (url-for user)
-                       (user-name user))
+                       (fmt "~A" (user-name user)))
                      (:span " ")
                      (:a
                        :href (sf "/~A/logout" rrp)
                        :title "Log Out"
-                       (:i :class "fa fa-sign-out" ""))))))
+                       (:i :class "fa fa-sign-out" "")))))
               (:div :class "clear-fix"))
              (if (or (config-allow-anonymous-read *config*)
                      (not (empty? user)))
-               (raw
-                 (markup
+               (htm
                    (:nav
                      (:ul :id "main-menu-items" :class "flat-list"
                       ;; Home Folder Icon
@@ -976,7 +982,7 @@
                          (:i :class "fa fa-bars" " ")))
                       ;; Root Folders
                       (loop :for dir-name :in (get-dir-names user)
-                            :collect (markup
+                            :collect (htm
                                        (:li
                                          (:a
                                            :class
@@ -984,7 +990,7 @@
                                              "selected"
                                              nil)
                                            :href (sf "/~A/" dir-name)
-                                           dir-name)))))
+                                           (fmt "~A" dir-name))))))
                      ;; Fileworthy Info/Settings
                      (:ul
                        :id "info-menu"
@@ -998,18 +1004,16 @@
                           (:i :class "fa fa-info-circle" "")
                           " About"))
                        (if (user-admin? user)
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (string-equal "settings"
                                                         (nth 1 path-segs))
                                         "selected")
                                (:a :href (url-for 'settings)
                                 (:i :class "fa fa-cog" "")
-                                " Settings")))))
+                                " Settings"))))
                        (if (not (empty? user))
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (and (string-equal
                                                  "users"
@@ -1021,10 +1025,9 @@
                                (:a
                                  :href (url-for user)
                                  (:i :class "fa fa-user" "")
-                                 " My Account")))))
+                                 " My Account"))))
                        (if (user-admin? user)
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (and (string-equal "users"
                                                              (nth 1 path-segs))
@@ -1032,7 +1035,7 @@
                                         "selected")
                                (:a :href (url-for 'users)
                                 (:i :class "fa fa-users" "")
-                                " Users"))))))
+                                " Users")))))
                      ;; Sub-folders
                      (let* ((expanded-dirs (expand-sub-dirs path-name))
                             (sub-dir-name-lst (map 'list
@@ -1045,11 +1048,11 @@
                              :for i :from 0
                              :when (not (empty? sub-dir-names))
                              :collect
-                             (markup
+                             (htm
                                (:ul :class "sub-menu-items flat-list"
                                 (loop :for dir-name :in sub-dir-names
                                       :collect
-                                      (markup
+                                      (htm
                                         (:li
                                           (:a
                                             :class
@@ -1060,9 +1063,9 @@
                                             :href (sf "/~A/~A/"
                                                       (nth i expanded-dirs)
                                                       dir-name)
-                                            dir-name))))))))))))
+                                            (fmt "~A" dir-name))))))))))))
              (:main :id page-id
-              (raw content))
+              (fmt "~A" content))
              ;; Login Dialog
              (:section :id "login-dialog" :class "dialog"
               (:div :class "dialog-content"
@@ -1099,7 +1102,7 @@
                  (:a
                    :href "javascript:site.closeLogin()"
                    :style "float:right"
-                   "Close"))))))))
+                   "Close")))))))))
 
 #||
 
@@ -1116,6 +1119,7 @@
           :when (char= #\/ c)
           :collect (subseq path-name 0 i) :into lst
           :finally (return (append lst (list path-name))))))
+
 #||
 ### Error pages
 ||#
@@ -1125,7 +1129,7 @@
   (page-template
     "Not Found"
     "not-found-page"
-    (markup
+    (gen-html
       (:h2 "Not Found")
       (:p "The page or resource you requested could not be found.")
       (:p
@@ -1142,7 +1146,7 @@
   (page-template
     "Not Authorised"
     "not-authorised-page"
-    (markup
+    (gen-html
       (:h2 "Not Authorised")
       (:p "Sorry, you don't have permission to view this page or resource.")
       (:p
@@ -1156,7 +1160,7 @@
   (page-template
     "Server Error"
     "server-error-page"
-    (markup
+    (gen-html
       (:h2 "Server Error")
       (:p (sf '("Sorry, it looks like something went wrong on the server. "
                 "Please try again later if the problem persists.")))
@@ -1176,7 +1180,7 @@
   (page-template
     "About"
     "about-page"
-    (markup
+    (gen-html
       (:h2 "About Fileworthy")
       (:p (sf '("Fileworthy aims to be a simple solution to managing your "
                 "notes and files across many devices. It is half static site "
@@ -1213,7 +1217,7 @@
     (page-template
       "Settings"
       "settings-page"
-      (markup
+      (gen-html
         (:h2 "Settings")
         (:ul :id "inputs" :class "flat-list"
          (:li
@@ -1235,12 +1239,10 @@
            (:label
              (:span "Allow anonymous read access")
              (if (config-allow-anonymous-read *config*)
-               (raw
-                 (markup
-                   (:input :id "anon-read" :checked "" :type "checkbox")))
-               (raw
-                 (markup
-                   (:input :id "anon-read" :type "checkbox"))))
+               (htm
+                   (:input :id "anon-read" :checked "" :type "checkbox"))
+               (htm
+                   (:input :id "anon-read" :type "checkbox")))
              (:div :class "clear-fix")))
          (:li
            (:label
@@ -1323,7 +1325,7 @@
     (page-template
       "Users"
       "user-list-page"
-      (markup
+      (gen-html
         (:a
           :id "new-user-btn"
           :class "button"
@@ -1333,11 +1335,11 @@
           (loop
             :for user :in (config-users *config*)
             :collect
-            (markup
+            (htm
               (:li
                 (:a
                   :href (url-for user)
-                  (user-name user))))))))))
+                  (fmt "~A" (user-name user)))))))))))
 
 #||
 ### `PAGE-USER-DETAIL`
@@ -1361,7 +1363,7 @@
     (page-template
       (if new-user? "New User" (user-name req-user))
       "user-detail-page"
-      (markup
+      (gen-html
         (:h2
           :id "name-heading"
           :data-user-id (to-string (user-id req-user))
@@ -1380,26 +1382,22 @@
            :type "email"
            :value (user-email req-user))
          (if (user-admin? curr-user)
-           (raw
-             (markup
+           (htm
                (:input
                  :id "root-dir"
                  :placeholder "Root Folder"
                  :title "Root Folder"
                  :type "text"
-                 :value (user-root-dir req-user)))))
+                 :value (user-root-dir req-user))))
          (if (user-admin? curr-user)
-           (raw
-             (markup
+           (htm
                (:label
                  (if (user-admin? req-user)
-                   (raw
-                     (markup
-                       (:input :id "is-admin" :checked "" :type "checkbox")))
-                   (raw
-                     (markup
-                       (:input :id "is-admin" :type "checkbox"))))
-                 " Administrator"))))
+                   (htm
+                       (:input :id "is-admin" :checked "" :type "checkbox"))
+                   (htm
+                       (:input :id "is-admin" :type "checkbox")))
+                 " Administrator")))
          (:div
            :class (if new-user? "hidden" "")
            (:a
@@ -1603,10 +1601,10 @@
   (page-template
     "Logout"
     "logout-page"
-    (markup
-    (:h2 "Thank you, come again!")
-    (:p
-     (:a :class "full-width"
+    (gen-html
+      (:h2 "Thank you, come again!")
+      (:p
+        (:a :class "full-width"
          :href "/"
          "Go back to Home page")))))
 
@@ -1663,20 +1661,22 @@
     (page-template
       (if (empty? rel-fs-path) "Home" rel-fs-path)
       "fs-path-page"
-      (markup
+      (gen-html
         (:table :id "files" :class "file-names"
          (:tbody
           (loop
            :for file-name :in file-names
            :collect
-           (markup
+           (htm
              (:tr
                :class
                (if (string= file-name curr-file-name)
                  "selected"
                  nil)
                (:td
-                 (:a :href file-name file-name))
+                 (:a
+                   :href file-name
+                   (fmt "~A" file-name)))
                (:td
                  (:a
                    :class "download"
@@ -1693,22 +1693,24 @@
           (:span " ")
           (:span (if (empty? rel-fs-path)
                    "/"
-                   (to-string rel-fs-path))))
+                   (fmt "~A" rel-fs-path))))
         (:section :id "file-details"
          (if (or (not binary-file?) (get-parameter "force-show"))
-           (raw (markup
-                  (:pre
-                    (:code :id "raw-file-content" :class "hidden" file-content))
-                  (:div :id "gen-file-content")))
-           (raw
-             (markup
-               (:p "It looks like this is a binary file, so it isn't displayed.")
-               (:p
-                 "You can "
-                 (:a
-                   :href (sf "~A?download" curr-file-name)
-                   "download the file")
-                 " or try to "
-                 (:a
-                   :href (sf "~A?force-show" curr-file-name)
-                   "display it anyway."))))))))))
+           (htm
+             (:pre
+               (:code
+                 :id "raw-file-content"
+                 :class "hidden"
+                 (fmt "~A" file-content)))
+             (:div :id "gen-file-content"))
+           (htm
+             (:p "It looks like this is a binary file, so it isn't displayed.")
+             (:p
+               "You can "
+               (:a
+                 :href (sf "~A?download" curr-file-name)
+                 "download the file")
+               " or try to "
+               (:a
+                 :href (sf "~A?force-show" curr-file-name)
+                 "display it anyway.")))))))))

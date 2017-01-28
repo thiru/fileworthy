@@ -308,7 +308,7 @@ a <em>stream of conciousness</em> flow</li>
 <li>Sits on top of tools like Hunchentoot, Woo, etc.</li>
 </ul>
 </li>
-<li><a href="https://github.com/arielnetworks/cl-markup">CL-MARKUP</a><ul>
+<li><a href="http://weitz.de/cl-who/">CL-WHO</a><ul>
 <li>Easy way to generate HTML in Lisp-friendly syntax</li>
 </ul>
 </li>
@@ -909,6 +909,12 @@ global <code>*CONFIG*</code> object</li>
 <ul>
 <li>This section contains common utility functions for the web-related code</li>
 </ul>
+<pre><code class="lang-lisp">
+(defmacro gen-html (&amp;body body)
+  &quot;Generate an HTML string from the given s-exp.&quot;
+  `(with-html-output-to-string (*standard-output* nil)
+    (htm ,@body)))
+</code></pre>
 <h3 id="-session-cookie-name-"><code>SESSION-COOKIE-NAME</code></h3>
 <ul>
 <li>Let&#39;s use a custom session name<ul>
@@ -1077,7 +1083,10 @@ global <code>*CONFIG*</code> object</li>
 </li>
 <li><code>CONTENT</code><ul>
 <li>the HTML of the page as a raw string</li>
-<li>note that the caller is responsible for properly escaping special characters</li>
+<li>note that the caller is responsible for properly escaping special characters<ul>
+<li>TODO: review this claim</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1091,7 +1100,9 @@ global <code>*CONFIG*</code> object</li>
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (first-path-seg (first path-segs))
          (fw-info-page? (string-equal rrp first-path-seg)))
-    (html5 :lang &quot;en&quot;
+    (with-html-output-to-string
+      (*standard-output* nil :prologue t :indent t)
+      (:html :lang &quot;en&quot;
            (:head
              (:meta :charset &quot;utf-8&quot;)
              (:meta :name &quot;robots&quot; :content &quot;noindex, nofollow&quot;)
@@ -1100,10 +1111,9 @@ global <code>*CONFIG*</code> object</li>
                :name &quot;viewport&quot;
                :content &quot;width=device-width, initial-scale=1&quot;)
              (:title
-               (sf &quot;~A - ~A - Fileworthy&quot;
-                   title
-                   (config-site-name *config*)))
-
+               (fmt &quot;~A - ~A - Fileworthy&quot;
+                    title
+                    (config-site-name *config*)))
              (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
                :href
@@ -1142,32 +1152,29 @@ global <code>*CONFIG*</code> object</li>
              (:header :id &quot;top-bar&quot;
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
-               (config-site-name *config*))
+               (fmt &quot;~A&quot; (config-site-name *config*)))
               ;; User Info
               (:div :id &quot;user-info&quot;
                (if (empty? user)
                  ;; Logged Out
-                 (raw
-                   (markup
+                 (htm
                      (:a :href &quot;javascript:site.showLogin()&quot;
                       (:i :class &quot;fa fa-sign-in&quot; &quot;&quot;)
-                      &quot; Log In&quot;)))
+                      &quot; Log In&quot;))
                  ;; Logged In
-                 (raw
-                   (markup
+                 (htm
                      (:a
                        :href (url-for user)
-                       (user-name user))
+                       (fmt &quot;~A&quot; (user-name user)))
                      (:span &quot; &quot;)
                      (:a
                        :href (sf &quot;/~A/logout&quot; rrp)
                        :title &quot;Log Out&quot;
-                       (:i :class &quot;fa fa-sign-out&quot; &quot;&quot;))))))
+                       (:i :class &quot;fa fa-sign-out&quot; &quot;&quot;)))))
               (:div :class &quot;clear-fix&quot;))
              (if (or (config-allow-anonymous-read *config*)
                      (not (empty? user)))
-               (raw
-                 (markup
+               (htm
                    (:nav
                      (:ul :id &quot;main-menu-items&quot; :class &quot;flat-list&quot;
                       ;; Home Folder Icon
@@ -1184,7 +1191,7 @@ global <code>*CONFIG*</code> object</li>
                          (:i :class &quot;fa fa-bars&quot; &quot; &quot;)))
                       ;; Root Folders
                       (loop :for dir-name :in (get-dir-names user)
-                            :collect (markup
+                            :collect (htm
                                        (:li
                                          (:a
                                            :class
@@ -1192,7 +1199,7 @@ global <code>*CONFIG*</code> object</li>
                                              &quot;selected&quot;
                                              nil)
                                            :href (sf &quot;/~A/&quot; dir-name)
-                                           dir-name)))))
+                                           (fmt &quot;~A&quot; dir-name))))))
                      ;; Fileworthy Info/Settings
                      (:ul
                        :id &quot;info-menu&quot;
@@ -1206,18 +1213,16 @@ global <code>*CONFIG*</code> object</li>
                           (:i :class &quot;fa fa-info-circle&quot; &quot;&quot;)
                           &quot; About&quot;))
                        (if (user-admin? user)
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (string-equal &quot;settings&quot;
                                                         (nth 1 path-segs))
                                         &quot;selected&quot;)
                                (:a :href (url-for &#39;settings)
                                 (:i :class &quot;fa fa-cog&quot; &quot;&quot;)
-                                &quot; Settings&quot;)))))
+                                &quot; Settings&quot;))))
                        (if (not (empty? user))
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (and (string-equal
                                                  &quot;users&quot;
@@ -1229,10 +1234,9 @@ global <code>*CONFIG*</code> object</li>
                                (:a
                                  :href (url-for user)
                                  (:i :class &quot;fa fa-user&quot; &quot;&quot;)
-                                 &quot; My Account&quot;)))))
+                                 &quot; My Account&quot;))))
                        (if (user-admin? user)
-                         (raw
-                           (markup
+                         (htm
                              (:li
                                :class (if (and (string-equal &quot;users&quot;
                                                              (nth 1 path-segs))
@@ -1240,7 +1244,7 @@ global <code>*CONFIG*</code> object</li>
                                         &quot;selected&quot;)
                                (:a :href (url-for &#39;users)
                                 (:i :class &quot;fa fa-users&quot; &quot;&quot;)
-                                &quot; Users&quot;))))))
+                                &quot; Users&quot;)))))
                      ;; Sub-folders
                      (let* ((expanded-dirs (expand-sub-dirs path-name))
                             (sub-dir-name-lst (map &#39;list
@@ -1253,11 +1257,11 @@ global <code>*CONFIG*</code> object</li>
                              :for i :from 0
                              :when (not (empty? sub-dir-names))
                              :collect
-                             (markup
+                             (htm
                                (:ul :class &quot;sub-menu-items flat-list&quot;
                                 (loop :for dir-name :in sub-dir-names
                                       :collect
-                                      (markup
+                                      (htm
                                         (:li
                                           (:a
                                             :class
@@ -1268,9 +1272,9 @@ global <code>*CONFIG*</code> object</li>
                                             :href (sf &quot;/~A/~A/&quot;
                                                       (nth i expanded-dirs)
                                                       dir-name)
-                                            dir-name))))))))))))
+                                            (fmt &quot;~A&quot; dir-name))))))))))))
              (:main :id page-id
-              (raw content))
+              (fmt &quot;~A&quot; content))
              ;; Login Dialog
              (:section :id &quot;login-dialog&quot; :class &quot;dialog&quot;
               (:div :class &quot;dialog-content&quot;
@@ -1307,7 +1311,7 @@ global <code>*CONFIG*</code> object</li>
                  (:a
                    :href &quot;javascript:site.closeLogin()&quot;
                    :style &quot;float:right&quot;
-                   &quot;Close&quot;))))))))
+                   &quot;Close&quot;)))))))))
 </code></pre>
 <ul>
 <li>An example call of the following is:<ul>
@@ -1333,7 +1337,7 @@ global <code>*CONFIG*</code> object</li>
   (page-template
     &quot;Not Found&quot;
     &quot;not-found-page&quot;
-    (markup
+    (gen-html
       (:h2 &quot;Not Found&quot;)
       (:p &quot;The page or resource you requested could not be found.&quot;)
       (:p
@@ -1350,7 +1354,7 @@ global <code>*CONFIG*</code> object</li>
   (page-template
     &quot;Not Authorised&quot;
     &quot;not-authorised-page&quot;
-    (markup
+    (gen-html
       (:h2 &quot;Not Authorised&quot;)
       (:p &quot;Sorry, you don&#39;t have permission to view this page or resource.&quot;)
       (:p
@@ -1364,7 +1368,7 @@ global <code>*CONFIG*</code> object</li>
   (page-template
     &quot;Server Error&quot;
     &quot;server-error-page&quot;
-    (markup
+    (gen-html
       (:h2 &quot;Server Error&quot;)
       (:p (sf &#39;(&quot;Sorry, it looks like something went wrong on the server. &quot;
                 &quot;Please try again later if the problem persists.&quot;)))
@@ -1382,7 +1386,7 @@ global <code>*CONFIG*</code> object</li>
   (page-template
     &quot;About&quot;
     &quot;about-page&quot;
-    (markup
+    (gen-html
       (:h2 &quot;About Fileworthy&quot;)
       (:p (sf &#39;(&quot;Fileworthy aims to be a simple solution to managing your &quot;
                 &quot;notes and files across many devices. It is half static site &quot;
@@ -1417,7 +1421,7 @@ global <code>*CONFIG*</code> object</li>
     (page-template
       &quot;Settings&quot;
       &quot;settings-page&quot;
-      (markup
+      (gen-html
         (:h2 &quot;Settings&quot;)
         (:ul :id &quot;inputs&quot; :class &quot;flat-list&quot;
          (:li
@@ -1439,12 +1443,10 @@ global <code>*CONFIG*</code> object</li>
            (:label
              (:span &quot;Allow anonymous read access&quot;)
              (if (config-allow-anonymous-read *config*)
-               (raw
-                 (markup
-                   (:input :id &quot;anon-read&quot; :checked &quot;&quot; :type &quot;checkbox&quot;)))
-               (raw
-                 (markup
-                   (:input :id &quot;anon-read&quot; :type &quot;checkbox&quot;))))
+               (htm
+                   (:input :id &quot;anon-read&quot; :checked &quot;&quot; :type &quot;checkbox&quot;))
+               (htm
+                   (:input :id &quot;anon-read&quot; :type &quot;checkbox&quot;)))
              (:div :class &quot;clear-fix&quot;)))
          (:li
            (:label
@@ -1523,7 +1525,7 @@ global <code>*CONFIG*</code> object</li>
     (page-template
       &quot;Users&quot;
       &quot;user-list-page&quot;
-      (markup
+      (gen-html
         (:a
           :id &quot;new-user-btn&quot;
           :class &quot;button&quot;
@@ -1533,11 +1535,11 @@ global <code>*CONFIG*</code> object</li>
           (loop
             :for user :in (config-users *config*)
             :collect
-            (markup
+            (htm
               (:li
                 (:a
                   :href (url-for user)
-                  (user-name user))))))))))
+                  (fmt &quot;~A&quot; (user-name user)))))))))))
 </code></pre>
 <h3 id="-page-user-detail-"><code>PAGE-USER-DETAIL</code></h3>
 <pre><code class="lang-lisp">(defun page-user-detail ()
@@ -1559,7 +1561,7 @@ global <code>*CONFIG*</code> object</li>
     (page-template
       (if new-user? &quot;New User&quot; (user-name req-user))
       &quot;user-detail-page&quot;
-      (markup
+      (gen-html
         (:h2
           :id &quot;name-heading&quot;
           :data-user-id (to-string (user-id req-user))
@@ -1578,26 +1580,22 @@ global <code>*CONFIG*</code> object</li>
            :type &quot;email&quot;
            :value (user-email req-user))
          (if (user-admin? curr-user)
-           (raw
-             (markup
+           (htm
                (:input
                  :id &quot;root-dir&quot;
                  :placeholder &quot;Root Folder&quot;
                  :title &quot;Root Folder&quot;
                  :type &quot;text&quot;
-                 :value (user-root-dir req-user)))))
+                 :value (user-root-dir req-user))))
          (if (user-admin? curr-user)
-           (raw
-             (markup
+           (htm
                (:label
                  (if (user-admin? req-user)
-                   (raw
-                     (markup
-                       (:input :id &quot;is-admin&quot; :checked &quot;&quot; :type &quot;checkbox&quot;)))
-                   (raw
-                     (markup
-                       (:input :id &quot;is-admin&quot; :type &quot;checkbox&quot;))))
-                 &quot; Administrator&quot;))))
+                   (htm
+                       (:input :id &quot;is-admin&quot; :checked &quot;&quot; :type &quot;checkbox&quot;))
+                   (htm
+                       (:input :id &quot;is-admin&quot; :type &quot;checkbox&quot;)))
+                 &quot; Administrator&quot;)))
          (:div
            :class (if new-user? &quot;hidden&quot; &quot;&quot;)
            (:a
@@ -1796,10 +1794,10 @@ global <code>*CONFIG*</code> object</li>
   (page-template
     &quot;Logout&quot;
     &quot;logout-page&quot;
-    (markup
-    (:h2 &quot;Thank you, come again!&quot;)
-    (:p
-     (:a :class &quot;full-width&quot;
+    (gen-html
+      (:h2 &quot;Thank you, come again!&quot;)
+      (:p
+        (:a :class &quot;full-width&quot;
          :href &quot;/&quot;
          &quot;Go back to Home page&quot;)))))
 </code></pre>
@@ -1857,20 +1855,22 @@ global <code>*CONFIG*</code> object</li>
     (page-template
       (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
       &quot;fs-path-page&quot;
-      (markup
+      (gen-html
         (:table :id &quot;files&quot; :class &quot;file-names&quot;
          (:tbody
           (loop
            :for file-name :in file-names
            :collect
-           (markup
+           (htm
              (:tr
                :class
                (if (string= file-name curr-file-name)
                  &quot;selected&quot;
                  nil)
                (:td
-                 (:a :href file-name file-name))
+                 (:a
+                   :href file-name
+                   (fmt &quot;~A&quot; file-name)))
                (:td
                  (:a
                    :class &quot;download&quot;
@@ -1887,24 +1887,26 @@ global <code>*CONFIG*</code> object</li>
           (:span &quot; &quot;)
           (:span (if (empty? rel-fs-path)
                    &quot;/&quot;
-                   (to-string rel-fs-path))))
+                   (fmt &quot;~A&quot; rel-fs-path))))
         (:section :id &quot;file-details&quot;
          (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
-           (raw (markup
-                  (:pre
-                    (:code :id &quot;raw-file-content&quot; :class &quot;hidden&quot; file-content))
-                  (:div :id &quot;gen-file-content&quot;)))
-           (raw
-             (markup
-               (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
-               (:p
-                 &quot;You can &quot;
-                 (:a
-                   :href (sf &quot;~A?download&quot; curr-file-name)
-                   &quot;download the file&quot;)
-                 &quot; or try to &quot;
-                 (:a
-                   :href (sf &quot;~A?force-show&quot; curr-file-name)
-                   &quot;display it anyway.&quot;))))))))))
+           (htm
+             (:pre
+               (:code
+                 :id &quot;raw-file-content&quot;
+                 :class &quot;hidden&quot;
+                 (fmt &quot;~A&quot; file-content)))
+             (:div :id &quot;gen-file-content&quot;))
+           (htm
+             (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
+             (:p
+               &quot;You can &quot;
+               (:a
+                 :href (sf &quot;~A?download&quot; curr-file-name)
+                 &quot;download the file&quot;)
+               &quot; or try to &quot;
+               (:a
+                 :href (sf &quot;~A?force-show&quot; curr-file-name)
+                 &quot;display it anyway.&quot;)))))))))
 </code></pre>
       </body></html>

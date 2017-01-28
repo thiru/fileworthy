@@ -8,7 +8,7 @@
   :author "Thirushanth Thirunavukarasu <thiru0130@gmail.com>"
   :license "GPLv3"
   :serial t
-  :depends-on (:alexandria :cl-json :cl-markup :cl-ppcre :hunchentoot :ironclad
+  :depends-on (:alexandria :cl-json :cl-ppcre :cl-who :hunchentoot :ironclad
                :local-time :split-sequence :uiop)
   :components ((:file "package")
                (:file "glu")

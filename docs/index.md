@@ -1017,7 +1017,7 @@
              (:header :id "top-bar"
               ;; Site Name
               (:a :id "app-name" :href "/"
-               (fmt "~A" (config-site-name *config*)))
+               (fmt (config-site-name *config*)))
               ;; User Info
               (:div :id "user-info"
                (if (empty? user)
@@ -1030,7 +1030,7 @@
                  (htm
                      (:a
                        :href (url-for user)
-                       (fmt "~A" (user-name user)))
+                       (fmt (user-name user)))
                      (:span " ")
                      (:a
                        :href (sf "/~A/logout" rrp)
@@ -1064,7 +1064,7 @@
                                              "selected"
                                              nil)
                                            :href (sf "/~A/" dir-name)
-                                           (fmt "~A" dir-name))))))
+                                           (fmt dir-name))))))
                      ;; Fileworthy Info/Settings
                      (:ul
                        :id "info-menu"
@@ -1137,9 +1137,9 @@
                                             :href (sf "/~A/~A/"
                                                       (nth i expanded-dirs)
                                                       dir-name)
-                                            (fmt "~A" dir-name))))))))))))
+                                            (fmt dir-name))))))))))))
              (:main :id page-id
-              (fmt "~A" content))
+              (fmt content))
              ;; Login Dialog
              (:section :id "login-dialog" :class "dialog"
               (:div :class "dialog-content"
@@ -1431,7 +1431,7 @@
               (:li
                 (:a
                   :href (url-for user)
-                  (fmt "~A" (user-name user)))))))))))
+                  (fmt (user-name user)))))))))))
 
 
 ```
@@ -1783,7 +1783,7 @@
                (:td
                  (:a
                    :href file-name
-                   (fmt "~A" file-name)))
+                   (fmt file-name)))
                (:td
                  (:a
                    :class "download"
@@ -1800,7 +1800,7 @@
           (:span " ")
           (:span (if (empty? rel-fs-path)
                    "/"
-                   (fmt "~A" rel-fs-path))))
+                   (fmt rel-fs-path))))
         (:section :id "file-details"
          (if (or (not binary-file?) (get-parameter "force-show"))
            (htm
@@ -1808,7 +1808,7 @@
                (:code
                  :id "raw-file-content"
                  :class "hidden"
-                 (fmt "~A" file-content)))
+                 (fmt file-content)))
              (:div :id "gen-file-content"))
            (htm
              (:p "It looks like this is a binary file, so it isn't displayed.")

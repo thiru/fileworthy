@@ -1154,7 +1154,7 @@ global <code>*CONFIG*</code> object</li>
              (:header :id &quot;top-bar&quot;
               ;; Site Name
               (:a :id &quot;app-name&quot; :href &quot;/&quot;
-               (fmt &quot;~A&quot; (config-site-name *config*)))
+               (fmt (config-site-name *config*)))
               ;; User Info
               (:div :id &quot;user-info&quot;
                (if (empty? user)
@@ -1167,7 +1167,7 @@ global <code>*CONFIG*</code> object</li>
                  (htm
                      (:a
                        :href (url-for user)
-                       (fmt &quot;~A&quot; (user-name user)))
+                       (fmt (user-name user)))
                      (:span &quot; &quot;)
                      (:a
                        :href (sf &quot;/~A/logout&quot; rrp)
@@ -1201,7 +1201,7 @@ global <code>*CONFIG*</code> object</li>
                                              &quot;selected&quot;
                                              nil)
                                            :href (sf &quot;/~A/&quot; dir-name)
-                                           (fmt &quot;~A&quot; dir-name))))))
+                                           (fmt dir-name))))))
                      ;; Fileworthy Info/Settings
                      (:ul
                        :id &quot;info-menu&quot;
@@ -1274,9 +1274,9 @@ global <code>*CONFIG*</code> object</li>
                                             :href (sf &quot;/~A/~A/&quot;
                                                       (nth i expanded-dirs)
                                                       dir-name)
-                                            (fmt &quot;~A&quot; dir-name))))))))))))
+                                            (fmt dir-name))))))))))))
              (:main :id page-id
-              (fmt &quot;~A&quot; content))
+              (fmt content))
              ;; Login Dialog
              (:section :id &quot;login-dialog&quot; :class &quot;dialog&quot;
               (:div :class &quot;dialog-content&quot;
@@ -1541,7 +1541,7 @@ global <code>*CONFIG*</code> object</li>
               (:li
                 (:a
                   :href (url-for user)
-                  (fmt &quot;~A&quot; (user-name user)))))))))))
+                  (fmt (user-name user)))))))))))
 </code></pre>
 <h3 id="-page-user-detail-"><code>PAGE-USER-DETAIL</code></h3>
 <pre><code class="lang-lisp">(defun page-user-detail ()
@@ -1872,7 +1872,7 @@ global <code>*CONFIG*</code> object</li>
                (:td
                  (:a
                    :href file-name
-                   (fmt &quot;~A&quot; file-name)))
+                   (fmt file-name)))
                (:td
                  (:a
                    :class &quot;download&quot;
@@ -1889,7 +1889,7 @@ global <code>*CONFIG*</code> object</li>
           (:span &quot; &quot;)
           (:span (if (empty? rel-fs-path)
                    &quot;/&quot;
-                   (fmt &quot;~A&quot; rel-fs-path))))
+                   (fmt rel-fs-path))))
         (:section :id &quot;file-details&quot;
          (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
            (htm
@@ -1897,7 +1897,7 @@ global <code>*CONFIG*</code> object</li>
                (:code
                  :id &quot;raw-file-content&quot;
                  :class &quot;hidden&quot;
-                 (fmt &quot;~A&quot; file-content)))
+                 (fmt file-content)))
              (:div :id &quot;gen-file-content&quot;))
            (htm
              (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)

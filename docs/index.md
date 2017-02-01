@@ -1313,7 +1313,7 @@
              (:div :class "clear-fix")))
          (:li
            (:label
-             (:span "Root Directory")
+             (:span "Root Folder")
              (:input :id "root-dir" :value (config-root-dir *config*))
              (:div :class "clear-fix")))
          (:li

@@ -1818,6 +1818,7 @@ global <code>*CONFIG*</code> object</li>
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (last-path-seg (last1 path-segs))
+         (expanded-paths (expand-sub-dirs path-name))
          (abs-fs-path (empty &#39;string
                              :unless (get-fs-path-from-url user path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
@@ -1827,9 +1828,6 @@ global <code>*CONFIG*</code> object</li>
                          (file-exists-p abs-fs-path)))
          (binary-file? (if file-exists? (is-file-binary? abs-fs-path)))
          (curr-file-name &quot;&quot;)
-         (rel-fs-path (if abs-fs-path
-                        (subpathp abs-fs-path
-                                  (config-root-dir *config*))))
          (file-content &quot;&quot;)
          (file-names (get-file-names abs-fs-path)))
     ;; Check anonymous access
@@ -1845,7 +1843,7 @@ global <code>*CONFIG*</code> object</li>
       (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
     (when file-exists?
-      (setf curr-file-name (last1 path-segs))
+      (setf curr-file-name last-path-seg)
       (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
@@ -1881,17 +1879,26 @@ global <code>*CONFIG*</code> object</li>
                    :href (sf &quot;~A?download&quot; file-name)
                    :title &quot;Download file&quot;
                    (:i :class &quot;fa fa-download&quot; &quot;&quot;))))))))
-        (:p :id &quot;path-trail&quot;
-          (:i
-            :class
-            (if dir-exists?
-              &quot;fa fa-folder-open&quot;
-              &quot;fa fa-file&quot;)
-            &quot;&quot;)
-          (:span &quot; &quot;)
-          (:span (if (empty? rel-fs-path)
-                   &quot;/&quot;
-                   (fmt rel-fs-path))))
+        (if (&gt;= (length path-segs) 2)
+          (htm
+            (:section :id &quot;path-trail&quot;
+             (:span
+               (:i :class &quot;fa fa-folder-open&quot; &quot; &quot;)
+               &quot; &quot;)
+             (loop :for path :in expanded-paths
+                   :for i :from 0
+                   :collect
+                   (htm
+                     (if (&gt; i 0)
+                       (htm
+                         (:span &quot;|&quot;)))
+                     (:a
+                       :href
+                       (if (and file-exists?
+                                (= (1+ i) (length expanded-paths)))
+                         (sf &quot;/~A&quot; path)
+                         (sf &quot;/~A/&quot; path))
+                       (fmt (nth i path-segs))))))))
         (:section :id &quot;file-details&quot;
          (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
            (htm

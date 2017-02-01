@@ -1624,6 +1624,7 @@
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
          (last-path-seg (last1 path-segs))
+         (expanded-paths (expand-sub-dirs path-name))
          (abs-fs-path (empty 'string
                              :unless (get-fs-path-from-url user path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
@@ -1633,9 +1634,6 @@
                          (file-exists-p abs-fs-path)))
          (binary-file? (if file-exists? (is-file-binary? abs-fs-path)))
          (curr-file-name "")
-         (rel-fs-path (if abs-fs-path
-                        (subpathp abs-fs-path
-                                  (config-root-dir *config*))))
          (file-content "")
          (file-names (get-file-names abs-fs-path)))
     ;; Check anonymous access
@@ -1651,7 +1649,7 @@
       (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
     (when file-exists?
-      (setf curr-file-name (last1 path-segs))
+      (setf curr-file-name last-path-seg)
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
@@ -1687,17 +1685,26 @@
                    :href (sf "~A?download" file-name)
                    :title "Download file"
                    (:i :class "fa fa-download" ""))))))))
-        (:p :id "path-trail"
-          (:i
-            :class
-            (if dir-exists?
-              "fa fa-folder-open"
-              "fa fa-file")
-            "")
-          (:span " ")
-          (:span (if (empty? rel-fs-path)
-                   "/"
-                   (fmt rel-fs-path))))
+        (if (>= (length path-segs) 2)
+          (htm
+            (:section :id "path-trail"
+             (:span
+               (:i :class "fa fa-folder-open" " ")
+               " ")
+             (loop :for path :in expanded-paths
+                   :for i :from 0
+                   :collect
+                   (htm
+                     (if (> i 0)
+                       (htm
+                         (:span "|")))
+                     (:a
+                       :href
+                       (if (and file-exists?
+                                (= (1+ i) (length expanded-paths)))
+                         (sf "/~A" path)
+                         (sf "/~A/" path))
+                       (fmt (nth i path-segs))))))))
         (:section :id "file-details"
          (if (or (not binary-file?) (get-parameter "force-show"))
            (htm

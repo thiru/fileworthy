@@ -1111,9 +1111,11 @@ global <code>*CONFIG*</code> object</li>
                :name &quot;viewport&quot;
                :content &quot;width=device-width, initial-scale=1&quot;)
              (:title
-               (fmt &quot;~A - ~A - Fileworthy&quot;
-                    title
-                    (config-site-name *config*)))
+               (if (blank? (config-site-name *config*))
+                 (fmt title)
+                 (fmt &quot;~A - ~A&quot;
+                      title
+                      (config-site-name *config*))))
              (:link :href &quot;/images/favicon.ico&quot; :rel &quot;shortcut icon&quot;)
              (:link
                :href

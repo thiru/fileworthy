@@ -974,9 +974,11 @@
                :name "viewport"
                :content "width=device-width, initial-scale=1")
              (:title
-               (fmt "~A - ~A - Fileworthy"
-                    title
-                    (config-site-name *config*)))
+               (if (blank? (config-site-name *config*))
+                 (fmt title)
+                 (fmt "~A - ~A"
+                      title
+                      (config-site-name *config*))))
              (:link :href "/images/favicon.ico" :rel "shortcut icon")
              (:link
                :href

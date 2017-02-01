@@ -1396,10 +1396,10 @@ global <code>*CONFIG*</code> object</li>
       (:table :class &quot;simple-table&quot;
        (:tr
          (:td &quot;Version&quot;)
-         (:td (app-version *app*)))
+         (:td (fmt (app-version *app*))))
        (:tr
          (:td &quot;Last Updated&quot;)
-         (:td (pretty-time (app-last-updated *app*))))
+         (:td (fmt (pretty-time (app-last-updated *app*)))))
        (:tr
          (:td &quot;Source Code&quot;)
          (:td (:a :href &quot;https://github.com/thiru/fileworthy&quot;

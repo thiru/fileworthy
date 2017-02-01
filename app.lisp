@@ -1190,10 +1190,10 @@
       (:table :class "simple-table"
        (:tr
          (:td "Version")
-         (:td (app-version *app*)))
+         (:td (fmt (app-version *app*))))
        (:tr
          (:td "Last Updated")
-         (:td (pretty-time (app-last-updated *app*))))
+         (:td (fmt (pretty-time (app-last-updated *app*)))))
        (:tr
          (:td "Source Code")
          (:td (:a :href "https://github.com/thiru/fileworthy"

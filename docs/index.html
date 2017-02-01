@@ -1817,7 +1817,9 @@ global <code>*CONFIG*</code> object</li>
   (let* ((user (empty &#39;user :unless (session-value &#39;user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (empty &#39;string :unless (get-fs-path-from-url user path-name)))
+         (last-path-seg (last1 path-segs))
+         (abs-fs-path (empty &#39;string
+                             :unless (get-fs-path-from-url user path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
                         (directory-exists-p abs-fs-path)))
          (file-exists? (if (and (not dir-exists?)
@@ -1855,7 +1857,7 @@ global <code>*CONFIG*</code> object</li>
       (when (or (not binary-file?) (get-parameter &quot;force-show&quot;))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
-      (if (empty? rel-fs-path) &quot;Home&quot; rel-fs-path)
+      (if (empty? last-path-seg) &quot;Home&quot; last-path-seg)
       &quot;fs-path-page&quot;
       (gen-html
         (:table :id &quot;files&quot; :class &quot;file-names&quot;

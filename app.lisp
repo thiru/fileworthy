@@ -1623,7 +1623,9 @@
   (let* ((user (empty 'user :unless (session-value 'user)))
          (path-name (script-name* *request*))
          (path-segs (split-sequence #\/ path-name :remove-empty-subseqs t))
-         (abs-fs-path (empty 'string :unless (get-fs-path-from-url user path-name)))
+         (last-path-seg (last1 path-segs))
+         (abs-fs-path (empty 'string
+                             :unless (get-fs-path-from-url user path-name)))
          (dir-exists? (if (not (empty? abs-fs-path))
                         (directory-exists-p abs-fs-path)))
          (file-exists? (if (and (not dir-exists?)
@@ -1661,7 +1663,7 @@
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
     (page-template
-      (if (empty? rel-fs-path) "Home" rel-fs-path)
+      (if (empty? last-path-seg) "Home" last-path-seg)
       "fs-path-page"
       (gen-html
         (:table :id "files" :class "file-names"

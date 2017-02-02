@@ -1,8 +1,6 @@
 ui.ready(function() {
   site.rrp = document.body.dataset.rrp;
 
-  hljs.initHighlightingOnLoad();
-
   if (ui.get('user-detail-page'))
     page.initUserDetailPage();
   else if (ui.get('fs-path-page'))
@@ -211,26 +209,41 @@ page.initUserDetailPage = function() {
 
 // File-System Path Page -------------------------------------------------------
 page.initFileSystemPathPage = function() {
+
+  page.rawFileEl = ui.get('raw-file-content');
+  page.selectedFileEl = ui.getQ('#files .selected');
+
+  if (page.selectedFileEl)
+    page.filePath = page.selectedFileEl.innerText.trim() || '';
+
   page.displayFileContent = function() {
-    var rawFileEl = ui.get('raw-file-content');
-    if (!rawFileEl)
+    if (!page.rawFileEl || !page.selectedFileEl)
       return;
 
-    var selectedFileEl = ui.getQ('#files .selected');
-    if (!selectedFileEl)
-      return;
-
-    var filePath = selectedFileEl.innerText.trim();
-
-    if (filePath && filePath.endsWith('.md')) {
-      var genMarkdown = marked(rawFileEl.innerText);
+    if (page.filePath.endsWith('.md')) {
+      var genMarkdown = marked(page.rawFileEl.innerText);
       ui.get('gen-file-content').innerHTML = genMarkdown;
     }
     else {
-      rawFileEl.classList.remove('hidden');
+      page.rawFileEl.classList.remove('hidden');
     }
   }
 
+  page.runSyntaxHighlight = function() {
+    if (!page.filePath || page.filePath.endsWith('.md'))
+      return;
+
+    var codeEl = ui.get('raw-file-content');
+    var msgObj = {
+      code: codeEl.textContent,
+      rrp: site.rrp
+    };
+    var worker = new Worker('/' + site.rrp + '/js/highlight-worker.js');
+    worker.onmessage = function(event) { codeEl.innerHTML = event.data; }
+    worker.postMessage(msgObj);
+  }
+
   page.displayFileContent();
+  page.runSyntaxHighlight();
 }
 // File-System Path Page -------------------------------------------------------

@@ -1817,7 +1817,8 @@
                (:code
                  :id "raw-file-content"
                  :class "hidden"
-                 (fmt file-content)))
+                 (write-string
+                   (cl-ppcre:regex-replace-all "~" file-content "~~"))))
              (:div :id "gen-file-content"))
            (htm
              (:p "It looks like this is a binary file, so it isn't displayed.")

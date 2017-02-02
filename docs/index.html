@@ -1906,7 +1906,8 @@ global <code>*CONFIG*</code> object</li>
                (:code
                  :id &quot;raw-file-content&quot;
                  :class &quot;hidden&quot;
-                 (fmt file-content)))
+                 (write-string
+                   (cl-ppcre:regex-replace-all &quot;~&quot; file-content &quot;~~&quot;))))
              (:div :id &quot;gen-file-content&quot;))
            (htm
              (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)

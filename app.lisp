@@ -1704,7 +1704,8 @@
           (htm
             (:section :id "path-trail"
              (:span
-               (:i :class "fa fa-folder-open" " ")
+               (:a :href "/"
+                (:i :class "fa fa-folder-open" " "))
                " ")
              (loop :for path :in expanded-paths
                    :for i :from 0
@@ -1712,7 +1713,7 @@
                    (htm
                      (if (> i 0)
                        (htm
-                         (:span "|")))
+                         (:span "/")))
                      (:a
                        :href
                        (if (and file-exists?

@@ -1897,7 +1897,8 @@ global <code>*CONFIG*</code> object</li>
           (htm
             (:section :id &quot;path-trail&quot;
              (:span
-               (:i :class &quot;fa fa-folder-open&quot; &quot; &quot;)
+               (:a :href &quot;/&quot;
+                (:i :class &quot;fa fa-folder-open&quot; &quot; &quot;))
                &quot; &quot;)
              (loop :for path :in expanded-paths
                    :for i :from 0
@@ -1905,7 +1906,7 @@ global <code>*CONFIG*</code> object</li>
                    (htm
                      (if (&gt; i 0)
                        (htm
-                         (:span &quot;|&quot;)))
+                         (:span &quot;/&quot;)))
                      (:a
                        :href
                        (if (and file-exists?

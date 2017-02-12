@@ -300,6 +300,11 @@ nav a
 
 /* ========== File Contents Page [START] ========== */
 
+#path-trail a
+{
+  text-decoration: none;
+}
+
 .file-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */

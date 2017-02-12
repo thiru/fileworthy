@@ -345,6 +345,10 @@ nav a
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
 }
+#gen-file-content table tbody tr:hover
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+}
 
 /* ========== File Contents Page [END] ========== */
 

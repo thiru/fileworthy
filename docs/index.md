@@ -1750,39 +1750,50 @@
          (expanded-paths (expand-sub-dirs path-name))
          (abs-fs-path (empty 'string
                              :unless (get-fs-path-from-url user path-name)))
-         (dir-exists? (if (not (empty? abs-fs-path))
-                        (directory-exists-p abs-fs-path)))
-         (file-exists? (if (and (not dir-exists?)
-                                (not (empty? abs-fs-path)))
+         (path-is-dir? (if (not (empty? abs-fs-path))
+                         (directory-exists-p abs-fs-path)))
+         (path-is-file? (if (and (not path-is-dir?)
+                                 (not (empty? abs-fs-path)))
                          (file-exists-p abs-fs-path)))
-         (binary-file? (if file-exists? (is-file-binary? abs-fs-path)))
+         (binary-file? (if path-is-file? (is-file-binary? abs-fs-path)))
          (curr-file-name "")
          (file-content "")
-         (file-names (get-file-names abs-fs-path)))
+         (file-names (get-file-names abs-fs-path))
+         (dir-contains-index-file? (and file-names
+                                        (find "index.md"
+                                              file-names
+                                              :test #'string-equal))))
     ;; Check anonymous access
     (if (and (empty? user)
              (not (config-allow-anonymous-read *config*)))
       (return-from page-fs-path (page-error-not-authorised)))
     ;; Show 404 page if dir/file not found
-    (if (and (null dir-exists?) (null file-exists?))
+    (if (and (not path-is-dir?) (not path-is-file?))
       (return-from page-fs-path (page-error-not-found)))
     ;; Download file
-    (if (and file-exists?
+    (if (and path-is-file?
              (or binary-file? (get-parameter "download")))
       (return-from page-fs-path (handle-static-file abs-fs-path)))
     ;; File requested
-    (when file-exists?
+    (when path-is-file?
       (setf curr-file-name last-path-seg)
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
     ;; Directory requested, but only one file in dir so show it
-    (when (and dir-exists? (= 1 (length file-names)))
+    (when (and path-is-dir? (= 1 (length file-names)))
       (setf abs-fs-path (concatenate 'string
                                      (to-string abs-fs-path)
                                      (first file-names)))
       (setf curr-file-name (first file-names))
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
+    ;; Directory requested and has "index.md" file, so show it
+    (when (and path-is-dir? dir-contains-index-file?)
+      (setf abs-fs-path (concatenate 'string
+                                     (to-string abs-fs-path)
+                                     "index.md"))
+      (setf curr-file-name "index.md")
+      (setf file-content (get-file-content abs-fs-path)))
     (page-template
       (if (empty? last-path-seg) "Home" last-path-seg)
       "fs-path-page"
@@ -1824,7 +1835,7 @@
                          (:span "/")))
                      (:a
                        :href
-                       (if (and file-exists?
+                       (if (and path-is-file?
                                 (= (1+ i) (length expanded-paths)))
                          (sf "/~A" path)
                          (sf "/~A/" path))

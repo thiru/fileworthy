@@ -221,8 +221,17 @@ page.initFileSystemPathPage = function() {
       return;
 
     if (page.filePath.endsWith('.md')) {
-      var genMarkdown = marked(page.rawFileEl.innerText);
-      ui.get('gen-file-content').innerHTML = genMarkdown;
+      marked.setOptions({
+        highlight: function(code, lang, callback) {
+          callback(null, hljs.highlightAuto(code).value);
+        }
+      });
+
+      var genHtmlEl = ui.get('gen-file-content');
+      marked(page.rawFileEl.innerText, function (err, content) {
+        if (err) throw err;
+        genHtmlEl.innerHTML = content;
+      });
     }
     else {
       page.rawFileEl.classList.remove('hidden');

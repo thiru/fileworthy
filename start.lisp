@@ -5,3 +5,5 @@
 
 (ql:quickload :fileworthy)
 (fileworthy:start-app :debug nil)
+
+(loop (sleep 10))

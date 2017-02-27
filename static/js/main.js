@@ -215,14 +215,16 @@ page.initFileSystemPathPage = function() {
   page.rawFileEl = ui.get('raw-file-content');
   page.selectedFileEl = ui.getQ('#files .selected');
 
-  if (page.selectedFileEl)
+  if (page.selectedFileEl) {
     page.filePath = page.selectedFileEl.innerText.trim() || '';
+    page.fileIsMarkdown = /\.mk?d$/i.test(page.filePath);
+  }
 
   page.displayFileContent = function() {
     if (!page.rawFileEl || !page.selectedFileEl)
       return;
 
-    if (page.filePath.endsWith('.md')) {
+    if (page.fileIsMarkdown) {
       marked.setOptions({
         highlight: function(code, lang, callback) {
           callback(null, hljs.highlightAuto(code).value);
@@ -241,7 +243,7 @@ page.initFileSystemPathPage = function() {
   }
 
   page.runSyntaxHighlight = function() {
-    if (!page.filePath || page.filePath.endsWith('.md'))
+    if (!page.filePath || page.fileIsMarkdown)
       return;
 
     var codeEl = page.rawFileEl;

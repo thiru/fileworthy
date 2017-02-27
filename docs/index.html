@@ -2021,14 +2021,20 @@ global <code>*CONFIG*</code> object</li>
                        (fmt (nth i path-segs))))))))
         (:section :id &quot;file-details&quot;
          (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
-           (htm
-             (:pre
-               (:code
-                 :id &quot;raw-file-content&quot;
-                 :class &quot;hidden&quot;
-                 (write-string
-                   (cl-ppcre:regex-replace-all &quot;~&quot; file-content &quot;~~&quot;))))
-             (:div :id &quot;gen-file-content&quot;))
+           (let* ((is-markdown? (cl-ppcre:scan &quot;\\.mk?d$&quot; abs-fs-path))
+                  (file-content (cl-ppcre:regex-replace-all
+                                  &quot;~&quot;
+                                  file-content
+                                  &quot;~~&quot;)))
+             (if (not is-markdown?)
+               (setf file-content (escape-string file-content)))
+             (htm
+               (:pre
+                 (:code
+                   :id &quot;raw-file-content&quot;
+                   :class &quot;hidden&quot;
+                   (write-string file-content)))
+               (:div :id &quot;gen-file-content&quot;)))
            (htm
              (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
              (:p

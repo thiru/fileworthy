@@ -1941,14 +1941,20 @@
                        (fmt (nth i path-segs))))))))
         (:section :id "file-details"
          (if (or (not binary-file?) (get-parameter "force-show"))
-           (htm
-             (:pre
-               (:code
-                 :id "raw-file-content"
-                 :class "hidden"
-                 (write-string
-                   (cl-ppcre:regex-replace-all "~" file-content "~~"))))
-             (:div :id "gen-file-content"))
+           (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path))
+                  (file-content (cl-ppcre:regex-replace-all
+                                  "~"
+                                  file-content
+                                  "~~")))
+             (if (not is-markdown?)
+               (setf file-content (escape-string file-content)))
+             (htm
+               (:pre
+                 (:code
+                   :id "raw-file-content"
+                   :class "hidden"
+                   (write-string file-content)))
+               (:div :id "gen-file-content")))
            (htm
              (:p "It looks like this is a binary file, so it isn't displayed.")
              (:p

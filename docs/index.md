@@ -583,6 +583,17 @@
                      (or (null email) (string-equal email (user-email user)))))
              (config-users *config*))))
 
+(defun get-abs-user-root-dir (user)
+  "Get the absolute root directory for the specified user."
+  (if user
+    (let* ((abs-dir (config-root-dir *config*)))
+      (if (not (blank? (user-root-dir user)))
+        (setf abs-dir
+              (sf "~A~A/"
+                  abs-dir
+                  (string-trim '(#\/) (user-root-dir user)))))
+      abs-dir)))
+
 (defun authenticate-user (user pwd)
   "Authenticate the given user."
   (and user
@@ -628,13 +639,12 @@
 ### `GET-FS-PATH-FROM-URL`
 
 ```lisp
-(defun get-fs-path-from-url (curr-user path-name)
+(defun get-fs-path-from-url (user &optional path-name)
   "Gets an absolute local file-system path from the given URL path name."
-  (concatenate 'string
-               (config-root-dir *config*)
-               (string-trim '(#\/) (user-root-dir curr-user))
-               "/"
-               (string-left-trim '(#\/) path-name)))
+  (let* ((abs-path (get-abs-user-root-dir user)))
+    (if (not (blank? path-name))
+      (setf abs-path (join abs-path (trim path-name #\/ :left-only t))))
+    abs-path))
 
 
 ```
@@ -842,7 +852,7 @@
   (json:encode-json-plist-to-string
     `(level ,(r-level result)
             message ,(r-message result)
-            data ,data)))
+            data ,(or data (r-data result)))))
 
 (defun json-error (status-code)
   "Create a JSON response indicating an error with the specified HTTP status
@@ -942,8 +952,13 @@
             (sf "^/~A/logout/?$"
                 (config-reserved-resource-path *config*))
             #'page-logout)
+          
+          ;; File-system search API
+          (create-regex-dispatcher
+            (sf "^/~A/api/search/?$" (config-reserved-resource-path *config*))
+            #'api-fs-search)
 
-          ;; File-system path page
+          ;; File-system path page (this should be the last entry)
           (create-regex-dispatcher
             "^/*"
             #'page-fs-path))))
@@ -1001,8 +1016,7 @@
              (:link
                :href
                (sf "/~A/deps/font-awesome/css/font-awesome.min.css" rrp)
-               :rel "stylesheet"
-               :type "text/css")
+               :rel "stylesheet")
              (:link
                :href (sf "/~A/deps/highlightjs/styles/github.css" rrp)
                :rel "stylesheet")
@@ -1019,6 +1033,7 @@
                :rel "stylesheet")
 
              (:script :src (sf "/~A/deps/lodash/lodash.min.js" rrp) "")
+             (:script :src (sf "/~A/deps/rxjs/Rx.min.js" rrp) "")
              (:script :src (sf "/~A/deps/momentjs/moment.min.js" rrp) "")
              (:script :src (sf "/~A/deps/markedjs/marked.min.js" rrp) "")
              (:script
@@ -1733,6 +1748,73 @@
 
 ```
 
+### `API-FS-SEARCH`
+
+```lisp
+(defun api-fs-search ()
+  "File-system search API."
+  (setf (content-type*) "application/json")
+  (let* ((user (empty 'user :unless (session-value 'user)))
+         (user-root-dir-length (length (get-abs-user-root-dir user)))
+         (search-txt (post-parameter "search"))
+         (search-result nil))
+
+    ;; Check anonymous access
+    (if (and (empty? user)
+             (not (config-allow-anonymous-read *config*)))
+      (return-from api-fs-search (json-error +http-forbidden+)))
+
+    ;; Maybe being overly cautious on allowed characters
+    (setf search-txt
+          (ppcre:regex-replace-all "[^a-zA-Z0-9\\./]+" search-txt ""))
+
+    ;; Treat spaces as an implicit 'or' clause
+    (setf search-txt (ppcre:regex-replace-all "\\s+" search-txt "|"))
+
+    ;; Get search results (in absolute path form)
+    (setf search-result
+          (search-fs search-txt (get-abs-user-root-dir user)))
+
+    ;; Trim absolute path segment
+    (setf (r-data search-result)
+          (map 'list
+               (λ (x)
+                  (if (empty? x)
+                    x
+                    (subseq x user-root-dir-length)))
+               (r-data search-result)))
+
+    (json-result search-result)))
+
+(defun run-cmd (cmd)
+  "Run command specified by `CMD'.
+   A result object is returned."
+  (multiple-value-bind (std-out std-err ret-val)
+      (uiop:run-program cmd
+                        :ignore-error-status t
+                        :output '(:string :stripped t)
+                        :error-output '(:string :stripped t))
+    (if (zerop ret-val)
+        (new-r :success "" std-out)
+        (new-r :error
+               (sf "ERROR ~A: ~A"
+                   ret-val
+                   (if (and (empty? std-out) (empty? std-err))
+                       "unknown (cmd reported no info)"
+                       (or std-err std-out)))))))
+
+(defun search-fs (query &optional path)
+  "Search the file-system for `QUERY`."
+  (let* ((search-result (run-cmd (sf "ag --nocolor --follow -g \"~A\" ~A"
+                                     query
+                                     (or path "")))))
+    (setf (r-data search-result)
+          (split-sequence #\linefeed (r-data search-result)))
+    search-result))
+
+
+```
+
 ### `PAGE-FS-PATH`
 
 * This page displays a file-system path
@@ -1794,10 +1876,27 @@
                                      "index.md"))
       (setf curr-file-name "index.md")
       (setf file-content (get-file-content abs-fs-path)))
+    ;; TODO: fix JS injection
     (page-template
       (if (empty? last-path-seg) "Home" last-path-seg)
       "fs-path-page"
       (gen-html
+        (:input
+          :id "search"
+          :autocomplete "off"
+          :placeholder "Search pages"
+          :onblur "page.onSearchTxtBlur(event)"
+          :onclick "page.onSearchTxtClick(event)"
+          :onkeydown "page.onSearchTxtKeyDown(event)"
+          :onkeyup "page.onSearchTxtKeyUp(event)")
+        (:select
+          :id "search-results"
+          :class "hidden"
+          :data-default-size "10"
+          :onblur "page.onSearchResultsBlur(event)"
+          :onclick "page.onSearchResultsClick(event)"
+          :onkeydown "page.onSearchResultsKeyDown(event)"
+          :size 10)
         (:table :id "files" :class "file-names"
          (:tbody
           (loop

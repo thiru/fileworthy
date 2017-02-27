@@ -754,6 +754,17 @@ defined before we compile the source files that depend on it<ul>
                      (or (null email) (string-equal email (user-email user)))))
              (config-users *config*))))
 
+(defun get-abs-user-root-dir (user)
+  &quot;Get the absolute root directory for the specified user.&quot;
+  (if user
+    (let* ((abs-dir (config-root-dir *config*)))
+      (if (not (blank? (user-root-dir user)))
+        (setf abs-dir
+              (sf &quot;~A~A/&quot;
+                  abs-dir
+                  (string-trim &#39;(#\/) (user-root-dir user)))))
+      abs-dir)))
+
 (defun authenticate-user (user pwd)
   &quot;Authenticate the given user.&quot;
   (and user
@@ -790,13 +801,12 @@ regular string (e.g. used when saving config to disk)<ul>
                                   (sf &quot;~A~A&quot; to-hash (or salt &quot;&quot;)))))))
 </code></pre>
 <h3 id="-get-fs-path-from-url-"><code>GET-FS-PATH-FROM-URL</code></h3>
-<pre><code class="lang-lisp">(defun get-fs-path-from-url (curr-user path-name)
+<pre><code class="lang-lisp">(defun get-fs-path-from-url (user &amp;optional path-name)
   &quot;Gets an absolute local file-system path from the given URL path name.&quot;
-  (concatenate &#39;string
-               (config-root-dir *config*)
-               (string-trim &#39;(#\/) (user-root-dir curr-user))
-               &quot;/&quot;
-               (string-left-trim &#39;(#\/) path-name)))
+  (let* ((abs-path (get-abs-user-root-dir user)))
+    (if (not (blank? path-name))
+      (setf abs-path (join abs-path (trim path-name #\/ :left-only t))))
+    abs-path))
 </code></pre>
 <h3 id="-get-dir-names-"><code>GET-DIR-NAMES</code></h3>
 <ul>
@@ -969,7 +979,7 @@ global <code>*CONFIG*</code> object</li>
   (json:encode-json-plist-to-string
     `(level ,(r-level result)
             message ,(r-message result)
-            data ,data)))
+            data ,(or data (r-data result)))))
 
 (defun json-error (status-code)
   &quot;Create a JSON response indicating an error with the specified HTTP status
@@ -1068,7 +1078,12 @@ global <code>*CONFIG*</code> object</li>
                 (config-reserved-resource-path *config*))
             #&#39;page-logout)
 
-          ;; File-system path page
+          ;; File-system search API
+          (create-regex-dispatcher
+            (sf &quot;^/~A/api/search/?$&quot; (config-reserved-resource-path *config*))
+            #&#39;api-fs-search)
+
+          ;; File-system path page (this should be the last entry)
           (create-regex-dispatcher
             &quot;^/*&quot;
             #&#39;page-fs-path))))
@@ -1134,8 +1149,7 @@ global <code>*CONFIG*</code> object</li>
              (:link
                :href
                (sf &quot;/~A/deps/font-awesome/css/font-awesome.min.css&quot; rrp)
-               :rel &quot;stylesheet&quot;
-               :type &quot;text/css&quot;)
+               :rel &quot;stylesheet&quot;)
              (:link
                :href (sf &quot;/~A/deps/highlightjs/styles/github.css&quot; rrp)
                :rel &quot;stylesheet&quot;)
@@ -1152,6 +1166,7 @@ global <code>*CONFIG*</code> object</li>
                :rel &quot;stylesheet&quot;)
 
              (:script :src (sf &quot;/~A/deps/lodash/lodash.min.js&quot; rrp) &quot;&quot;)
+             (:script :src (sf &quot;/~A/deps/rxjs/Rx.min.js&quot; rrp) &quot;&quot;)
              (:script :src (sf &quot;/~A/deps/momentjs/moment.min.js&quot; rrp) &quot;&quot;)
              (:script :src (sf &quot;/~A/deps/markedjs/marked.min.js&quot; rrp) &quot;&quot;)
              (:script
@@ -1817,6 +1832,68 @@ global <code>*CONFIG*</code> object</li>
          :href &quot;/&quot;
          &quot;Go back to Home page&quot;)))))
 </code></pre>
+<h3 id="-api-fs-search-"><code>API-FS-SEARCH</code></h3>
+<pre><code class="lang-lisp">(defun api-fs-search ()
+  &quot;File-system search API.&quot;
+  (setf (content-type*) &quot;application/json&quot;)
+  (let* ((user (empty &#39;user :unless (session-value &#39;user)))
+         (user-root-dir-length (length (get-abs-user-root-dir user)))
+         (search-txt (post-parameter &quot;search&quot;))
+         (search-result nil))
+
+    ;; Check anonymous access
+    (if (and (empty? user)
+             (not (config-allow-anonymous-read *config*)))
+      (return-from api-fs-search (json-error +http-forbidden+)))
+
+    ;; Maybe being overly cautious on allowed characters
+    (setf search-txt
+          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\./]+&quot; search-txt &quot;&quot;))
+
+    ;; Treat spaces as an implicit &#39;or&#39; clause
+    (setf search-txt (ppcre:regex-replace-all &quot;\\s+&quot; search-txt &quot;|&quot;))
+
+    ;; Get search results (in absolute path form)
+    (setf search-result
+          (search-fs search-txt (get-abs-user-root-dir user)))
+
+    ;; Trim absolute path segment
+    (setf (r-data search-result)
+          (map &#39;list
+               (λ (x)
+                  (if (empty? x)
+                    x
+                    (subseq x user-root-dir-length)))
+               (r-data search-result)))
+
+    (json-result search-result)))
+
+(defun run-cmd (cmd)
+  &quot;Run command specified by `CMD&#39;.
+   A result object is returned.&quot;
+  (multiple-value-bind (std-out std-err ret-val)
+      (uiop:run-program cmd
+                        :ignore-error-status t
+                        :output &#39;(:string :stripped t)
+                        :error-output &#39;(:string :stripped t))
+    (if (zerop ret-val)
+        (new-r :success &quot;&quot; std-out)
+        (new-r :error
+               (sf &quot;ERROR ~A: ~A&quot;
+                   ret-val
+                   (if (and (empty? std-out) (empty? std-err))
+                       &quot;unknown (cmd reported no info)&quot;
+                       (or std-err std-out)))))))
+
+(defun search-fs (query &amp;optional path)
+  &quot;Search the file-system for `QUERY`.&quot;
+  (let* ((search-result (run-cmd (sf &quot;ag --nocolor --follow -g \&quot;~A\&quot; ~A&quot;
+                                     query
+                                     (or path &quot;&quot;)))))
+    (setf (r-data search-result)
+          (split-sequence #\linefeed (r-data search-result)))
+    search-result))
+</code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <ul>
 <li>This page displays a file-system path<ul>
@@ -1879,10 +1956,27 @@ global <code>*CONFIG*</code> object</li>
                                      &quot;index.md&quot;))
       (setf curr-file-name &quot;index.md&quot;)
       (setf file-content (get-file-content abs-fs-path)))
+    ;; TODO: fix JS injection
     (page-template
       (if (empty? last-path-seg) &quot;Home&quot; last-path-seg)
       &quot;fs-path-page&quot;
       (gen-html
+        (:input
+          :id &quot;search&quot;
+          :autocomplete &quot;off&quot;
+          :placeholder &quot;Search pages&quot;
+          :onblur &quot;page.onSearchTxtBlur(event)&quot;
+          :onclick &quot;page.onSearchTxtClick(event)&quot;
+          :onkeydown &quot;page.onSearchTxtKeyDown(event)&quot;
+          :onkeyup &quot;page.onSearchTxtKeyUp(event)&quot;)
+        (:select
+          :id &quot;search-results&quot;
+          :class &quot;hidden&quot;
+          :data-default-size &quot;10&quot;
+          :onblur &quot;page.onSearchResultsBlur(event)&quot;
+          :onclick &quot;page.onSearchResultsClick(event)&quot;
+          :onkeydown &quot;page.onSearchResultsKeyDown(event)&quot;
+          :size 10)
         (:table :id &quot;files&quot; :class &quot;file-names&quot;
          (:tbody
           (loop
@@ -1947,4 +2041,4 @@ global <code>*CONFIG*</code> object</li>
                  :href (sf &quot;~A?force-show&quot; curr-file-name)
                  &quot;display it anyway.&quot;)))))))))
 </code></pre>
-      </body></html>
+       </body></html>

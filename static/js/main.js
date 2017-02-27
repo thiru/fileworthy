@@ -210,6 +210,8 @@ page.initUserDetailPage = function() {
 // File-System Path Page -------------------------------------------------------
 page.initFileSystemPathPage = function() {
 
+  page.searchEl = ui.get('search');
+  page.searchResultsEl = ui.get('search-results');
   page.rawFileEl = ui.get('raw-file-content');
   page.selectedFileEl = ui.getQ('#files .selected');
 
@@ -242,7 +244,7 @@ page.initFileSystemPathPage = function() {
     if (!page.filePath || page.filePath.endsWith('.md'))
       return;
 
-    var codeEl = ui.get('raw-file-content');
+    var codeEl = page.rawFileEl;
     var msgObj = {
       code: codeEl.textContent,
       rrp: site.rrp
@@ -252,7 +254,138 @@ page.initFileSystemPathPage = function() {
     worker.postMessage(msgObj);
   }
 
+  page.initSearch = function() {
+    Rx.Observable.fromEvent(page.searchEl, "keyup")
+      .map(function(event) { return event.target.value.trim(); })
+      .debounceTime(400)
+      .distinctUntilChanged()
+      .subscribe(page.search);
+  }
+
+  page.search = function(searchTxt) {
+    searchTxt = (searchTxt || '').trim();
+
+    var formData = new FormData();
+    formData.append('search', searchTxt);
+
+    // Send request
+    utils.post(
+        '/' + site.rrp + '/api/search',
+        formData,
+        function (result) {
+          if (result.succeeded())
+            page.fillSearchResults(result.data);
+          else
+            page.showNoMatches();
+        });
+  }
+
+  page.showNoMatches = function() {
+    page.searchResultsEl.innerHTML = '<option>No matches</option>';
+    page.searchResultsEl.size = 2;
+  }
+
+  page.fillSearchResults = function(newItems) {
+    if (!newItems || !newItems.length) {
+      page.showNoMatches();
+      return;
+    }
+
+    if (newItems.length == 1)
+      page.searchResultsEl.size = 2;
+    else
+      page.searchResultsEl.size =
+        Math.min(newItems.length, page.searchResultsEl.dataset.defaultSize);
+
+    page.searchResultsEl.innerHTML = '';
+    page.searchResultsEl.classList.remove('hidden');
+
+    for (var i = 0; i < newItems.length; i++) {
+      var optionEl = document.createElement('option');
+      optionEl.value = newItems[i];
+      optionEl.text = newItems[i];
+      page.searchResultsEl.appendChild(optionEl);
+    }
+  }
+
+  page.onSearchTxtBlur = function(event) {
+    setTimeout(function() {
+      if (document.activeElement !=  page.searchResultsEl)
+        page.searchResultsEl.classList.add('hidden');
+    }, 100);
+  }
+
+  page.onSearchTxtClick = function(event) {
+    if (!utils.isBlank(page.searchEl.value))
+      page.searchResultsEl.classList.toggle('hidden');
+  }
+
+  page.onSearchTxtKeyDown = function(event) {
+    // Hide search results on ESC
+    if (event.key == 'Escape' || event.key == 'Esc') {
+      event.preventDefault();
+      page.searchResultsEl.classList.add('hidden');
+    }
+    // Vim-like motion to select first item
+    else if (event.ctrlKey && event.key == 'j') {
+      event.preventDefault();
+      page.searchResultsEl.classList.remove('hidden');
+      page.searchResultsEl.selectedIndex = 0;
+      page.searchResultsEl.focus();
+    }
+  }
+
+  page.onSearchTxtKeyUp = function(event) {
+    // Focus first search item on down arrow
+    if (event.key == 'ArrowDown') {
+      page.searchResultsEl.classList.remove('hidden');
+      page.searchResultsEl.selectedIndex = 0;
+      page.searchResultsEl.focus();
+    }
+  }
+
+  page.onSearchResultsBlur = function(event) {
+    setTimeout(function() {
+      if (document.activeElement !=  page.searchEl)
+        page.searchResultsEl.classList.add('hidden');
+    }, 100);
+  }
+
+  page.onSearchResultsKeyDown = function(event) {
+    // Close on ESC
+    if (event.key == 'Escape' || event.key == 'Esc') {
+      page.searchResultsEl.classList.add('hidden');
+    }
+    // Go to path
+    else if (event.key == 'Enter') {
+      window.location = '/' + page.searchResultsEl.value;
+    }
+    // Vim-like motion to move down
+    else if (event.ctrlKey && event.key == 'j') {
+      event.preventDefault();
+      if (page.searchResultsEl.selectedIndex < (page.searchResultsEl.options.length + 1))
+        page.searchResultsEl.selectedIndex += 1;
+    }
+    // Escape and focus search text
+    else if (event.key == 'ArrowUp' && page.searchResultsEl.selectedIndex == 0) {
+      page.searchEl.focus();
+    }
+    // Vim-like motion to escape and focus search text or move up
+    else if (event.ctrlKey && event.key == 'k') {
+      event.preventDefault();
+      if (page.searchResultsEl.selectedIndex == 0)
+        page.searchEl.focus();
+      else if (page.searchResultsEl.selectedIndex > 0)
+        page.searchResultsEl.selectedIndex -= 1;
+    }
+  }
+
+  page.onSearchResultsClick = function(event) {
+    window.location = '/' + page.searchResultsEl.value;
+  }
+
   page.displayFileContent();
   page.runSyntaxHighlight();
+  page.initSearch();
 }
 // File-System Path Page -------------------------------------------------------

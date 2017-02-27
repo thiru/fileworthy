@@ -50,6 +50,19 @@
   (or (empty? str)
       (cl-ppcre:scan "^\\s+$" str)))
 
+(defmacro join (str1 str2 &rest args)
+  "Concatenate the given strings."
+  `(concatenate 'string ,str1 ,str2 ,@args))
+
+(defmacro trim (str char &key left-only right-only)
+  "Trim `STR` of `CHAR`."
+  `(cond (,left-only
+           (string-left-trim (list ,char) ,str))
+         (,right-only
+           (string-right-trim (list ,char) ,str))
+         (t
+          (string-trim (list ,char) ,str))))
+
 (defmacro -> (obj slot)
   "Gets the value of a slot."
   `(slot-value ,obj ',slot))

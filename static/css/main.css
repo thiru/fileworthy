@@ -99,7 +99,7 @@ h2, h3, h4, h5, h6
 
 .hidden
 {
-  display: none;
+  display: none !important;
 }
 
 .selected
@@ -299,6 +299,19 @@ nav a
 /* ========== Template [END] ========== */
 
 /* ========== File Contents Page [START] ========== */
+
+#search
+{
+  display: block;
+  margin-bottom: 1em;
+  width: 100%;
+}
+#search-results
+{
+  display: block;
+  overflow-y: auto;
+  width: 100%;
+}
 
 #path-trail a
 {

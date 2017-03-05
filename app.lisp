@@ -918,7 +918,7 @@
                :content "width=device-width, initial-scale=1")
              (:title
                (if (blank? (config-site-name *config*))
-                 (fmt title)
+                 (str title)
                  (fmt "~A - ~A"
                       title
                       (config-site-name *config*))))
@@ -960,7 +960,7 @@
              (:header :id "top-bar"
               ;; Site Name
               (:a :id "app-name" :href "/"
-               (fmt (config-site-name *config*)))
+               (str (config-site-name *config*)))
               ;; User Info
               (:div :id "user-info"
                (if (empty? user)
@@ -973,7 +973,7 @@
                  (htm
                      (:a
                        :href (url-for user)
-                       (fmt (user-name user)))
+                       (str (user-name user)))
                      (:span " ")
                      (:a
                        :href (sf "/~A/logout" rrp)
@@ -1007,7 +1007,7 @@
                                              "selected"
                                              nil)
                                            :href (sf "/~A/" dir-name)
-                                           (fmt dir-name))))))
+                                           (str dir-name))))))
                      ;; Fileworthy Info/Settings
                      (:ul
                        :id "info-menu"
@@ -1080,7 +1080,7 @@
                                             :href (sf "/~A/~A/"
                                                       (nth i expanded-dirs)
                                                       dir-name)
-                                            (fmt dir-name))))))))))))
+                                            (str dir-name))))))))))))
              (:main :id page-id
               (str content))
              ;; Login Dialog
@@ -1205,10 +1205,10 @@
       (:table :class "simple-table"
        (:tr
          (:td "Version")
-         (:td (fmt (app-version *app*))))
+         (:td (str (app-version *app*))))
        (:tr
          (:td "Last Updated")
-         (:td (fmt (pretty-time (app-last-updated *app*)))))
+         (:td (str (pretty-time (app-last-updated *app*)))))
        (:tr
          (:td "Source Code")
          (:td (:a :href "https://github.com/thiru/fileworthy"
@@ -1356,7 +1356,7 @@
               (:li
                 (:a
                   :href (url-for user)
-                  (fmt (user-name user)))))))))))
+                  (str (user-name user)))))))))))
 
 #||
 ### `PAGE-USER-DETAIL`
@@ -1812,7 +1812,7 @@
                                 (= (1+ i) (length expanded-paths)))
                          (sf "/~A" path)
                          (sf "/~A/" path))
-                       (fmt (nth i path-segs))))))))
+                       (str (nth i path-segs))))))))
         (:section :id "file-details"
          (if (or (not binary-file?) (get-parameter "force-show"))
            (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path))

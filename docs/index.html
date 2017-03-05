@@ -394,20 +394,6 @@ defined before we compile the source files that depend on it<ul>
 </ul>
 <pre><code class="lang-lisp">(in-package :fileworthy)
 </code></pre>
-<h2 id="compilation-options">Compilation Options</h2>
-<ul>
-<li>Optimise code for a production environment unless the respective development environment variable is set</li>
-</ul>
-<pre><code class="lang-lisp">(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defparameter *optimize-default*
-    (if (uiop/os:getenvp &quot;LISP_DEV&quot;)
-      &#39;(optimize (debug 3) (safety 3) (speed 0))
-      &#39;(optimize (debug 0) (safety 1) (speed 3)))))
-
-(format t &quot;~%Optimize levels: ~A~%&quot; *optimize-default*)
-
-(declaim #.*optimize-default*)
-</code></pre>
 <h2 id="app">APP</h2>
 <ul>
 <li>The <code>APP</code> struct groups general, high-level app details including<ul>

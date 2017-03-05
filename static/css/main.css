@@ -244,10 +244,30 @@ nav a
   display: inline-block;
   padding: 0.5em;
 }
-
 #info-menu
 {
-  background-color: #F7EDE9; /* VAR CREAM */
+  margin: 0 1rem;
+}
+#info-menu li
+{
+  display: inline-block;
+  padding: 0.5rem;
+}
+#info-menu li:first-child
+{
+  padding-left: 0;
+}
+#info-menu a
+{
+  background-color: inherit;
+  display: inline-block;
+  text-decoration: none;
+}
+#info-menu a:hover,
+#info-menu a:active,
+#info-menu a:focus
+{
+  color: inherit;
 }
 
 #overlay

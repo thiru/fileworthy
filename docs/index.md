@@ -1030,8 +1030,13 @@
              (:div :id "overlay" :class "hidden" " ")
              ;; Top Bar
              (:header :id "top-bar"
+              ;; Menu Icon
+              (:a
+                :href "javascript:site.toggleMenu()"
+                :title "Settings"
+                (:i :class "fa fa-bars" " "))
               ;; Site Name
-              (:a :id "app-name" :href "/"
+              (:a :id "app-name" :href "/" :title "Home"
                (str (config-site-name *config*)))
               ;; User Info
               (:div :id "user-info"
@@ -1052,18 +1057,54 @@
                        :title "Log Out"
                        (:i :class "fa fa-sign-out" "")))))
               (:div :class "clear-fix"))
+             ;; Fileworthy Info/Settings
+             (:ul
+               :id "info-menu"
+               :class (if fw-info-page?  "flat-list" "flat-list hidden")
+               (:li
+                 :class (if (string-equal "about" (nth 1 path-segs))
+                          "selected")
+                 (:a :href (url-for 'about)
+                  (:i :class "fa fa-info-circle" "")
+                  " About"))
+               (if (user-admin? user)
+                 (htm
+                   (:li
+                     :class (if (string-equal "settings"
+                                              (nth 1 path-segs))
+                              "selected")
+                     (:a :href (url-for 'settings)
+                      (:i :class "fa fa-cog" "")
+                      " Settings"))))
+               (if (not (empty? user))
+                 (htm
+                   (:li
+                     :class (if (and (string-equal
+                                       "users"
+                                       (nth 1 path-segs))
+                                     (string-equal
+                                       (to-string (user-id user))
+                                       (nth 2 path-segs)))
+                              "selected")
+                     (:a
+                       :href (url-for user)
+                       (:i :class "fa fa-user" "")
+                       " My Account"))))
+               (if (user-admin? user)
+                 (htm
+                   (:li
+                     :class (if (and (string-equal "users"
+                                                   (nth 1 path-segs))
+                                     (empty? (nth 2 path-segs)))
+                              "selected")
+                     (:a :href (url-for 'users)
+                      (:i :class "fa fa-users" "")
+                      " Users")))))
              (if (or (config-allow-anonymous-read *config*)
                      (not (empty? user)))
                (htm
                    (:nav
                      (:ul :id "main-menu-items" :class "flat-list"
-                      ;; Menu Icon
-                      (:li
-                        :class (if fw-info-page? "selected")
-                        (:a
-                          :href "javascript:site.toggleMenu()"
-                          :title "Main menu"
-                         (:i :class "fa fa-bars" " ")))
                       ;; Root Folders
                       (loop :for dir-name :in (get-dir-names user)
                             :collect (htm
@@ -1075,51 +1116,6 @@
                                              nil)
                                            :href (sf "/~A/" dir-name)
                                            (str dir-name))))))
-                     ;; Fileworthy Info/Settings
-                     (:ul
-                       :id "info-menu"
-                       :class (if fw-info-page?
-                                "sub-menu-items flat-list"
-                                "sub-menu-items flat-list hidden")
-                       (:li
-                         :class (if (string-equal "about" (nth 1 path-segs))
-                                  "selected")
-                         (:a :href (url-for 'about)
-                          (:i :class "fa fa-info-circle" "")
-                          " About"))
-                       (if (user-admin? user)
-                         (htm
-                             (:li
-                               :class (if (string-equal "settings"
-                                                        (nth 1 path-segs))
-                                        "selected")
-                               (:a :href (url-for 'settings)
-                                (:i :class "fa fa-cog" "")
-                                " Settings"))))
-                       (if (not (empty? user))
-                         (htm
-                             (:li
-                               :class (if (and (string-equal
-                                                 "users"
-                                                 (nth 1 path-segs))
-                                               (string-equal
-                                                 (to-string (user-id user))
-                                                 (nth 2 path-segs)))
-                                        "selected")
-                               (:a
-                                 :href (url-for user)
-                                 (:i :class "fa fa-user" "")
-                                 " My Account"))))
-                       (if (user-admin? user)
-                         (htm
-                             (:li
-                               :class (if (and (string-equal "users"
-                                                             (nth 1 path-segs))
-                                               (empty? (nth 2 path-segs)))
-                                        "selected")
-                               (:a :href (url-for 'users)
-                                (:i :class "fa fa-users" "")
-                                " Users")))))
                      ;; Sub-folders
                      (let* ((expanded-dirs (expand-sub-dirs path-name))
                             (sub-dir-name-lst (map 'list

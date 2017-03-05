@@ -1745,10 +1745,7 @@
 
     ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all "[^a-zA-Z0-9\\-_\\./]+" search-txt ""))
-
-    ;; Treat spaces as an implicit 'or' clause
-    (setf search-txt (ppcre:regex-replace-all "\\s+" search-txt "|"))
+          (ppcre:regex-replace-all "[^a-zA-Z0-9\\-_ \\./]+" search-txt ""))
 
     ;; Get search results (in absolute path form)
     (setf search-result
@@ -1782,11 +1779,26 @@
                        "unknown (cmd reported no info)"
                        (or std-err std-out)))))))
 
-(defun search-fs (query &optional path)
-  "Search the file-system for `QUERY`."
-  (let* ((search-result (run-cmd (sf "ag --nocolor --follow -g \"~A\" ~A"
-                                     query
-                                     (or path "")))))
+
+```
+
+#### `SEARCH-FS`
+
+* This runs ag (the silver searcher) to search for files
+* Ag command arguments include
+  * follow symlinks
+  * ignore case
+  * don't output colour codes
+
+```lisp
+(defun search-fs (pattern &optional path)
+  "Search the file-system for `pattern` at `path`."
+  (let* ((cmd (sf "ag --follow --ignore-case --nocolor -g \"~A\" ~A"
+                  pattern
+                  (or path "")))
+         (search-result nil))
+    (log-message* :info "File search cmd: ~A" cmd)
+    (setf search-result (run-cmd cmd))
     (setf (r-data search-result)
           (split-sequence #\linefeed (r-data search-result)))
     search-result))

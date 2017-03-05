@@ -1831,10 +1831,7 @@ global <code>*CONFIG*</code> object</li>
 
     ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\-_\\./]+&quot; search-txt &quot;&quot;))
-
-    ;; Treat spaces as an implicit &#39;or&#39; clause
-    (setf search-txt (ppcre:regex-replace-all &quot;\\s+&quot; search-txt &quot;|&quot;))
+          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\-_ \\./]+&quot; search-txt &quot;&quot;))
 
     ;; Get search results (in absolute path form)
     (setf search-result
@@ -1867,12 +1864,25 @@ global <code>*CONFIG*</code> object</li>
                    (if (and (empty? std-out) (empty? std-err))
                        &quot;unknown (cmd reported no info)&quot;
                        (or std-err std-out)))))))
-
-(defun search-fs (query &amp;optional path)
-  &quot;Search the file-system for `QUERY`.&quot;
-  (let* ((search-result (run-cmd (sf &quot;ag --nocolor --follow -g \&quot;~A\&quot; ~A&quot;
-                                     query
-                                     (or path &quot;&quot;)))))
+</code></pre>
+<h4 id="-search-fs-"><code>SEARCH-FS</code></h4>
+<ul>
+<li>This runs ag (the silver searcher) to search for files</li>
+<li>Ag command arguments include<ul>
+<li>follow symlinks</li>
+<li>ignore case</li>
+<li>don&#39;t output colour codes</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun search-fs (pattern &amp;optional path)
+  &quot;Search the file-system for `pattern` at `path`.&quot;
+  (let* ((cmd (sf &quot;ag --follow --ignore-case --nocolor -g \&quot;~A\&quot; ~A&quot;
+                  pattern
+                  (or path &quot;&quot;)))
+         (search-result nil))
+    (log-message* :info &quot;File search cmd: ~A&quot; cmd)
+    (setf search-result (run-cmd cmd))
     (setf (r-data search-result)
           (split-sequence #\linefeed (r-data search-result)))
     search-result))

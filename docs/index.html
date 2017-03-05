@@ -1348,10 +1348,12 @@ global <code>*CONFIG*</code> object</li>
     (gen-html
       (:h2 &quot;Not Found&quot;)
       (:p &quot;The page or resource you requested could not be found.&quot;)
-      (:p
-        (:a :href &quot;/&quot;
-         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
-         (:b &quot; Go back to the home page&quot;))))))
+      (if (not (string-equal &quot;/&quot; (script-name* *request*)))
+        (htm
+          (:p
+            (:a :href &quot;/&quot;
+             (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+             (:b &quot; Go back to the home page&quot;))))))))
 
 (defmethod acceptor-status-message (acceptor (http-status-code (eql 404)) &amp;key)
   (page-error-not-found))
@@ -1365,10 +1367,12 @@ global <code>*CONFIG*</code> object</li>
     (gen-html
       (:h2 &quot;Not Authorised&quot;)
       (:p &quot;Sorry, you don&#39;t have permission to view this page or resource.&quot;)
-      (:p
-        (:a :href &quot;/&quot;
-         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
-         (:b &quot; Go back to the home page&quot;))))))
+      (if (not (string-equal &quot;/&quot; (script-name* *request*)))
+        (htm
+          (:p
+            (:a :href &quot;/&quot;
+             (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+             (:b &quot; Go back to the home page&quot;))))))))
 
 (defun page-error-server ()
   &quot;Internal server error page.&quot;
@@ -1380,10 +1384,12 @@ global <code>*CONFIG*</code> object</li>
       (:h2 &quot;Server Error&quot;)
       (:p (sf &#39;(&quot;Sorry, it looks like something went wrong on the server. &quot;
                 &quot;Please try again later if the problem persists.&quot;)))
-      (:p
-        (:a :href &quot;/&quot;
-         (:i :class &quot;fa fa-home&quot; &quot;&quot;)
-         (:b &quot; Go back to the home page&quot;))))))
+      (if (not (string-equal &quot;/&quot; (script-name* *request*)))
+        (htm
+          (:p
+            (:a :href &quot;/&quot;
+             (:i :class &quot;fa fa-home&quot; &quot;&quot;)
+             (:b &quot; Go back to the home page&quot;))))))))
 
 (defmethod acceptor-status-message (acceptor (http-status-code (eql 500)) &amp;key)
   (page-error-server))

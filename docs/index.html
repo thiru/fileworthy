@@ -1821,6 +1821,7 @@ global <code>*CONFIG*</code> object</li>
   (setf (content-type*) &quot;application/json&quot;)
   (let* ((user (empty &#39;user :unless (session-value &#39;user)))
          (user-root-dir-length (length (get-abs-user-root-dir user)))
+         (search-type (post-parameter &quot;search-type&quot;))
          (search-txt (post-parameter &quot;search&quot;))
          (search-result nil))
 
@@ -1829,13 +1830,19 @@ global <code>*CONFIG*</code> object</li>
              (not (config-allow-anonymous-read *config*)))
       (return-from api-fs-search (json-error +http-forbidden+)))
 
-    ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\-_ \\./]+&quot; search-txt &quot;&quot;))
+          ;; Show all files if search text is &quot;*&quot;
+          (if (string-equal &quot;*&quot; search-txt)
+            &quot;&quot;
+            ;; Maybe being overly cautious on allowed characters
+            (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\-_ \\./]+&quot; search-txt &quot;&quot;)))
 
     ;; Get search results (in absolute path form)
     (setf search-result
-          (search-fs search-txt (get-abs-user-root-dir user)))
+          ;; By default search for filenames rather than file content
+          (if (string-equal &quot;content&quot; search-type)
+            (search-file-content search-txt (get-abs-user-root-dir user))
+            (search-file-names search-txt (get-abs-user-root-dir user))))
 
     ;; Trim absolute path segment
     (setf (r-data search-result)
@@ -1865,23 +1872,47 @@ global <code>*CONFIG*</code> object</li>
                        &quot;unknown (cmd reported no info)&quot;
                        (or std-err std-out)))))))
 </code></pre>
-<h4 id="-search-fs-"><code>SEARCH-FS</code></h4>
+<h4 id="-search-file-names-"><code>SEARCH-FILE-NAMES</code></h4>
 <ul>
-<li>This runs ag (the silver searcher) to search for files</li>
+<li>This runs ag (the silver searcher) to search for file names</li>
 <li>Ag command arguments include<ul>
+<li>follow symlinks</li>
+<li>ignore case</li>
+<li>don&#39;t output colour codes</li>
+<li>only match pattern against filenames</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-lisp">(defun search-file-names (pattern &amp;optional path)
+  &quot;Search for files matching `pattern` at `path`.&quot;
+  (let* ((cmd (sf &quot;ag --follow --ignore-case --nocolor -g \&quot;~A\&quot; ~A&quot;
+                  pattern
+                  (or path &quot;&quot;)))
+         (search-result nil))
+    (log-message* :info &quot;Filename search cmd: ~A&quot; cmd)
+    (setf search-result (run-cmd cmd))
+    (setf (r-data search-result)
+          (split-sequence #\linefeed (r-data search-result)))
+    search-result))
+</code></pre>
+<h4 id="-search-file-content-"><code>SEARCH-FILE-CONTENT</code></h4>
+<ul>
+<li>This runs ag (the silver searcher) to search for files containing some pattern</li>
+<li>Ag command arguments include<ul>
+<li>only output filenames</li>
 <li>follow symlinks</li>
 <li>ignore case</li>
 <li>don&#39;t output colour codes</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun search-fs (pattern &amp;optional path)
-  &quot;Search the file-system for `pattern` at `path`.&quot;
-  (let* ((cmd (sf &quot;ag --follow --ignore-case --nocolor -g \&quot;~A\&quot; ~A&quot;
+<pre><code class="lang-lisp">(defun search-file-content (pattern &amp;optional path)
+  &quot;Search for files containing text matching `pattern` within the `path`.&quot;
+  (let* ((cmd (sf &quot;ag --files-with-matches --follow --ignore-case --nocolor \&quot;~A\&quot; ~A&quot;
                   pattern
                   (or path &quot;&quot;)))
          (search-result nil))
-    (log-message* :info &quot;File search cmd: ~A&quot; cmd)
+    (log-message* :info &quot;File content search cmd: ~A&quot; cmd)
     (setf search-result (run-cmd cmd))
     (setf (r-data search-result)
           (split-sequence #\linefeed (r-data search-result)))
@@ -1954,14 +1985,19 @@ global <code>*CONFIG*</code> object</li>
       (if (empty? last-path-seg) &quot;Home&quot; last-path-seg)
       &quot;fs-path-page&quot;
       (gen-html
-        (:input
-          :id &quot;search&quot;
-          :autocomplete &quot;off&quot;
-          :placeholder &quot;Search pages&quot;
-          :onblur &quot;page.onSearchTxtBlur(event)&quot;
-          :onclick &quot;page.onSearchTxtClick(event)&quot;
-          :onkeydown &quot;page.onSearchTxtKeyDown(event)&quot;
-          :onkeyup &quot;page.onSearchTxtKeyUp(event)&quot;)
+        (:div :id &quot;search-group&quot;
+          (:select :id &quot;search-type&quot; :onchange &quot;page.onSearchTypeChanged(event)&quot;
+           (:option :value &quot;page&quot; &quot;Page&quot;)
+           (:option :value &quot;content&quot; &quot;Content&quot;))
+          (:span :id &quot;search-loading&quot; &quot;&quot;)
+          (:input
+            :id &quot;search&quot;
+            :autocomplete &quot;off&quot;
+            :placeholder &quot;Search&quot;
+            :onblur &quot;page.onSearchTxtBlur(event)&quot;
+            :onclick &quot;page.onSearchTxtClick(event)&quot;
+            :onkeydown &quot;page.onSearchTxtKeyDown(event)&quot;
+            :onkeyup &quot;page.onSearchTxtKeyUp(event)&quot;))
         (:select
           :id &quot;search-results&quot;
           :class &quot;hidden&quot;

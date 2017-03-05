@@ -210,7 +210,9 @@ page.initUserDetailPage = function() {
 // File-System Path Page -------------------------------------------------------
 page.initFileSystemPathPage = function() {
 
+  page.searchTypeEl = ui.get('search-type');
   page.searchEl = ui.get('search');
+  page.searchLoadingEl = ui.get('search-loading');
   page.searchResultsEl = ui.get('search-results');
   page.rawFileEl = ui.get('raw-file-content');
   page.selectedFileEl = ui.getQ('#files .selected');
@@ -265,16 +267,27 @@ page.initFileSystemPathPage = function() {
   }
 
   page.search = function(searchTxt) {
+    var searchType = page.searchTypeEl.value;
     searchTxt = (searchTxt || '').trim();
 
+    // Don't show any results if blank
+    if (utils.isBlank(searchTxt)) {
+      page.searchResultsEl.classList.add('hidden');
+      return;
+    }
+
     var formData = new FormData();
+    formData.append('search-type', searchType);
     formData.append('search', searchTxt);
+
+    ui.showLoading(page.searchLoadingEl, '');
 
     // Send request
     utils.post(
         '/' + site.rrp + '/api/search',
         formData,
         function (result) {
+          page.searchLoadingEl.innerHTML = '';
           if (result.succeeded())
             page.fillSearchResults(result.data);
           else
@@ -310,9 +323,13 @@ page.initFileSystemPathPage = function() {
     }
   }
 
+  page.onSearchTypeChanged = function(event) {
+    page.search(page.searchEl.value);
+  }
+
   page.onSearchTxtBlur = function(event) {
     setTimeout(function() {
-      if (document.activeElement !=  page.searchResultsEl)
+      if (document.activeElement != page.searchResultsEl)
         page.searchResultsEl.classList.add('hidden');
     }, 100);
   }

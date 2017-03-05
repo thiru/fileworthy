@@ -320,11 +320,24 @@ nav a
 
 /* ========== File Contents Page [START] ========== */
 
+#search-group
+{
+  display: flex;
+  margin-bottom: 1rem;
+}
 #search
 {
-  display: block;
-  margin-bottom: 1em;
-  width: 100%;
+  flex-grow: 1;
+}
+#search-loading
+{
+  display: inline-block;
+  text-align: center;
+  width: 1.5rem;
+}
+#search-loading > *
+{
+  vertical-align: bottom;
 }
 #search-results
 {

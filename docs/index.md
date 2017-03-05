@@ -1735,6 +1735,7 @@
   (setf (content-type*) "application/json")
   (let* ((user (empty 'user :unless (session-value 'user)))
          (user-root-dir-length (length (get-abs-user-root-dir user)))
+         (search-type (post-parameter "search-type"))
          (search-txt (post-parameter "search"))
          (search-result nil))
 
@@ -1743,13 +1744,19 @@
              (not (config-allow-anonymous-read *config*)))
       (return-from api-fs-search (json-error +http-forbidden+)))
 
-    ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all "[^a-zA-Z0-9\\-_ \\./]+" search-txt ""))
+          ;; Show all files if search text is "*"
+          (if (string-equal "*" search-txt)
+            ""
+            ;; Maybe being overly cautious on allowed characters
+            (ppcre:regex-replace-all "[^a-zA-Z0-9\\-_ \\./]+" search-txt "")))
 
     ;; Get search results (in absolute path form)
     (setf search-result
-          (search-fs search-txt (get-abs-user-root-dir user)))
+          ;; By default search for filenames rather than file content
+          (if (string-equal "content" search-type)
+            (search-file-content search-txt (get-abs-user-root-dir user))
+            (search-file-names search-txt (get-abs-user-root-dir user))))
 
     ;; Trim absolute path segment
     (setf (r-data search-result)
@@ -1782,22 +1789,48 @@
 
 ```
 
-#### `SEARCH-FS`
+#### `SEARCH-FILE-NAMES`
 
-* This runs ag (the silver searcher) to search for files
+* This runs ag (the silver searcher) to search for file names
 * Ag command arguments include
+  * follow symlinks
+  * ignore case
+  * don't output colour codes
+  * only match pattern against filenames
+
+```lisp
+(defun search-file-names (pattern &optional path)
+  "Search for files matching `pattern` at `path`."
+  (let* ((cmd (sf "ag --follow --ignore-case --nocolor -g \"~A\" ~A"
+                  pattern
+                  (or path "")))
+         (search-result nil))
+    (log-message* :info "Filename search cmd: ~A" cmd)
+    (setf search-result (run-cmd cmd))
+    (setf (r-data search-result)
+          (split-sequence #\linefeed (r-data search-result)))
+    search-result))
+
+
+```
+
+#### `SEARCH-FILE-CONTENT`
+
+* This runs ag (the silver searcher) to search for files containing some pattern
+* Ag command arguments include
+  * only output filenames
   * follow symlinks
   * ignore case
   * don't output colour codes
 
 ```lisp
-(defun search-fs (pattern &optional path)
-  "Search the file-system for `pattern` at `path`."
-  (let* ((cmd (sf "ag --follow --ignore-case --nocolor -g \"~A\" ~A"
+(defun search-file-content (pattern &optional path)
+  "Search for files containing text matching `pattern` within the `path`."
+  (let* ((cmd (sf "ag --files-with-matches --follow --ignore-case --nocolor \"~A\" ~A"
                   pattern
                   (or path "")))
          (search-result nil))
-    (log-message* :info "File search cmd: ~A" cmd)
+    (log-message* :info "File content search cmd: ~A" cmd)
     (setf search-result (run-cmd cmd))
     (setf (r-data search-result)
           (split-sequence #\linefeed (r-data search-result)))
@@ -1872,14 +1905,19 @@
       (if (empty? last-path-seg) "Home" last-path-seg)
       "fs-path-page"
       (gen-html
-        (:input
-          :id "search"
-          :autocomplete "off"
-          :placeholder "Search pages"
-          :onblur "page.onSearchTxtBlur(event)"
-          :onclick "page.onSearchTxtClick(event)"
-          :onkeydown "page.onSearchTxtKeyDown(event)"
-          :onkeyup "page.onSearchTxtKeyUp(event)")
+        (:div :id "search-group"
+          (:select :id "search-type" :onchange "page.onSearchTypeChanged(event)"
+           (:option :value "page" "Page")
+           (:option :value "content" "Content"))
+          (:span :id "search-loading" "")
+          (:input
+            :id "search"
+            :autocomplete "off"
+            :placeholder "Search"
+            :onblur "page.onSearchTxtBlur(event)"
+            :onclick "page.onSearchTxtClick(event)"
+            :onkeydown "page.onSearchTxtKeyDown(event)"
+            :onkeyup "page.onSearchTxtKeyUp(event)"))
         (:select
           :id "search-results"
           :class "hidden"

@@ -1291,7 +1291,7 @@ global <code>*CONFIG*</code> object</li>
                                                       dir-name)
                                             (fmt dir-name))))))))))))
              (:main :id page-id
-              (fmt content))
+              (str content))
              ;; Login Dialog
              (:section :id &quot;login-dialog&quot; :class &quot;dialog&quot;
               (:div :class &quot;dialog-content&quot;
@@ -1977,7 +1977,7 @@ global <code>*CONFIG*</code> object</li>
                (:td
                  (:a
                    :href file-name
-                   (fmt file-name)))
+                   (str file-name)))
                (:td
                  (:a
                    :class &quot;download&quot;

@@ -1154,7 +1154,7 @@
                                                       dir-name)
                                             (fmt dir-name))))))))))))
              (:main :id page-id
-              (fmt content))
+              (str content))
              ;; Login Dialog
              (:section :id "login-dialog" :class "dialog"
               (:div :class "dialog-content"
@@ -1893,7 +1893,7 @@
                (:td
                  (:a
                    :href file-name
-                   (fmt file-name)))
+                   (str file-name)))
                (:td
                  (:a
                    :class "download"

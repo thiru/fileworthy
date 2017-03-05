@@ -1194,11 +1194,6 @@ global <code>*CONFIG*</code> object</li>
                (htm
                    (:nav
                      (:ul :id &quot;main-menu-items&quot; :class &quot;flat-list&quot;
-                      ;; Home Folder Icon
-                      (:li
-                        :class (if (empty? first-path-seg) &quot;selected&quot;)
-                        (:a :href &quot;/&quot; :title &quot;Home&quot;
-                         (:i :class &quot;fa fa-home&quot; &quot;&quot;)))
                       ;; Menu Icon
                       (:li
                         :class (if fw-info-page? &quot;selected&quot;)

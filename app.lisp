@@ -985,11 +985,6 @@
                (htm
                    (:nav
                      (:ul :id "main-menu-items" :class "flat-list"
-                      ;; Home Folder Icon
-                      (:li
-                        :class (if (empty? first-path-seg) "selected")
-                        (:a :href "/" :title "Home"
-                         (:i :class "fa fa-home" "")))
                       ;; Menu Icon
                       (:li
                         :class (if fw-info-page? "selected")

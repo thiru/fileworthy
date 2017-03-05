@@ -1831,7 +1831,7 @@ global <code>*CONFIG*</code> object</li>
 
     ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\./]+&quot; search-txt &quot;&quot;))
+          (ppcre:regex-replace-all &quot;[^a-zA-Z0-9\\-_\\./]+&quot; search-txt &quot;&quot;))
 
     ;; Treat spaces as an implicit &#39;or&#39; clause
     (setf search-txt (ppcre:regex-replace-all &quot;\\s+&quot; search-txt &quot;|&quot;))

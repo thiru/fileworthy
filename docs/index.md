@@ -1745,7 +1745,7 @@
 
     ;; Maybe being overly cautious on allowed characters
     (setf search-txt
-          (ppcre:regex-replace-all "[^a-zA-Z0-9\\./]+" search-txt ""))
+          (ppcre:regex-replace-all "[^a-zA-Z0-9\\-_\\./]+" search-txt ""))
 
     ;; Treat spaces as an implicit 'or' clause
     (setf search-txt (ppcre:regex-replace-all "\\s+" search-txt "|"))

@@ -1795,13 +1795,14 @@
 * Ag command arguments include
   * follow symlinks
   * ignore case
-  * don't output colour codes
   * only match pattern against filenames
+* TODO: Add support for case-insensitive glob pattern matching
+  * maybe this can be done by replacing every letter like so: "test" -> "[Tt][Ee][Ss][Tt]"
 
 ```lisp
 (defun search-file-names (pattern &optional path)
   "Search for files matching `pattern` at `path`."
-  (let* ((cmd (sf "ag --follow --ignore-case --nocolor -g \"~A\" ~A"
+  (let* ((cmd (sf "rg --follow --ignore-case -g '*~A*' --files ~A"
                   pattern
                   (or path "")))
          (search-result nil))
@@ -1820,13 +1821,16 @@
 * Ag command arguments include
   * only output filenames
   * follow symlinks
+  * treat `pattern` as a simple string rather than a regular expression
   * ignore case
   * don't output colour codes
+* TODO: try to add smart support for searching binary files
+  * e.g. search doc and docx but not large binaries like mp4, etc.
 
 ```lisp
 (defun search-file-content (pattern &optional path)
   "Search for files containing text matching `pattern` within the `path`."
-  (let* ((cmd (sf "ag --files-with-matches --follow --ignore-case --nocolor \"~A\" ~A"
+  (let* ((cmd (sf "rg --files-with-matches --fixed-strings --follow --ignore-case '~A' ~A"
                   pattern
                   (or path "")))
          (search-result nil))
@@ -1995,5 +1999,8 @@
                (:a
                  :href (sf "~A?force-show" curr-file-name)
                  "display it anyway.")))))))))
+
+```
+lay it anyway.")))))))))
 
 ```

@@ -1878,14 +1878,17 @@ global <code>*CONFIG*</code> object</li>
 <li>Ag command arguments include<ul>
 <li>follow symlinks</li>
 <li>ignore case</li>
-<li>don&#39;t output colour codes</li>
 <li>only match pattern against filenames</li>
+</ul>
+</li>
+<li>TODO: Add support for case-insensitive glob pattern matching<ul>
+<li>maybe this can be done by replacing every letter like so: &quot;test&quot; -&gt; &quot;[Tt][Ee][Ss][Tt]&quot;</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun search-file-names (pattern &amp;optional path)
   &quot;Search for files matching `pattern` at `path`.&quot;
-  (let* ((cmd (sf &quot;ag --follow --ignore-case --nocolor -g \&quot;~A\&quot; ~A&quot;
+  (let* ((cmd (sf &quot;rg --follow --ignore-case -g &#39;*~A*&#39; --files ~A&quot;
                   pattern
                   (or path &quot;&quot;)))
          (search-result nil))
@@ -1901,14 +1904,19 @@ global <code>*CONFIG*</code> object</li>
 <li>Ag command arguments include<ul>
 <li>only output filenames</li>
 <li>follow symlinks</li>
+<li>treat <code>pattern</code> as a simple string rather than a regular expression</li>
 <li>ignore case</li>
 <li>don&#39;t output colour codes</li>
+</ul>
+</li>
+<li>TODO: try to add smart support for searching binary files<ul>
+<li>e.g. search doc and docx but not large binaries like mp4, etc.</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun search-file-content (pattern &amp;optional path)
   &quot;Search for files containing text matching `pattern` within the `path`.&quot;
-  (let* ((cmd (sf &quot;ag --files-with-matches --follow --ignore-case --nocolor \&quot;~A\&quot; ~A&quot;
+  (let* ((cmd (sf &quot;rg --files-with-matches --fixed-strings --follow --ignore-case &#39;~A&#39; ~A&quot;
                   pattern
                   (or path &quot;&quot;)))
          (search-result nil))
@@ -2076,4 +2084,6 @@ global <code>*CONFIG*</code> object</li>
                  :href (sf &quot;~A?force-show&quot; curr-file-name)
                  &quot;display it anyway.&quot;)))))))))
 </code></pre>
+<p>lay it anyway.&quot;)))))))))</p>
+<p>```</p>
        </body></html>

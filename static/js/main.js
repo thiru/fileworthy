@@ -380,6 +380,8 @@ page.initFileSystemPathPage = function() {
     if (event.key == 'Enter') {
       if (utils.isBlank(page.searchEl.value))
         page.searchEl.value = '*';
+      else
+        page.search();
     }
     // Focus first search item on down arrow
     else if (event.key == 'ArrowDown' &&

@@ -268,6 +268,10 @@ page.initFileSystemPathPage = function() {
 
   page.search = function(searchTxt) {
     var searchType = page.searchTypeEl.value;
+
+    if (!searchTxt)
+      searchTxt = page.searchEl.value;
+
     searchTxt = (searchTxt || '').trim();
 
     // Don't show any results if blank
@@ -327,7 +331,7 @@ page.initFileSystemPathPage = function() {
   }
 
   page.onSearchTypeChanged = function(event) {
-    page.search(page.searchEl.value);
+    page.search();
   }
 
   page.onSearchTxtClick = function(event) {
@@ -353,10 +357,8 @@ page.initFileSystemPathPage = function() {
 
   page.onSearchTxtKeyUp = function(event) {
     if (event.key == 'Enter') {
-      var searchTxt = page.searchEl.value;
-      if (utils.isBlank(searchTxt))
-        searchTxt = '*';
-      page.search(searchTxt);
+      if (utils.isBlank(page.searchEl.value))
+        page.searchEl.value = '*';
     }
     // Focus first search item on down arrow
     else if (event.key == 'ArrowDown' &&

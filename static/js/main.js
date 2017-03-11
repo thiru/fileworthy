@@ -212,7 +212,7 @@ page.initFileSystemPathPage = function() {
 
   page.searchTypeEl = ui.get('search-type');
   page.searchEl = ui.get('search');
-  page.searchLoadingEl = ui.get('search-loading');
+  page.searchInfoEl = ui.get('search-info');
   page.searchResultsEl = ui.get('search-results');
   page.rawFileEl = ui.get('raw-file-content');
   page.selectedFileEl = ui.getQ('#files .selected');
@@ -272,6 +272,7 @@ page.initFileSystemPathPage = function() {
 
     // Don't show any results if blank
     if (utils.isBlank(searchTxt)) {
+      page.searchInfoEl.classList.add('hidden');
       page.searchResultsEl.classList.add('hidden');
       return;
     }
@@ -280,14 +281,14 @@ page.initFileSystemPathPage = function() {
     formData.append('search-type', searchType);
     formData.append('search', searchTxt);
 
-    ui.showLoading(page.searchLoadingEl, '');
+    ui.showLoading(page.searchInfoEl, 'Searching...');
 
     // Send request
     utils.post(
         '/' + site.rrp + '/api/search',
         formData,
         function (result) {
-          page.searchLoadingEl.innerHTML = '';
+          page.searchInfoEl.innerHTML = '';
           if (result.succeeded())
             page.fillSearchResults(result.data);
           else
@@ -296,9 +297,10 @@ page.initFileSystemPathPage = function() {
   }
 
   page.showNoMatches = function() {
-    page.searchResultsEl.innerHTML = '<option>No matches</option>';
-    page.searchResultsEl.size = 2;
-    page.searchResultsEl.classList.remove('hidden');
+    page.searchResultsEl.innerHTML = '';
+    page.searchResultsEl.classList.add('hidden');
+    page.searchInfoEl.innerText = 'No matches';
+    page.searchInfoEl.className = 'warning';
   }
 
   page.fillSearchResults = function(newItems) {

@@ -329,16 +329,6 @@ nav a
 {
   flex-grow: 1;
 }
-#search-loading
-{
-  display: inline-block;
-  text-align: center;
-  width: 1.5rem;
-}
-#search-loading > *
-{
-  vertical-align: bottom;
-}
 #search-results
 {
   display: block;

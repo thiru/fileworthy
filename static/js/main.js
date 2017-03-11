@@ -342,7 +342,8 @@ page.initFileSystemPathPage = function() {
       page.searchResultsEl.classList.add('hidden');
     }
     // Vim-like motion to select first item
-    else if (event.ctrlKey && event.key == 'j') {
+    else if (event.ctrlKey && event.key == 'j' &&
+             page.searchResultsEl.options.length) {
       event.preventDefault();
       page.searchResultsEl.classList.remove('hidden');
       page.searchResultsEl.selectedIndex = 0;
@@ -358,7 +359,8 @@ page.initFileSystemPathPage = function() {
       page.search(searchTxt);
     }
     // Focus first search item on down arrow
-    else if (event.key == 'ArrowDown') {
+    else if (event.key == 'ArrowDown' &&
+             page.searchResultsEl.options.length) {
       page.searchResultsEl.classList.remove('hidden');
       page.searchResultsEl.selectedIndex = 0;
       page.searchResultsEl.focus();

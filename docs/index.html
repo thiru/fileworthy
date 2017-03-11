@@ -458,6 +458,14 @@ defined before we compile the source files that depend on it<ul>
 <li>whether users that are not logged in are able to access the website</li>
 </ul>
 </li>
+<li><code>BIN-FILES-GLOB</code><ul>
+<li>glob pattern to be used when searching within binary files</li>
+<li>this is used by ripgrep<ul>
+<li>which currently supports .gitignore style glob patterns</li>
+</ul>
+</li>
+</ul>
+</li>
 <li><code>RESERVED-RESOURCE-PATH</code><ul>
 <li>the path within the site that is reserved for app-specific resources</li>
 <li>essentially everything outside of a file-system path designation:<ul>
@@ -484,6 +492,7 @@ defined before we compile the source files that depend on it<ul>
   (root-dir &quot;&quot; :type STRING)
   (port 0 :type INTEGER)
   (allow-anonymous-read t)
+  (bin-files-glob)
   (reserved-resource-path &quot;&quot; :type STRING)
   (next-user-id 1 :type INTEGER)
   (users &#39;() :type LIST))
@@ -1463,6 +1472,18 @@ global <code>*CONFIG*</code> object</li>
                    (:input :id &quot;anon-read&quot; :type &quot;checkbox&quot;)))
              (:div :class &quot;clear-fix&quot;)))
          (:li
+           :title (sf &#39;(&quot;The glob pattern specifying binary files to search. &quot;
+                        &quot;Leaving this blank will search ALL binary files and &quot;
+                        &quot;may be VERY SLOW depending on the number and size &quot;
+                        &quot;of binary files in your root folder.&quot;))
+           (:label
+             (:span &quot;Binary file search glob&quot;)
+             (:input
+               :id &quot;bin-files-glob&quot;
+               :value (config-bin-files-glob *config*))
+             (:div :class &quot;clear-fix&quot;))
+           )
+         (:li
            (:label
              (:span &quot;Reserved Resource Path&quot;)
              (:input
@@ -1486,6 +1507,7 @@ global <code>*CONFIG*</code> object</li>
          (port (loose-parse-int (post-parameter &quot;port&quot;)))
          (port-changed? (/= port (config-port *config*)))
          (anon-read? (parse-js-bool (post-parameter &quot;anonRead&quot;)))
+         (bin-files-glob (post-parameter &quot;binFilesGlob&quot;))
          (rrp (post-parameter &quot;rrp&quot;))
          (rrp-changed? (not (string= rrp
                                      (config-reserved-resource-path *config*))))
@@ -1512,6 +1534,7 @@ global <code>*CONFIG*</code> object</li>
                (setf (config-root-dir *config*) root-dir)
                (setf (config-port *config*) port)
                (setf (config-allow-anonymous-read *config*) anon-read?)
+               (setf (config-bin-files-glob *config*) bin-files-glob)
                (setf (config-reserved-resource-path *config*) rrp))))
 
     ;; Return success/failure
@@ -1923,8 +1946,8 @@ global <code>*CONFIG*</code> object</li>
                (or path &quot;&quot;)))
          (bin-search-cmd
            (sf &#39;(&quot;rg --files-with-matches --fixed-strings --follow&quot;
-                 &quot; --glob &#39;*.{doc,docx,odt,pdf,ppt,pptx}&#39; --ignore-case --text&quot;
-                 &quot; &#39;~A&#39; ~A&quot;)
+                 &quot; --glob &#39;~A&#39; --ignore-case --text &#39;~A&#39; ~A&quot;)
+               (config-bin-files-glob *config*)
                pattern
                (or path &quot;&quot;)))
          (text-search-result nil)

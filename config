@@ -3,6 +3,7 @@
    :ROOT-DIR ""
    :PORT 9090
    :ALLOW-ANONYMOUS-READ T
+   :BIN-FILES-GLOB "*.{doc,docx,odt,pdf,ppt,pptx}"
    :RESERVED-RESOURCE-PATH "fw"
    :NEXT-USER-ID 2
    :USERS (#S(FILEWORTHY::USER

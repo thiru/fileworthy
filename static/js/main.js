@@ -96,6 +96,7 @@ page.initSettingsPage = function() {
       rootDir: ui.get('root-dir').value,
       port: parseInt(ui.get('port').value),
       anonRead: (ui.get('anon-read') || {}).checked,
+      binFilesGlob: ui.get('bin-files-glob').value,
       rrp: ui.get('rrp').value.replace(/^\/+|\/+$/g, '')
     };
 
@@ -120,6 +121,7 @@ page.initSettingsPage = function() {
     formData.append('rootDir', settings.rootDir);
     formData.append('port', settings.port);
     formData.append('anonRead', settings.anonRead);
+    formData.append('binFilesGlob', settings.binFilesGlob);
     formData.append('rrp', settings.rrp);
 
     // Send request

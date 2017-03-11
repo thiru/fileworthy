@@ -1803,13 +1803,22 @@
           (:input
             :id "search"
             :autocomplete "off"
-            :placeholder "Search"
+            :placeholder "Search page names"
             :onclick "page.onSearchTxtClick(event)"
             :onkeydown "page.onSearchTxtKeyDown(event)"
             :onkeyup "page.onSearchTxtKeyUp(event)")
-          (:select :id "search-type" :onchange "page.onSearchTypeChanged(event)"
-           (:option :value "page" "Page")
-           (:option :value "content" "Content")))
+          (:select
+            :id "search-type"
+            :onchange "page.onSearchTypeChange(event)"
+            :title "Select the type of search to perform"
+           (:option
+             :data-long-text "Search page names"
+             :value "page"
+             "Pages")
+           (:option
+             :data-long-text "Search page content"
+             :value "content"
+             "Content")))
         (:div :id "search-info" "")
         (:select
           :id "search-results"

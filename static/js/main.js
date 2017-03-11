@@ -274,10 +274,11 @@ page.initFileSystemPathPage = function() {
 
     searchTxt = (searchTxt || '').trim();
 
-    // Don't show any results if blank
+    // Don't show any results if blank, and clear any existing results
     if (utils.isBlank(searchTxt)) {
       page.searchInfoEl.classList.add('hidden');
       page.searchResultsEl.classList.add('hidden');
+      page.searchResultsEl.innerHTML = '';
       return;
     }
 
@@ -330,8 +331,9 @@ page.initFileSystemPathPage = function() {
     }
   }
 
-  page.onSearchTypeChanged = function(event) {
-    page.search();
+  page.onSearchTypeChange = function(event) {
+    var idx = page.searchTypeEl.selectedIndex;
+    page.searchEl.placeholder = page.searchTypeEl.options[idx].dataset.longText;
   }
 
   page.onSearchTxtClick = function(event) {
@@ -344,6 +346,25 @@ page.initFileSystemPathPage = function() {
     if (event.key == 'Escape' || event.key == 'Esc') {
       event.preventDefault();
       page.searchResultsEl.classList.add('hidden');
+    }
+    // Choose previous search type (if search text is blank)
+    else if (event.key == 'ArrowUp' && utils.isBlank(page.searchEl.value)) {
+      event.preventDefault();
+      if (page.searchTypeEl.selectedIndex <= 0)
+        page.searchTypeEl.selectedIndex = page.searchTypeEl.options.length - 1;
+      else
+        page.searchTypeEl.selectedIndex--;
+      page.onSearchTypeChange();
+    }
+    // Choose next search type (if search text is blank)
+    else if (event.key == 'ArrowDown' && utils.isBlank(page.searchEl.value)) {
+      event.preventDefault();
+      if (page.searchTypeEl.selectedIndex >=
+          (page.searchTypeEl.options.length - 1))
+        page.searchTypeEl.selectedIndex = 0;
+      else
+        page.searchTypeEl.selectedIndex++;
+      page.onSearchTypeChange();
     }
     // Vim-like motion to select first item
     else if (event.ctrlKey && event.key == 'j' &&

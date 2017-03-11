@@ -1802,14 +1802,16 @@
 ```lisp
 (defun search-file-names (pattern &optional path)
   "Search for files matching `pattern` at `path`."
-  (let* ((cmd (sf "rg --follow --ignore-case -g '*~A*' --files ~A"
-                  pattern
+  (let* ((cmd (sf "rg --follow --ignore-case -g '~A' --files ~A"
+                  (if (empty? pattern) pattern (sf "*~A*" pattern))
                   (or path "")))
          (search-result nil))
     (log-message* :info "Filename search cmd: ~A" cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (split-sequence #\linefeed (r-data search-result)))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #'string-lessp)))
     search-result))
 
 
@@ -1836,8 +1838,10 @@
          (search-result nil))
     (log-message* :info "File content search cmd: ~A" cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (split-sequence #\linefeed (r-data search-result)))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #'string-lessp)))
     search-result))
 
 
@@ -1999,8 +2003,5 @@
                (:a
                  :href (sf "~A?force-show" curr-file-name)
                  "display it anyway.")))))))))
-
-```
-lay it anyway.")))))))))
 
 ```

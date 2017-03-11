@@ -1700,8 +1700,10 @@
          (search-result nil))
     (log-message* :info "Filename search cmd: ~A" cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (sort (split-sequence #\linefeed (r-data search-result)) #'string-lessp))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #'string-lessp)))
     search-result))
 
 #||
@@ -1725,8 +1727,10 @@
          (search-result nil))
     (log-message* :info "File content search cmd: ~A" cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (sort (split-sequence #\linefeed (r-data search-result)) #'string-lessp))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #'string-lessp)))
     search-result))
 
 #||

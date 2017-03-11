@@ -1888,14 +1888,16 @@ global <code>*CONFIG*</code> object</li>
 </ul>
 <pre><code class="lang-lisp">(defun search-file-names (pattern &amp;optional path)
   &quot;Search for files matching `pattern` at `path`.&quot;
-  (let* ((cmd (sf &quot;rg --follow --ignore-case -g &#39;*~A*&#39; --files ~A&quot;
-                  pattern
+  (let* ((cmd (sf &quot;rg --follow --ignore-case -g &#39;~A&#39; --files ~A&quot;
+                  (if (empty? pattern) pattern (sf &quot;*~A*&quot; pattern))
                   (or path &quot;&quot;)))
          (search-result nil))
     (log-message* :info &quot;Filename search cmd: ~A&quot; cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (split-sequence #\linefeed (r-data search-result)))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #&#39;string-lessp)))
     search-result))
 </code></pre>
 <h4 id="-search-file-content-"><code>SEARCH-FILE-CONTENT</code></h4>
@@ -1922,8 +1924,10 @@ global <code>*CONFIG*</code> object</li>
          (search-result nil))
     (log-message* :info &quot;File content search cmd: ~A&quot; cmd)
     (setf search-result (run-cmd cmd))
-    (setf (r-data search-result)
-          (split-sequence #\linefeed (r-data search-result)))
+    (if (succeeded? search-result)
+      (setf (r-data search-result)
+            (sort (split-sequence #\linefeed (r-data search-result))
+                  #&#39;string-lessp)))
     search-result))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
@@ -2084,6 +2088,4 @@ global <code>*CONFIG*</code> object</li>
                  :href (sf &quot;~A?force-show&quot; curr-file-name)
                  &quot;display it anyway.&quot;)))))))))
 </code></pre>
-<p>lay it anyway.&quot;)))))))))</p>
-<p>```</p>
        </body></html>

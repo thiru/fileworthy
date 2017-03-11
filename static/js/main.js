@@ -298,6 +298,7 @@ page.initFileSystemPathPage = function() {
   page.showNoMatches = function() {
     page.searchResultsEl.innerHTML = '<option>No matches</option>';
     page.searchResultsEl.size = 2;
+    page.searchResultsEl.classList.remove('hidden');
   }
 
   page.fillSearchResults = function(newItems) {

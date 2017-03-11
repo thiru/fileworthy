@@ -358,8 +358,14 @@ page.initFileSystemPathPage = function() {
   }
 
   page.onSearchTxtKeyUp = function(event) {
+    if (event.key == 'Enter') {
+      var searchTxt = page.searchEl.value;
+      if (utils.isBlank(searchTxt))
+        searchTxt = '*';
+      page.search(searchTxt);
+    }
     // Focus first search item on down arrow
-    if (event.key == 'ArrowDown') {
+    else if (event.key == 'ArrowDown') {
       page.searchResultsEl.classList.remove('hidden');
       page.searchResultsEl.selectedIndex = 0;
       page.searchResultsEl.focus();

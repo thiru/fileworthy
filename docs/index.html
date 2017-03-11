@@ -1874,11 +1874,12 @@ global <code>*CONFIG*</code> object</li>
 </code></pre>
 <h4 id="-search-file-names-"><code>SEARCH-FILE-NAMES</code></h4>
 <ul>
-<li>This runs ag (the silver searcher) to search for file names</li>
-<li>Ag command arguments include<ul>
-<li>follow symlinks</li>
-<li>ignore case</li>
-<li>only match pattern against filenames</li>
+<li>This runs rg (ripgrep) to search for file names</li>
+<li>rg command arguments include<ul>
+<li><code>--files</code>: only match pattern against filenames (i.e. not file content)</li>
+<li><code>--follow</code>: follow symlinks</li>
+<li><code>--glob</code>: include/exclude file pattern</li>
+<li><code>--ignore-case</code>: case insensitive search</li>
 </ul>
 </li>
 <li>TODO: Add support for case-insensitive glob pattern matching<ul>
@@ -1888,7 +1889,7 @@ global <code>*CONFIG*</code> object</li>
 </ul>
 <pre><code class="lang-lisp">(defun search-file-names (pattern &amp;optional path)
   &quot;Search for files matching `pattern` at `path`.&quot;
-  (let* ((cmd (sf &quot;rg --follow --ignore-case -g &#39;~A&#39; --files ~A&quot;
+  (let* ((cmd (sf &quot;rg --follow --ignore-case --glob &#39;~A&#39; --files ~A&quot;
                   (if (empty? pattern) pattern (sf &quot;*~A*&quot; pattern))
                   (or path &quot;&quot;)))
          (search-result nil))
@@ -1902,33 +1903,60 @@ global <code>*CONFIG*</code> object</li>
 </code></pre>
 <h4 id="-search-file-content-"><code>SEARCH-FILE-CONTENT</code></h4>
 <ul>
-<li>This runs ag (the silver searcher) to search for files containing some pattern</li>
-<li>Ag command arguments include<ul>
-<li>only output filenames</li>
-<li>follow symlinks</li>
-<li>treat <code>pattern</code> as a simple string rather than a regular expression</li>
-<li>ignore case</li>
-<li>don&#39;t output colour codes</li>
-</ul>
-</li>
-<li>TODO: try to add smart support for searching binary files<ul>
-<li>e.g. search doc and docx but not large binaries like mp4, etc.</li>
+<li>This runs rg (ripgrep) to search for files containing some pattern</li>
+<li>rg command arguments include<ul>
+<li><code>--files-with-matches</code>: only output filenames (i.e. don&#39;t output matching content within file)</li>
+<li><code>--fixed-strings</code>: treat <code>pattern</code> as a literal string instead of a regular expression</li>
+<li><code>--follow</code>: follow symlinks</li>
+<li><code>--glob</code>: include/exclude file pattern</li>
+<li><code>--ignore-case</code>: case insensitive search</li>
+<li><code>--text</code>: search binary files as if they were text</li>
 </ul>
 </li>
 </ul>
 <pre><code class="lang-lisp">(defun search-file-content (pattern &amp;optional path)
   &quot;Search for files containing text matching `pattern` within the `path`.&quot;
-  (let* ((cmd (sf &quot;rg --files-with-matches --fixed-strings --follow --ignore-case &#39;~A&#39; ~A&quot;
-                  pattern
-                  (or path &quot;&quot;)))
-         (search-result nil))
-    (log-message* :info &quot;File content search cmd: ~A&quot; cmd)
-    (setf search-result (run-cmd cmd))
-    (if (succeeded? search-result)
-      (setf (r-data search-result)
-            (sort (split-sequence #\linefeed (r-data search-result))
-                  #&#39;string-lessp)))
-    search-result))
+  (let* ((text-search-cmd
+           (sf &#39;(&quot;rg --files-with-matches --fixed-strings --follow&quot;
+                 &quot; --ignore-case &#39;~A&#39; ~A&quot;)
+               pattern
+               (or path &quot;&quot;)))
+         (bin-search-cmd
+           (sf &#39;(&quot;rg --files-with-matches --fixed-strings --follow&quot;
+                 &quot; --glob &#39;*.{doc,docx,odt,pdf,ppt,pptx}&#39; --ignore-case --text&quot;
+                 &quot; &#39;~A&#39; ~A&quot;)
+               pattern
+               (or path &quot;&quot;)))
+         (text-search-result nil)
+         (bin-search-result nil)
+         (file-matches &#39;()))
+
+    ;; First search text files
+    (log-message* :info &quot;Text file content search cmd: ~A&quot; text-search-cmd)
+    (setf text-search-result (run-cmd text-search-cmd))
+    (if (succeeded? text-search-result)
+      (setf file-matches
+            (split-sequence #\linefeed (r-data text-search-result))))
+    (format t &quot;TEXT-MATCHES: ~A~%&quot; file-matches)
+
+    ;; Then search binary files
+    (log-message* :info &quot;Binary file content search cmd: ~A&quot; bin-search-cmd)
+    (setf bin-search-result (run-cmd bin-search-cmd))
+    (if (succeeded? bin-search-result)
+      (setf file-matches
+            (append file-matches
+                    (split-sequence #\linefeed (r-data bin-search-result)))))
+
+    ;; Join results and sort
+    (if (empty? file-matches)
+      (new-r :error
+             (string-trim
+               &quot; &quot;
+               (concatenate &#39;string
+                            (r-message text-search-result)
+                            &quot; &quot;
+                            (r-message bin-search-result))))
+      (new-r :success &quot;&quot; (sort file-matches #&#39;string-lessp)))))
 </code></pre>
 <h3 id="-page-fs-path-"><code>PAGE-FS-PATH</code></h3>
 <ul>
@@ -1998,23 +2026,30 @@ global <code>*CONFIG*</code> object</li>
       &quot;fs-path-page&quot;
       (gen-html
         (:div :id &quot;search-group&quot;
-          (:select :id &quot;search-type&quot; :onchange &quot;page.onSearchTypeChanged(event)&quot;
-           (:option :value &quot;page&quot; &quot;Page&quot;)
-           (:option :value &quot;content&quot; &quot;Content&quot;))
-          (:span :id &quot;search-loading&quot; &quot;&quot;)
           (:input
             :id &quot;search&quot;
             :autocomplete &quot;off&quot;
-            :placeholder &quot;Search&quot;
-            :onblur &quot;page.onSearchTxtBlur(event)&quot;
+            :placeholder &quot;Search page names&quot;
             :onclick &quot;page.onSearchTxtClick(event)&quot;
             :onkeydown &quot;page.onSearchTxtKeyDown(event)&quot;
-            :onkeyup &quot;page.onSearchTxtKeyUp(event)&quot;))
+            :onkeyup &quot;page.onSearchTxtKeyUp(event)&quot;)
+          (:select
+            :id &quot;search-type&quot;
+            :onchange &quot;page.onSearchTypeChange(event)&quot;
+            :title &quot;Select the type of search to perform&quot;
+           (:option
+             :data-long-text &quot;Search page names&quot;
+             :value &quot;page&quot;
+             &quot;Pages&quot;)
+           (:option
+             :data-long-text &quot;Search page content&quot;
+             :value &quot;content&quot;
+             &quot;Content&quot;)))
+        (:div :id &quot;search-info&quot; &quot;&quot;)
         (:select
           :id &quot;search-results&quot;
           :class &quot;hidden&quot;
           :data-default-size &quot;10&quot;
-          :onblur &quot;page.onSearchResultsBlur(event)&quot;
           :onclick &quot;page.onSearchResultsClick(event)&quot;
           :onkeydown &quot;page.onSearchResultsKeyDown(event)&quot;
           :size 10)

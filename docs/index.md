@@ -1791,18 +1791,19 @@
 
 #### `SEARCH-FILE-NAMES`
 
-* This runs ag (the silver searcher) to search for file names
-* Ag command arguments include
-  * follow symlinks
-  * ignore case
-  * only match pattern against filenames
+* This runs rg (ripgrep) to search for file names
+* rg command arguments include
+  * `--files`: only match pattern against filenames (i.e. not file content)
+  * `--follow`: follow symlinks
+  * `--glob`: include/exclude file pattern
+  * `--ignore-case`: case insensitive search
 * TODO: Add support for case-insensitive glob pattern matching
   * maybe this can be done by replacing every letter like so: "test" -> "[Tt][Ee][Ss][Tt]"
 
 ```lisp
 (defun search-file-names (pattern &optional path)
   "Search for files matching `pattern` at `path`."
-  (let* ((cmd (sf "rg --follow --ignore-case -g '~A' --files ~A"
+  (let* ((cmd (sf "rg --follow --ignore-case --glob '~A' --files ~A"
                   (if (empty? pattern) pattern (sf "*~A*" pattern))
                   (or path "")))
          (search-result nil))
@@ -1819,30 +1820,59 @@
 
 #### `SEARCH-FILE-CONTENT`
 
-* This runs ag (the silver searcher) to search for files containing some pattern
-* Ag command arguments include
-  * only output filenames
-  * follow symlinks
-  * treat `pattern` as a simple string rather than a regular expression
-  * ignore case
-  * don't output colour codes
-* TODO: try to add smart support for searching binary files
-  * e.g. search doc and docx but not large binaries like mp4, etc.
+* This runs rg (ripgrep) to search for files containing some pattern
+* rg command arguments include
+  * `--files-with-matches`: only output filenames (i.e. don't output matching content within file)
+  * `--fixed-strings`: treat `pattern` as a literal string instead of a regular expression
+  * `--follow`: follow symlinks
+  * `--glob`: include/exclude file pattern
+  * `--ignore-case`: case insensitive search
+  * `--text`: search binary files as if they were text
 
 ```lisp
 (defun search-file-content (pattern &optional path)
   "Search for files containing text matching `pattern` within the `path`."
-  (let* ((cmd (sf "rg --files-with-matches --fixed-strings --follow --ignore-case '~A' ~A"
-                  pattern
-                  (or path "")))
-         (search-result nil))
-    (log-message* :info "File content search cmd: ~A" cmd)
-    (setf search-result (run-cmd cmd))
-    (if (succeeded? search-result)
-      (setf (r-data search-result)
-            (sort (split-sequence #\linefeed (r-data search-result))
-                  #'string-lessp)))
-    search-result))
+  (let* ((text-search-cmd
+           (sf '("rg --files-with-matches --fixed-strings --follow"
+                 " --ignore-case '~A' ~A")
+               pattern
+               (or path "")))
+         (bin-search-cmd
+           (sf '("rg --files-with-matches --fixed-strings --follow"
+                 " --glob '*.{doc,docx,odt,pdf,ppt,pptx}' --ignore-case --text"
+                 " '~A' ~A")
+               pattern
+               (or path "")))
+         (text-search-result nil)
+         (bin-search-result nil)
+         (file-matches '()))
+
+    ;; First search text files
+    (log-message* :info "Text file content search cmd: ~A" text-search-cmd)
+    (setf text-search-result (run-cmd text-search-cmd))
+    (if (succeeded? text-search-result)
+      (setf file-matches
+            (split-sequence #\linefeed (r-data text-search-result))))
+    (format t "TEXT-MATCHES: ~A~%" file-matches)
+
+    ;; Then search binary files
+    (log-message* :info "Binary file content search cmd: ~A" bin-search-cmd)
+    (setf bin-search-result (run-cmd bin-search-cmd))
+    (if (succeeded? bin-search-result)
+      (setf file-matches
+            (append file-matches
+                    (split-sequence #\linefeed (r-data bin-search-result)))))
+
+    ;; Join results and sort
+    (if (empty? file-matches)
+      (new-r :error
+             (string-trim
+               " "
+               (concatenate 'string
+                            (r-message text-search-result)
+                            " "
+                            (r-message bin-search-result))))
+      (new-r :success "" (sort file-matches #'string-lessp)))))
 
 
 ```
@@ -1914,23 +1944,30 @@
       "fs-path-page"
       (gen-html
         (:div :id "search-group"
-          (:select :id "search-type" :onchange "page.onSearchTypeChanged(event)"
-           (:option :value "page" "Page")
-           (:option :value "content" "Content"))
-          (:span :id "search-loading" "")
           (:input
             :id "search"
             :autocomplete "off"
-            :placeholder "Search"
-            :onblur "page.onSearchTxtBlur(event)"
+            :placeholder "Search page names"
             :onclick "page.onSearchTxtClick(event)"
             :onkeydown "page.onSearchTxtKeyDown(event)"
-            :onkeyup "page.onSearchTxtKeyUp(event)"))
+            :onkeyup "page.onSearchTxtKeyUp(event)")
+          (:select
+            :id "search-type"
+            :onchange "page.onSearchTypeChange(event)"
+            :title "Select the type of search to perform"
+           (:option
+             :data-long-text "Search page names"
+             :value "page"
+             "Pages")
+           (:option
+             :data-long-text "Search page content"
+             :value "content"
+             "Content")))
+        (:div :id "search-info" "")
         (:select
           :id "search-results"
           :class "hidden"
           :data-default-size "10"
-          :onblur "page.onSearchResultsBlur(event)"
           :onclick "page.onSearchResultsClick(event)"
           :onkeydown "page.onSearchResultsKeyDown(event)"
           :size 10)

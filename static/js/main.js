@@ -330,15 +330,8 @@ page.initFileSystemPathPage = function() {
     page.search(page.searchEl.value);
   }
 
-  page.onSearchTxtBlur = function(event) {
-    setTimeout(function() {
-      if (document.activeElement != page.searchResultsEl)
-        page.searchResultsEl.classList.add('hidden');
-    }, 100);
-  }
-
   page.onSearchTxtClick = function(event) {
-    if (!utils.isBlank(page.searchEl.value))
+    if (page.searchResultsEl.options.length)
       page.searchResultsEl.classList.toggle('hidden');
   }
 
@@ -370,13 +363,6 @@ page.initFileSystemPathPage = function() {
       page.searchResultsEl.selectedIndex = 0;
       page.searchResultsEl.focus();
     }
-  }
-
-  page.onSearchResultsBlur = function(event) {
-    setTimeout(function() {
-      if (document.activeElement !=  page.searchEl)
-        page.searchResultsEl.classList.add('hidden');
-    }, 100);
   }
 
   page.onSearchResultsKeyDown = function(event) {

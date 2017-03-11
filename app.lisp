@@ -1804,7 +1804,6 @@
             :id "search"
             :autocomplete "off"
             :placeholder "Search"
-            :onblur "page.onSearchTxtBlur(event)"
             :onclick "page.onSearchTxtClick(event)"
             :onkeydown "page.onSearchTxtKeyDown(event)"
             :onkeyup "page.onSearchTxtKeyUp(event)")
@@ -1816,7 +1815,6 @@
           :id "search-results"
           :class "hidden"
           :data-default-size "10"
-          :onblur "page.onSearchResultsBlur(event)"
           :onclick "page.onSearchResultsClick(event)"
           :onkeydown "page.onSearchResultsKeyDown(event)"
           :size 10)

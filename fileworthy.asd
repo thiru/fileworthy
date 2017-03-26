@@ -10,6 +10,6 @@
   :serial t
   :depends-on (:alexandria :cl-json :cl-ppcre :cl-who :hunchentoot :ironclad
                :local-time :split-sequence :uiop)
-  :components ((:file "package")
-               (:file "glu")
-               (:file "app")))
+  :components ((:file "src/package")
+               (:file "src/glu")
+               (:file "src/app")))

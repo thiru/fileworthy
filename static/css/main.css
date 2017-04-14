@@ -30,6 +30,23 @@ body
   padding: 0;
 }
 
+ul, ol
+{
+  padding: 0 0 0 1rem;
+}
+ul p, ol p
+{
+  margin: 0;
+}
+ul pre, ol pre
+{
+  margin: 0.3rem 0;
+}
+li
+{
+  margin: 0.3rem 0;
+}
+
 a
 {
   color: #333853; /* VAR PURPLE-DARK */

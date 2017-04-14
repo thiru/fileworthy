@@ -30,21 +30,32 @@ body
   padding: 0;
 }
 
-ul, ol
+main ul, ol
 {
+  list-style: none;
   padding: 0 0 0 1rem;
 }
-ul p, ol p
+main ul p, ol p
 {
   margin: 0;
 }
-ul pre, ol pre
+main ul pre, ol pre
 {
   margin: 0.3rem 0;
 }
-li
+main li
 {
   margin: 0.3rem 0;
+}
+main li:before
+{
+  color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  content: '';
+  font-family: 'FontAwesome';
+  font-size: 0.7rem;
+  float: left;
+  line-height: 1.4rem;
+  margin: 0 0 0 -1rem;
 }
 
 a

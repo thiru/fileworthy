@@ -933,7 +933,7 @@
                (sf "/~A/deps/font-awesome/css/font-awesome.min.css" rrp)
                :rel "stylesheet")
              (:link
-               :href (sf "/~A/deps/highlightjs/styles/github.css" rrp)
+               :href (sf "/~A/deps/highlightjs/styles/monokai.css" rrp)
                :rel "stylesheet")
              (:link
                :href (sf "/~A/css/main.css?v=~A" rrp (app-version *app*))
@@ -1928,11 +1928,8 @@
              (if (not is-markdown?)
                (setf file-content (escape-string file-content)))
              (htm
-               (:pre
-                 (:code
-                   :id "raw-file-content"
-                   :class "hidden"
-                   (write-string file-content)))
+               (:pre :id "raw-file-content" :class "hidden"
+                 (:code (write-string file-content)))
                (:div :id "gen-file-content")))
            (htm
              (:p "It looks like this is a binary file, so it isn't displayed.")

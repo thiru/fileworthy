@@ -236,7 +236,7 @@ page.initFileSystemPathPage = function() {
       });
 
       var genHtmlEl = ui.get('gen-file-content');
-      marked(page.rawFileEl.innerText, function (err, content) {
+      marked(page.rawFileEl.firstChild.innerText, function (err, content) {
         if (err) throw err;
         genHtmlEl.innerHTML = content;
       });
@@ -250,7 +250,7 @@ page.initFileSystemPathPage = function() {
     if (!page.filePath || page.fileIsMarkdown)
       return;
 
-    var codeEl = page.rawFileEl;
+    var codeEl = page.rawFileEl.firstChild;
     var msgObj = {
       code: codeEl.textContent,
       rrp: site.rrp

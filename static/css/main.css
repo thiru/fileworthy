@@ -13,7 +13,8 @@
  * VAR PURPLE-DARK = #333853
  * VAR BROWN = #4D464B
  *
- * VAR GREY-LIGHT = #EFEFEF;
+ * VAR GREY-LIGHT = #EFEFEF
+ * VAR CODE-BACKGROUND = #272822
  */
 
 *
@@ -79,6 +80,27 @@ a.disabled
   cursor: default;
   opacity: 0.8;
   pointer-events: none !important;
+}
+
+code
+{
+  background-color: #272822; /* VAR CODE-BACKGROUND */
+  color: white;
+}
+/* Padding for inline code, but not matching <code> surrounded with <pre> */
+li > code, li > p > code
+{
+  padding: 0 0.3rem;
+}
+h1 code, h2 code, h3 code, h4 code, h4 code, h5 code, h6 code
+{
+  background-color: inherit;
+  color: inherit;
+}
+pre
+{
+  background-color: #272822; /* VAR CODE-BACKGROUND */
+  padding: 0.5rem;
 }
 
 .button
@@ -385,7 +407,7 @@ nav a
   visibility: visible;
 }
 
-#raw-file-content
+#raw-file-content code
 {
   white-space: pre-wrap;
 }

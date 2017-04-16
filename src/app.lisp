@@ -1085,15 +1085,15 @@
                (:h2 "Welcome!")
                (:p
                  (:input
-                   :id "login-email-address"
+                   :id "username"
                    :class "full-width"
                    :onkeyup "ui.onEnter(event, site.login)"
-                   :placeholder "Email Address"
-                   :title "Email Address"
+                   :placeholder "Username/Email Address"
+                   :title "Username/Email Address"
                    :type "text"))
                (:p
                  (:input
-                   :id "login-pwd"
+                   :id "password"
                    :class "full-width"
                    :onkeyup "ui.onEnter(event, site.login)"
                    :placeholder "Password"

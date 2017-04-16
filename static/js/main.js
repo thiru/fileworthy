@@ -18,7 +18,7 @@ var site = {
   showLogin: function() {
     ui.unhide(ui.get('overlay'));
     ui.get('login-dialog').style.display = 'flex';
-    ui.get('login-email-address').focus();
+    ui.get('username').focus();
   },
   closeLogin: function() {
     ui.hide(ui.get('overlay'));
@@ -30,8 +30,8 @@ var site = {
   login: function() {
     // Init
     var login = {
-      email: ui.get('login-email-address').value,
-      pwd: ui.get('login-pwd').value,
+      email: ui.get('username').value,
+      pwd: ui.get('password').value,
       loginBtn: ui.get('login-btn'),
       forgotPwdBtn: ui.get('forgot-pwd'),
       resultEl: ui.get('login-result')

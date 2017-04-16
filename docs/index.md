@@ -1956,14 +1956,16 @@
       (setf curr-file-name last-path-seg)
       (when (or (not binary-file?) (get-parameter "force-show"))
         (setf file-content (get-file-content abs-fs-path))))
-    ;; Directory requested, but only one file in dir so show it
-    (when (and path-is-dir? (= 1 (length file-names)))
+    ;; Directory requested, but only one text file in dir so show it
+    (when (and path-is-dir?
+               (= 1 (length file-names)))
       (setf abs-fs-path (concatenate 'string
                                      (to-string abs-fs-path)
                                      (first file-names)))
-      (setf curr-file-name (first file-names))
-      (when (or (not binary-file?) (get-parameter "force-show"))
-        (setf file-content (get-file-content abs-fs-path))))
+      (if (is-file-binary? abs-fs-path)
+        (setf curr-file-name (first file-names))
+        (when (or (not binary-file?) (get-parameter "force-show"))
+          (setf file-content (get-file-content abs-fs-path)))))
     ;; Directory requested and has "index.md" file, so show it
     (when (and path-is-dir? dir-contains-index-file?)
       (setf abs-fs-path (concatenate 'string

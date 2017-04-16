@@ -2011,27 +2011,36 @@
           :onclick "page.onSearchResultsClick(event)"
           :onkeydown "page.onSearchResultsKeyDown(event)"
           :size 10)
-        (:table :id "files" :class "file-names"
-         (:tbody
-          (loop
-           :for file-name :in file-names
-           :collect
-           (htm
-             (:tr
-               :class
-               (if (string= file-name curr-file-name)
-                 "selected"
-                 nil)
-               (:td
-                 (:a
-                   :href file-name
-                   (str file-name)))
-               (:td
-                 (:a
-                   :class "download"
-                   :href (sf "~A?download" file-name)
-                   :title "Download file"
-                   (:i :class "fa fa-download" ""))))))))
+        (if (not (empty? file-names))
+          (htm
+            (:div :id "file-names-nav"
+             (:a
+               :id "file-names-toggle"
+               :href "javascript:site.toggleFilesNav()"
+               :title "Hide list of pages"
+               "Hide "
+               (:i :class "fa fa-minus-square" " "))
+             (:table :id "files" :class "file-names"
+              (:tbody
+                (loop
+                  :for file-name :in file-names
+                  :collect
+                  (htm
+                    (:tr
+                      :class
+                      (if (string= file-name curr-file-name)
+                        "selected"
+                        nil)
+                      (:td
+                        (:a
+                          :href file-name
+                          (str file-name)))
+                      (:td
+                        (:a
+                          :class "download"
+                          :href (sf "~A?download" file-name)
+                          :title "Download file"
+                          (:i :class "fa fa-download" "")))))))))))
         (if (>= (length path-segs) 2)
           (htm
             (:section :id "path-trail"

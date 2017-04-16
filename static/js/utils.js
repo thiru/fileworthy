@@ -177,6 +177,9 @@ var ui = {
   unhide: function(el) {
     el.classList.remove('hidden');
   },
+  isHidden: function(el) {
+    return el.classList.contains('hidden');
+  },
   toggleHidden: function(el) {
     el.classList.toggle('hidden');
   },

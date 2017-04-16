@@ -375,11 +375,23 @@ nav a
   text-decoration: none;
 }
 
+#file-names-nav
+{
+  border: solid 0.2em #C8BAD2; /* VAR PURPLE-LIGHT */
+  float: right;
+}
+#file-names-toggle
+{
+  background-color: #C8BAD2; /* VAR PURPLE-LIGHT */
+  display: block;
+  padding: 0.2em 0.5em;
+  text-align: right;
+  text-decoration: none;
+}
 .file-names
 {
   background-color: #EFEFEF; /* VAR GREY-LIGHT */
   border-collapse: collapse;
-  float: right;
   overflow-x: auto;
 }
 .file-names a

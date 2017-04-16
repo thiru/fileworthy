@@ -15,6 +15,22 @@ var site = {
     ui.toggleHidden(ui.get('info-menu'));
   },
 
+  toggleFilesNav: function() {
+    var filesNavList = ui.get('files');
+    var filesToggle = ui.get('file-names-toggle');
+
+    if (ui.isHidden(filesNavList)) {
+      ui.unhide(filesNavList);
+      filesToggle.title = 'Hide list of pages';
+      filesToggle.innerHTML = 'Hide <i class="fa fa-minus-square"></i>';
+    }
+    else {
+      ui.hide(filesNavList);
+      filesToggle.title = 'Show list of pages';
+      filesToggle.innerHTML = 'Show <i class="fa fa-plus-square"></i>';
+    }
+  },
+
   showLogin: function() {
     ui.unhide(ui.get('overlay'));
     ui.get('login-dialog').style.display = 'flex';

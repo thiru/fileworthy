@@ -2097,27 +2097,36 @@ global <code>*CONFIG*</code> object</li>
           :onclick &quot;page.onSearchResultsClick(event)&quot;
           :onkeydown &quot;page.onSearchResultsKeyDown(event)&quot;
           :size 10)
-        (:table :id &quot;files&quot; :class &quot;file-names&quot;
-         (:tbody
-          (loop
-           :for file-name :in file-names
-           :collect
-           (htm
-             (:tr
-               :class
-               (if (string= file-name curr-file-name)
-                 &quot;selected&quot;
-                 nil)
-               (:td
-                 (:a
-                   :href file-name
-                   (str file-name)))
-               (:td
-                 (:a
-                   :class &quot;download&quot;
-                   :href (sf &quot;~A?download&quot; file-name)
-                   :title &quot;Download file&quot;
-                   (:i :class &quot;fa fa-download&quot; &quot;&quot;))))))))
+        (if (not (empty? file-names))
+          (htm
+            (:div :id &quot;file-names-nav&quot;
+             (:a
+               :id &quot;file-names-toggle&quot;
+               :href &quot;javascript:site.toggleFilesNav()&quot;
+               :title &quot;Hide list of pages&quot;
+               &quot;Hide &quot;
+               (:i :class &quot;fa fa-minus-square&quot; &quot; &quot;))
+             (:table :id &quot;files&quot; :class &quot;file-names&quot;
+              (:tbody
+                (loop
+                  :for file-name :in file-names
+                  :collect
+                  (htm
+                    (:tr
+                      :class
+                      (if (string= file-name curr-file-name)
+                        &quot;selected&quot;
+                        nil)
+                      (:td
+                        (:a
+                          :href file-name
+                          (str file-name)))
+                      (:td
+                        (:a
+                          :class &quot;download&quot;
+                          :href (sf &quot;~A?download&quot; file-name)
+                          :title &quot;Download file&quot;
+                          (:i :class &quot;fa fa-download&quot; &quot;&quot;)))))))))))
         (if (&gt;= (length path-segs) 2)
           (htm
             (:section :id &quot;path-trail&quot;

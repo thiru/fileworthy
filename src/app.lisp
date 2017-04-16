@@ -993,7 +993,7 @@
              ;; Fileworthy Info/Settings
              (:ul
                :id "info-menu"
-               :class (if fw-info-page?  "flat-list" "flat-list hidden")
+               :class (if fw-info-page? "flat-list" "flat-list hidden")
                (:li
                  :class (if (string-equal "about" (nth 1 path-segs))
                           "selected")

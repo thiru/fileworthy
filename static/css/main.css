@@ -33,30 +33,16 @@ body
 
 main ul, ol
 {
-  list-style: none;
+  list-style-type: circle;
   padding: 0 0 0 1rem;
 }
 main ul p, ol p
 {
   margin: 0;
 }
-main ul pre, ol pre
-{
-  margin: 0.3rem 0;
-}
 main li
 {
-  margin: 0.3rem 0;
-}
-main li:before
-{
-  color: #C8BAD2; /* VAR PURPLE-LIGHT */
-  content: '';
-  font-family: 'FontAwesome';
-  font-size: 0.7rem;
-  float: left;
-  line-height: 1.4rem;
-  margin: 0 0 0 -1rem;
+  margin: 0.2rem 0;
 }
 
 a
@@ -82,6 +68,10 @@ a.disabled
   pointer-events: none !important;
 }
 
+ul pre, ol pre
+{
+  margin: 0.3rem 0;
+}
 code
 {
   background-color: #272822; /* VAR CODE-BACKGROUND */

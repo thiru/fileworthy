@@ -1649,9 +1649,15 @@
   (setf (content-type*) "application/json")
   (let* ((user (empty 'user :unless (session-value 'user)))
          (user-root-dir-length (length (get-abs-user-root-dir user)))
+         (search-path (post-parameter "search-path"))
          (search-type (post-parameter "search-type"))
          (search-txt (post-parameter "search"))
+         (abs-search-path (merge-pathnames*
+                            (string-left-trim '(#\/) search-path)
+                            (get-abs-user-root-dir user)))
          (search-result nil))
+
+    (log-message* :info "*** Absolute search path: ~A" abs-search-path)
 
     ;; Check anonymous access
     (if (and (empty? user)
@@ -1670,13 +1676,13 @@
           ;; Search file names by default
           (cond ((string-equal search-type "text")
                  (search-file-content search-txt
-                                      :path (get-abs-user-root-dir user)))
+                                      :path abs-search-path))
                 ((string-equal search-type "text+binary")
                  (search-file-content search-txt
-                                      :path (get-abs-user-root-dir user)
+                                      :path abs-search-path
                                       :search-binary? t))
                 (t
-                 (search-file-names search-txt (get-abs-user-root-dir user)))))
+                 (search-file-names search-txt abs-search-path))))
 
     ;; Trim absolute path segment
     (setf (r-data search-result)

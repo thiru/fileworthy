@@ -286,6 +286,7 @@ page.initFileSystemPathPage = function() {
 
     var formData = new FormData();
     formData.append('search-type', searchType);
+    formData.append('search-path', window.location.pathname);
     formData.append('search', searchTxt);
 
     ui.showLoading(page.searchInfoEl, 'Searching...');

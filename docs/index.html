@@ -844,7 +844,7 @@ regular string (e.g. used when saving config to disk)<ul>
   (with-open-file (stream path)
     (let ((data (make-string (file-length stream))))
       (read-sequence data stream)
-      data)))
+      (or data &quot;&quot;))))
 </code></pre>
 <h3 id="-pretty-time-"><code>PRETTY-TIME</code></h3>
 <pre><code class="lang-lisp">(defun pretty-time (time)
@@ -2020,7 +2020,7 @@ global <code>*CONFIG*</code> object</li>
                          (file-exists-p abs-fs-path)))
          (binary-file? (if path-is-file? (is-file-binary? abs-fs-path)))
          (curr-file-name &quot;&quot;)
-         (file-content &quot;&quot;)
+         (file-content nil)
          (file-names (get-file-names abs-fs-path))
          (dir-contains-index-file? (and file-names
                                         (find &quot;index.md&quot;
@@ -2150,29 +2150,31 @@ global <code>*CONFIG*</code> object</li>
                          (sf &quot;/~A&quot; path)
                          (sf &quot;/~A/&quot; path))
                        (str (nth i path-segs))))))))
-        (:section :id &quot;file-details&quot;
-         (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
-           (let* ((is-markdown? (cl-ppcre:scan &quot;\\.mk?d$&quot; abs-fs-path))
-                  (file-content (cl-ppcre:regex-replace-all
-                                  &quot;~&quot;
-                                  file-content
-                                  &quot;~~&quot;)))
-             (if (not is-markdown?)
-               (setf file-content (escape-string file-content)))
-             (htm
-               (:pre :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
-                 (:code (write-string file-content)))
-               (:div :id &quot;gen-file-content&quot;)))
-           (htm
-             (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
-             (:p
-               &quot;You can &quot;
-               (:a
-                 :href (sf &quot;~A?download&quot; curr-file-name)
-                 &quot;download the file&quot;)
-               &quot; or try to &quot;
-               (:a
-                 :href (sf &quot;~A?force-show&quot; curr-file-name)
-                 &quot;display it anyway.&quot;)))))))))
+        (if (not (null file-content))
+          (htm
+            (:section :id &quot;file-details&quot;
+             (if (or (not binary-file?) (get-parameter &quot;force-show&quot;))
+               (let* ((is-markdown? (cl-ppcre:scan &quot;\\.mk?d$&quot; abs-fs-path))
+                      (file-content (cl-ppcre:regex-replace-all
+                                      &quot;~&quot;
+                                      file-content
+                                      &quot;~~&quot;)))
+                 (if (not is-markdown?)
+                   (setf file-content (escape-string file-content)))
+                 (htm
+                   (:pre :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
+                    (:code (write-string file-content)))
+                   (:div :id &quot;gen-file-content&quot;)))
+               (htm
+                 (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)
+                 (:p
+                   &quot;You can &quot;
+                   (:a
+                     :href (sf &quot;~A?download&quot; curr-file-name)
+                     &quot;download the file&quot;)
+                   &quot; or try to &quot;
+                   (:a
+                     :href (sf &quot;~A?force-show&quot; curr-file-name)
+                     &quot;display it anyway.&quot;)))))))))))
 </code></pre>
        </body></html>

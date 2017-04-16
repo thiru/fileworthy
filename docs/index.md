@@ -683,7 +683,7 @@
   (with-open-file (stream path)
     (let ((data (make-string (file-length stream))))
       (read-sequence data stream)
-      data)))
+      (or data ""))))
 
 
 ```
@@ -1934,7 +1934,7 @@
                          (file-exists-p abs-fs-path)))
          (binary-file? (if path-is-file? (is-file-binary? abs-fs-path)))
          (curr-file-name "")
-         (file-content "")
+         (file-content nil)
          (file-names (get-file-names abs-fs-path))
          (dir-contains-index-file? (and file-names
                                         (find "index.md"
@@ -2064,29 +2064,31 @@
                          (sf "/~A" path)
                          (sf "/~A/" path))
                        (str (nth i path-segs))))))))
-        (:section :id "file-details"
-         (if (or (not binary-file?) (get-parameter "force-show"))
-           (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path))
-                  (file-content (cl-ppcre:regex-replace-all
-                                  "~"
-                                  file-content
-                                  "~~")))
-             (if (not is-markdown?)
-               (setf file-content (escape-string file-content)))
-             (htm
-               (:pre :id "raw-file-content" :class "hidden"
-                 (:code (write-string file-content)))
-               (:div :id "gen-file-content")))
-           (htm
-             (:p "It looks like this is a binary file, so it isn't displayed.")
-             (:p
-               "You can "
-               (:a
-                 :href (sf "~A?download" curr-file-name)
-                 "download the file")
-               " or try to "
-               (:a
-                 :href (sf "~A?force-show" curr-file-name)
-                 "display it anyway.")))))))))
+        (if (not (null file-content))
+          (htm
+            (:section :id "file-details"
+             (if (or (not binary-file?) (get-parameter "force-show"))
+               (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path))
+                      (file-content (cl-ppcre:regex-replace-all
+                                      "~"
+                                      file-content
+                                      "~~")))
+                 (if (not is-markdown?)
+                   (setf file-content (escape-string file-content)))
+                 (htm
+                   (:pre :id "raw-file-content" :class "hidden"
+                    (:code (write-string file-content)))
+                   (:div :id "gen-file-content")))
+               (htm
+                 (:p "It looks like this is a binary file, so it isn't displayed.")
+                 (:p
+                   "You can "
+                   (:a
+                     :href (sf "~A?download" curr-file-name)
+                     "download the file")
+                   " or try to "
+                   (:a
+                     :href (sf "~A?force-show" curr-file-name)
+                     "display it anyway.")))))))))))
 
 ```

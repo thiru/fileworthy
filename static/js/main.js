@@ -263,7 +263,7 @@ page.initFileSystemPathPage = function() {
   }
 
   page.runSyntaxHighlight = function() {
-    if (!page.filePath || page.fileIsMarkdown)
+    if (!page.rawFileEl || !page.filePath || page.fileIsMarkdown)
       return;
 
     var codeEl = page.rawFileEl.firstChild;

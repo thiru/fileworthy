@@ -1667,10 +1667,16 @@
 
     ;; Get search results (in absolute path form)
     (setf search-result
-          ;; By default search for filenames rather than file content
-          (if (string-equal "content" search-type)
-            (search-file-content search-txt (get-abs-user-root-dir user))
-            (search-file-names search-txt (get-abs-user-root-dir user))))
+          ;; Search file names by default
+          (cond ((string-equal search-type "text")
+                 (search-file-content search-txt
+                                      :path (get-abs-user-root-dir user)))
+                ((string-equal search-type "text+binary")
+                 (search-file-content search-txt
+                                      :path (get-abs-user-root-dir user)
+                                      :search-binary? t))
+                (t
+                 (search-file-names search-txt (get-abs-user-root-dir user)))))
 
     ;; Trim absolute path segment
     (setf (r-data search-result)
@@ -1736,10 +1742,11 @@
   * `--follow`: follow symlinks
   * `--glob`: include/exclude file pattern
   * `--ignore-case`: case insensitive search
-  * `--text`: search binary files as if they were text
+  * `--text`: search binary files as if they were text (if applicable)
 ||#
-(defun search-file-content (pattern &optional path)
-  "Search for files containing text matching `pattern` within the `path`."
+(defun search-file-content (pattern &key path search-binary?)
+  "Search for files containing text matching `pattern` within the `path`. Optionally search
+   binary files."
   (let* ((text-search-cmd
            (sf '("rg --files-with-matches --fixed-strings --follow"
                  " --ignore-case '~A' ~A")
@@ -1764,12 +1771,13 @@
     (format t "TEXT-MATCHES: ~A~%" file-matches)
 
     ;; Then search binary files
-    (log-message* :info "Binary file content search cmd: ~A" bin-search-cmd)
-    (setf bin-search-result (run-cmd bin-search-cmd))
-    (if (succeeded? bin-search-result)
-      (setf file-matches
-            (append file-matches
-                    (split-sequence #\linefeed (r-data bin-search-result)))))
+    (when search-binary?
+      (log-message* :info "Binary file content search cmd: ~A" bin-search-cmd)
+      (setf bin-search-result (run-cmd bin-search-cmd))
+      (if (succeeded? bin-search-result)
+        (setf file-matches
+              (append file-matches
+                      (split-sequence #\linefeed (r-data bin-search-result))))))
 
     ;; Join results and sort
     (if (empty? file-matches)
@@ -1862,12 +1870,19 @@
             :title "Select the type of search to perform"
            (:option
              :data-long-text "Search page names"
+             :title "Search names of pages"
              :value "page"
              "Pages")
            (:option
-             :data-long-text "Search page content"
-             :value "content"
-             "Content")))
+             :data-long-text "Search page content (text)"
+             :title "Search within plain text pages (i.e. not binary)"
+             :value "text"
+             "Content")
+           (:option
+             :data-long-text "Search page content (text + binary)"
+             :title "Searches within all pages, including binary (e.g. Word, Excel, etc.)"
+             :value "text+binary"
+             "Content+")))
         (:div :id "search-info" "")
         (:select
           :id "search-results"

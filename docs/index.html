@@ -1146,7 +1146,7 @@ global <code>*CONFIG*</code> object</li>
                (sf &quot;/~A/deps/font-awesome/css/font-awesome.min.css&quot; rrp)
                :rel &quot;stylesheet&quot;)
              (:link
-               :href (sf &quot;/~A/deps/highlightjs/styles/github.css&quot; rrp)
+               :href (sf &quot;/~A/deps/highlightjs/styles/monokai.css&quot; rrp)
                :rel &quot;stylesheet&quot;)
              (:link
                :href (sf &quot;/~A/css/main.css?v=~A&quot; rrp (app-version *app*))
@@ -1206,7 +1206,7 @@ global <code>*CONFIG*</code> object</li>
              ;; Fileworthy Info/Settings
              (:ul
                :id &quot;info-menu&quot;
-               :class (if fw-info-page?  &quot;flat-list&quot; &quot;flat-list hidden&quot;)
+               :class (if fw-info-page? &quot;flat-list&quot; &quot;flat-list hidden&quot;)
                (:li
                  :class (if (string-equal &quot;about&quot; (nth 1 path-segs))
                           &quot;selected&quot;)
@@ -1298,15 +1298,15 @@ global <code>*CONFIG*</code> object</li>
                (:h2 &quot;Welcome!&quot;)
                (:p
                  (:input
-                   :id &quot;login-email-address&quot;
+                   :id &quot;username&quot;
                    :class &quot;full-width&quot;
                    :onkeyup &quot;ui.onEnter(event, site.login)&quot;
-                   :placeholder &quot;Email Address&quot;
-                   :title &quot;Email Address&quot;
+                   :placeholder &quot;Username/Email Address&quot;
+                   :title &quot;Username/Email Address&quot;
                    :type &quot;text&quot;))
                (:p
                  (:input
-                   :id &quot;login-pwd&quot;
+                   :id &quot;password&quot;
                    :class &quot;full-width&quot;
                    :onkeyup &quot;ui.onEnter(event, site.login)&quot;
                    :placeholder &quot;Password&quot;
@@ -1862,10 +1862,16 @@ global <code>*CONFIG*</code> object</li>
 
     ;; Get search results (in absolute path form)
     (setf search-result
-          ;; By default search for filenames rather than file content
-          (if (string-equal &quot;content&quot; search-type)
-            (search-file-content search-txt (get-abs-user-root-dir user))
-            (search-file-names search-txt (get-abs-user-root-dir user))))
+          ;; Search file names by default
+          (cond ((string-equal search-type &quot;text&quot;)
+                 (search-file-content search-txt
+                                      :path (get-abs-user-root-dir user)))
+                ((string-equal search-type &quot;text+binary&quot;)
+                 (search-file-content search-txt
+                                      :path (get-abs-user-root-dir user)
+                                      :search-binary? t))
+                (t
+                 (search-file-names search-txt (get-abs-user-root-dir user)))))
 
     ;; Trim absolute path segment
     (setf (r-data search-result)
@@ -1933,12 +1939,13 @@ global <code>*CONFIG*</code> object</li>
 <li><code>--follow</code>: follow symlinks</li>
 <li><code>--glob</code>: include/exclude file pattern</li>
 <li><code>--ignore-case</code>: case insensitive search</li>
-<li><code>--text</code>: search binary files as if they were text</li>
+<li><code>--text</code>: search binary files as if they were text (if applicable)</li>
 </ul>
 </li>
 </ul>
-<pre><code class="lang-lisp">(defun search-file-content (pattern &amp;optional path)
-  &quot;Search for files containing text matching `pattern` within the `path`.&quot;
+<pre><code class="lang-lisp">(defun search-file-content (pattern &amp;key path search-binary?)
+  &quot;Search for files containing text matching `pattern` within the `path`. Optionally search
+   binary files.&quot;
   (let* ((text-search-cmd
            (sf &#39;(&quot;rg --files-with-matches --fixed-strings --follow&quot;
                  &quot; --ignore-case &#39;~A&#39; ~A&quot;)
@@ -1963,12 +1970,13 @@ global <code>*CONFIG*</code> object</li>
     (format t &quot;TEXT-MATCHES: ~A~%&quot; file-matches)
 
     ;; Then search binary files
-    (log-message* :info &quot;Binary file content search cmd: ~A&quot; bin-search-cmd)
-    (setf bin-search-result (run-cmd bin-search-cmd))
-    (if (succeeded? bin-search-result)
-      (setf file-matches
-            (append file-matches
-                    (split-sequence #\linefeed (r-data bin-search-result)))))
+    (when search-binary?
+      (log-message* :info &quot;Binary file content search cmd: ~A&quot; bin-search-cmd)
+      (setf bin-search-result (run-cmd bin-search-cmd))
+      (if (succeeded? bin-search-result)
+        (setf file-matches
+              (append file-matches
+                      (split-sequence #\linefeed (r-data bin-search-result))))))
 
     ;; Join results and sort
     (if (empty? file-matches)
@@ -2062,12 +2070,19 @@ global <code>*CONFIG*</code> object</li>
             :title &quot;Select the type of search to perform&quot;
            (:option
              :data-long-text &quot;Search page names&quot;
+             :title &quot;Search names of pages&quot;
              :value &quot;page&quot;
              &quot;Pages&quot;)
            (:option
-             :data-long-text &quot;Search page content&quot;
-             :value &quot;content&quot;
-             &quot;Content&quot;)))
+             :data-long-text &quot;Search page content (text)&quot;
+             :title &quot;Search within plain text pages (i.e. not binary)&quot;
+             :value &quot;text&quot;
+             &quot;Content&quot;)
+           (:option
+             :data-long-text &quot;Search page content (text + binary)&quot;
+             :title &quot;Searches within all pages, including binary (e.g. Word, Excel, etc.)&quot;
+             :value &quot;text+binary&quot;
+             &quot;Content+&quot;)))
         (:div :id &quot;search-info&quot; &quot;&quot;)
         (:select
           :id &quot;search-results&quot;
@@ -2128,11 +2143,8 @@ global <code>*CONFIG*</code> object</li>
              (if (not is-markdown?)
                (setf file-content (escape-string file-content)))
              (htm
-               (:pre
-                 (:code
-                   :id &quot;raw-file-content&quot;
-                   :class &quot;hidden&quot;
-                   (write-string file-content)))
+               (:pre :id &quot;raw-file-content&quot; :class &quot;hidden&quot;
+                 (:code (write-string file-content)))
                (:div :id &quot;gen-file-content&quot;)))
            (htm
              (:p &quot;It looks like this is a binary file, so it isn&#39;t displayed.&quot;)

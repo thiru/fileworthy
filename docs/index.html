@@ -1963,8 +1963,8 @@ global <code>*CONFIG*</code> object</li>
                (config-bin-files-glob *config*)
                pattern
                (or path &quot;&quot;)))
-         (text-search-result nil)
-         (bin-search-result nil)
+         (text-search-result (new-r :info &quot;&quot;))
+         (bin-search-result (new-r :info &quot;&quot;))
          (file-matches &#39;()))
 
     ;; First search text files

@@ -1764,8 +1764,8 @@
                (config-bin-files-glob *config*)
                pattern
                (or path "")))
-         (text-search-result nil)
-         (bin-search-result nil)
+         (text-search-result (new-r :info ""))
+         (bin-search-result (new-r :info ""))
          (file-matches '()))
 
     ;; First search text files

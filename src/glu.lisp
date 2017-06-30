@@ -1,4 +1,6 @@
-(in-package :fileworthy)
+;;;; Global Lisp Utilities
+
+(in-package :glu)
 
 ;;; Reader Macros --------------------------------------------------------------
 (defvar lambda-symbol-defined nil)

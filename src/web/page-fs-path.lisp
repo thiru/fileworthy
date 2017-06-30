@@ -58,9 +58,8 @@
           (setf file-content (get-file-content abs-fs-path)))))
     ;; Directory requested and has "index.md" file, so show it
     (when (and path-is-dir? dir-contains-index-file?)
-      (setf abs-fs-path (concatenate 'string
-                                     (to-string abs-fs-path)
-                                     "index.md"))
+      (setf abs-fs-path
+            (to-string (merge-pathnames* "index.md" (to-string abs-fs-path))))
       (setf curr-file-name "index.md")
       (setf file-content (get-file-content abs-fs-path)))
     ;; TODO: fix JS injection

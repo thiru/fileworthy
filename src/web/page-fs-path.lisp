@@ -157,11 +157,7 @@
           (htm
             (:section :id "file-details"
              (if (or (not binary-file?) (get-parameter "force-show"))
-               (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path))
-                      (file-content (cl-ppcre:regex-replace-all
-                                      "~"
-                                      file-content
-                                      "~~")))
+               (let* ((is-markdown? (cl-ppcre:scan "\\.mk?d$" abs-fs-path)))
                  (if (not is-markdown?)
                    (setf file-content (escape-string file-content)))
                  (htm

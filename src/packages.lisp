@@ -7,7 +7,6 @@
   (:documentation "Global Lisp Utilities")
   (:export
     :*english-list*
-    :labeled-time
     :1st
     :2nd
     :last1
@@ -19,6 +18,9 @@
     :loose-parse-int
     :sf
     :to-string
+    :labeled-time
+    :get-run-time
+    :display-run-time
     :empty/*objects*
     :empty
     :empty=>
@@ -33,6 +35,8 @@
     :failed?
     :*log-format-time*
     :logm
+    :*SIGINT*
+    :handle-signal
     ))
 
 (defpackage :fileworthy

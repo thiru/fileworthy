@@ -1,0 +1,69 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+
+#|
+Command-line interface for the Fileworthy website
+|#
+
+(declaim (optimize (safety 1) (speed 3)))
+
+(ros:ensure-asdf)
+(ql:quickload '(cffi fileworthy swank) :silent nil)
+
+(defpackage :fileworthy-cli
+  (:documentation "Command-line interface for Fileworthy website")
+  (:use :cl :glu))
+(in-package :fileworthy-cli)
+
+(defvar default-port 9090)
+(defvar default-swank-port 4005)
+
+(defun show-help ()
+  (format t "~&Usage: fileworthy [options]
+             
+Running Fileworthy without any options will start the website in production
+mode.
+
+Options:
+
+  --debug, -d
+    Whether to run the website in debug mode. Default is non-debug mode.
+    Specifying this option will:
+    * Increase logging verbosity
+    * Initiate the debugger on exeptions
+    * Show Lisp errors
+
+  --help, -h
+    Show this message
+
+  --port, -p
+    TCP port the website listens on. Default is ~A.
+
+  --swank-port, -sp
+    TCP port the Swank server listens on. Default is ~A.
+
+  --version, -v
+    Show version information
+" default-port default-swank-port))
+
+(defun main (&rest args)
+  (when (or (string-equal "-h" (first args))
+            (string-equal "--help" (first args)))
+    (show-help)
+    (return-from main 0))
+
+  (handle-signal
+    *SIGINT*
+    (format t "~%Fileworthy aborted by user.~%")
+    (display-run-time "Fileworthy")
+    (ros:quit 0))
+
+  (swank:create-server :port 4005 :dont-close t)
+  (let* ((start-res (fileworthy:start-app :debug nil)))
+    (format t "~%~A~%" (r-message start-res)))
+
+  (loop (sleep 10)))
+;;; vim: set ft=lisp lisp:

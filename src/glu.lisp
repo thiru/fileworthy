@@ -6,7 +6,7 @@
 (defvar lambda-symbol-defined nil)
 (unless lambda-symbol-defined
   (labels ((λ-reader (stream char)
-             "Allow the character 'λ' to be used in place of the word 'lambda',
+             "Allow the lambda character 'λ' to be used in place of the word,
               for brevity's sake."
              (declare (ignore char stream))
              'LAMBDA))
@@ -14,18 +14,15 @@
     (setf lambda-symbol-defined t)))
 ;;; Reader Macros --------------------------------------------------------------
 
-;;; Taken from PCL -------------------------------------------------------------
-(defparameter *english-list*
+;;; Global Variables -----------------------------------------------------------
+(defvar *start-time* (get-internal-real-time))
+
+(defvar *english-list*
   "~{~#[~;~a~;~a and ~a~:;~@{~a~#[~; and ~:;, ~]~}~]~}"
   "A control string to format a list of items in a friendly manner.
-   E.g. '1 and 2', or '1, 2 and 3'.")
-
-(defmacro labeled-time (form)
-  "Shows timing info via (time), prefixed with the form it's called for."
-  `(progn
-    (format *trace-output* "~2&~a" ',form)
-    (time ,form)))
-;;; Taken from PCL -------------------------------------------------------------
+   E.g. '1 and 2', or '1, 2 and 3'.
+   This was taken from the book Practical Common Lisp.")
+;;; Global Variables -----------------------------------------------------------
 
 ;;; Generic Utils --------------------------------------------------------------
 (defmacro 1st (obj)
@@ -56,7 +53,7 @@
   "Concatenate the given strings."
   `(concatenate 'string ,str1 ,str2 ,@args))
 
-(defmacro trim (str char &key left-only right-only)
+(defmacro trim (char str &key left-only right-only)
   "Trim `STR` of `CHAR`."
   `(cond (,left-only
            (string-left-trim (list ,char) ,str))
@@ -64,6 +61,11 @@
            (string-right-trim (list ,char) ,str))
          (t
           (string-trim (list ,char) ,str))))
+
+(defmacro starts-with (test input)
+  "Test whether `input` starts with `test`."
+  `(string= ,test
+            (subseq ,input 0 (min (length ,input) (length ,test)))))
 
 (defmacro -> (obj slot)
   "Gets the value of a slot."
@@ -95,6 +97,37 @@
 (defmacro to-string (obj)
   "Shortcut of `PRINC-TO-STRING'"
   `(princ-to-string ,obj))
+
+(defmacro labeled-time (form)
+  "Shows timing info via (time), prefixed with the form it's called for.
+   This was taken from the book Practical Common Lisp."
+  `(progn
+    (format *trace-output* "~2&~a" ',form)
+    (time ,form)))
+
+(defun get-run-time ()
+  "Get the amount of time elapsed since the program started in seconds."
+  (/ (- (get-internal-real-time) *start-time*) internal-time-units-per-second))
+
+(defun display-run-time (&optional app-name
+                                   (total-seconds 0 total-seconds-given?))
+  "Display the amount of time this app has run for."
+  (let* ((total-seconds (if total-seconds-given? total-seconds (get-run-time)))
+         (days (floor (/ total-seconds 60 60 24)))
+         (hours (- (floor (/ total-seconds 60 60))
+                   (* days 24)))
+         (minutes (- (floor (/ total-seconds 60))
+                     (* days 24 60)
+                     (* hours 60)))
+         (seconds (- (floor total-seconds)
+                     (* days 24 60 60)
+                     (* hours 60 60)
+                     (* minutes 60)))
+         (millis (floor (* 1000 (nth-value 1 (floor total-seconds))))))
+    (format t "~%~A (clock) runtime: " (if (empty? app-name) "App" app-name))
+    (if (>= days 1)
+      (format t "~:D day~:P " days))
+    (format t "~2,'0D:~2,'0D:~2,'0D.~2,'0D.~%" hours minutes seconds millis)))
 ;;; Generic Utils --------------------------------------------------------------
 
 ;;; Empty
@@ -188,3 +221,58 @@
           level
           (apply #'format nil msg msg-args)))
 ;;; Logging --------------------------------------------------------------------
+
+;;; Terminal -------------------------------------------------------------------
+(defvar *SIGINT* 2)
+
+(defmacro handle-signal (signo &body body)
+  "Handle Unix signal.
+   Note that `signo` must be a simple integer. I.e. it shouldn't even be a
+   function that evaluates to an integer as this macro doesn't support this.
+   Taken from https://stackoverflow.com/a/10442062/24318."
+  (let ((handler (gensym "HANDLER")))
+    `(progn
+       (cffi:defcallback ,handler :void ((signo :int))
+                         (declare (ignore signo))
+                         ,@body)
+       (cffi:foreign-funcall "signal"
+                             :int ,signo
+                             :pointer (cffi:callback ,handler)))))
+
+(defstruct cmd-opts
+  (name "")
+  (short-name "")
+  (description "")
+  (default-value "")
+  (arg-parser nil))
+
+(defun parse-cmd-line-args (args opts)
+  "TODO"
+  (if (or (empty? args) (empty? opts))
+    (return-from parse-cmd-line-args args))
+  (let* ((i 0)
+         (parsed '()))
+    (dolist (arg args)
+      ;; Skip arguments that don't start with a hyphen
+      (if (starts-with "-" arg)
+        (let* ((trimmed-arg (trim #\- arg))
+               (matched-opt nil))
+          (format t "Parsing arg ~A: ~A~%" i trimmed-arg)
+          (setf matched-opt
+                (find trimmed-arg opts
+                      :key 'cmd-opts-name
+                      :test #'string-equal))
+          (if (empty? matched-opt)
+            (push (new-r :error (sf "Unrecognised argument: ~A." arg))
+                  parsed)
+            (progn
+              (format t "Found: ~A~%" matched-opt)
+              (if (not (empty? (cmd-opts-arg-parser matched-opt)))
+                (format t "has parser")
+                )
+              )
+            )
+          (push trimmed-arg parsed)))
+      (incf i))
+    parsed))
+;;; Terminal -------------------------------------------------------------------

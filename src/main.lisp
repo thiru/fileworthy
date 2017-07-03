@@ -307,9 +307,7 @@
   "Starts the app."
 
   (if *acceptor*
-    (let* ((res (new-r :error "Server is already running.")))
-      (format t (r-message res))
-      (return-from start-app res)))
+    (return-from start-app (new-r :warning "Server is already running.")))
 
   (setf *app* (create-app debug))
   (setf *config* (load-config (app-config-file-path *app*)))
@@ -329,13 +327,11 @@
 
   (setf *session-max-time* (* 60 60 24 30 3)) ; 3 months
 
-  (let* ((res (new-r :success
-                     (sf "Fileworthy ~A started on port ~A, working out of '~A'."
-                         (app-version *app*)
-                         port
-                         (config-root-dir *config*)))))
-    (format t (r-message res))
-    res))
+  (new-r :success
+         (sf "Fileworthy ~A started on port ~A, working out of '~A'."
+             (app-version *app*)
+             port
+             (config-root-dir *config*))))
 
 #||
 ### `STOP-APP`
@@ -348,7 +344,7 @@
   (when *acceptor*
     (stop *acceptor* :soft t)
     (setf *acceptor* nil)
-    (format t "Stopped Fileworthy ~A~%" (app-version *app*))))
+    (new-r :info "Fileworthy server stopped.")))
 
 #||
 ### `RESTART-APP`

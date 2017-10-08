@@ -1,9 +1,0 @@
-@media screen and (max-width: 480px)
-{
-  #top-bar,
-  main,
-  #main-menu-items, .sub-menu-items
-  {
-    font-size: 0.5rem;
-  }
-}

@@ -1,4 +1,4 @@
-(defproject fileworthy "0.1.0-SNAPSHOT"
+(defproject fileworthy "0.1.0"
   :description "A simple website to manage your *notes* and files across all your devices"
   :url "https://github.com/thiru/fileworthy"
   :license {:name "GNU General Public License Version 3"

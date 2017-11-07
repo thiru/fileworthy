@@ -1,18 +1,22 @@
 #!/bin/sh
 #|-*- mode:lisp -*-|#
-#| Start Fileworthy web server
+#|
 exec ros -Q -- $0 "$@"
 |#
-(progn ;;init forms
-  (ros:ensure-asdf)
-  (ql:quickload :swank)
-  (ql:quickload :fileworthy)
-  ;;#+quicklisp (ql:quickload '() :silent t)
-  )
 
-(defpackage :ros.script.rosfw.3695169146
+#|
+Start fileworthy web server
+|#
+
+(declaim (optimize (safety 1) (speed 3)))
+
+(ros:ensure-asdf)
+(ql:quickload :swank)
+(ql:quickload :fileworthy)
+
+(defpackage :fileworthy.cli
   (:use :cl))
-(in-package :ros.script.rosfw.3695169146)
+(in-package :fileworthy.cli)
 
 (defun main (&rest argv)
   (declare (ignorable argv))

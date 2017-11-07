@@ -1,5 +1,7 @@
 *.FASL
 *.fasl
 *.lisp-temp
+.nrepl-history
+fileworthy
 tbnl-access.log
 tbnl-message.log

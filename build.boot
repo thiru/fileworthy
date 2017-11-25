@@ -41,7 +41,7 @@
 
 ;; Require main project namespaces so they're easily accessible from the REPL.
 ;;
-(require '[thiru.utils :refer :all]
+(require '[common.utils :refer :all]
          '[fileworthy.main :as cli]
          '[clojure.java.shell :as shell])
 

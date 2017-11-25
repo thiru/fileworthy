@@ -1,3 +1,9 @@
+;; ## Summary
+;;
+;; High-level web server life-cycle management.
+;; 
+;; This namespace does not contain any domain-specific code.
+;;
 (ns fileworthy.web
   (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]))

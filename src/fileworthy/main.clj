@@ -9,6 +9,7 @@
   (:require [clojure.set :refer [difference]]
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
+            [common.utils :refer :all]
             [fileworthy.app :as app])
   (:gen-class))
 
@@ -27,9 +28,12 @@
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Port must be a number between 0 and 65536"]]
 
-   ["-l" "--log-level LEVEL" "Log verbosity level"
-    :default 0
-    :parse-fn #(Integer/parseInt %)]
+   ["-l" "--log-level LEVEL"
+    (str "Log verbosity level (" (level-names) ")")
+    :default :info
+    :parse-fn #(first (find levels (keyword %)))
+    :validate [#(get levels %)
+               (str "Log verbosity level must be one of: " (level-names))]]
 
    ["-v" "--version" "Show app version"]
 
@@ -52,6 +56,8 @@
              (:version app/info)
              ".jar"
              " [options] command")
+        ""
+        "Options:"
         options-summary
         ""
         "Commands:"
@@ -133,6 +139,8 @@
   (let [{:keys [command options exit-message ok?]} (validate-args args)]
     (if exit-message
       (exit (if ok? 0 1) exit-message)
-      (case command
-        :start (println "TODO: start web server")
-        :version (println (:version app/info))))))
+      (with-redefs [log-level (:log-level options)]
+        (log :debug (str "Log level set to '" (name log-level) "'"))
+        (case command
+          :start (println "TODO: start web server")
+          :version (println (:version app/info)))))))

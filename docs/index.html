@@ -2866,7 +2866,7 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>asdbwebapi -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">asdbwebapi</h1><h2 class="project-version">0.22.0</h2><br /><p>Fileworthy is a simple website to manage your notes and files across all your devices</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.21</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.web">fileworthy.web</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">clansi</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.21</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.web">fileworthy.web</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>Command-line interface and entry-point into the application.</p>
 
@@ -2876,6 +2876,7 @@ net.brehaut.ClojureTools = (function (SH) {
   (:require [clojure.set :refer [difference]]
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
+            [common.utils :refer :all]
             [fileworthy.app :as app])
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>A map of CLI (sub-)commands with a short description of each.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-commands
@@ -2889,9 +2890,12 @@ net.brehaut.ClojureTools = (function (SH) {
     :default 8023
     :parse-fn #(Integer/parseInt %)
     :validate [#(&lt; 0 % 0x10000) &quot;Port must be a number between 0 and 65536&quot;]]
-   [&quot;-l&quot; &quot;--log-level LEVEL&quot; &quot;Log verbosity level&quot;
-    :default 0
-    :parse-fn #(Integer/parseInt %)]
+   [&quot;-l&quot; &quot;--log-level LEVEL&quot;
+    (str &quot;Log verbosity level (&quot; (level-names) &quot;)&quot;)
+    :default :info
+    :parse-fn #(first (find levels (keyword %)))
+    :validate [#(get levels %)
+               (str &quot;Log verbosity level must be one of: &quot; (level-names))]]
    [&quot;-v&quot; &quot;--version&quot; &quot;Show app version&quot;]
    [&quot;-h&quot; &quot;--help&quot; &quot;Show help&quot;]])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn usage [options-summary]
@@ -2908,6 +2912,7 @@ net.brehaut.ClojureTools = (function (SH) {
              (:version app/info)
              &quot;.jar&quot;
              &quot; [options] command&quot;)
+        &quot;Options:&quot;
         options-summary
         &quot;Commands:&quot;
         (apply str
@@ -2980,9 +2985,11 @@ net.brehaut.ClojureTools = (function (SH) {
   (let [{:keys [command options exit-message ok?]} (validate-args args)]
     (if exit-message
       (exit (if ok? 0 1) exit-message)
-      (case command
-        :start (println &quot;TODO: start web server&quot;)
-        :version (println (:version app/info))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web" name="fileworthy.web"><h1 class="project-name">fileworthy.web</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+      (with-redefs [log-level (:log-level options)]
+        (log :debug (str &quot;Log level set to '&quot; (name log-level) &quot;'&quot;))
+        (case command
+          :start (println &quot;TODO: start web server&quot;)
+          :version (println (:version app/info)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web" name="fileworthy.web"><h1 class="project-name">fileworthy.web</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>High-level web server life-cycle management.</p>
 
@@ -3019,8 +3026,154 @@ server defaults, build definition, etc.</p>
 
 <p>This namespace does not contain any domain-specific code, and so should be
 easy to use in other projects.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns common.utils)</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def as-english-number (partial clojure.pprint/cl-format nil &quot;~@(~@[~R~]~^ ~A.~)&quot;))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.web">fileworthy.web</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li><li class="floating-toc-li" id="floating-toc_common.utils">common.utils</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</td><td class="codes"><pre class="brush: clojure">(ns common.utils
+  (:require [clojure.string :as string]
+            [clansi :refer :all]))</pre></td></tr><tr><td class="docs"><h2>General</h2>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def as-english-number (partial clojure.pprint/cl-format nil &quot;~@(~@[~R~]~^ ~A.~)&quot;))</pre></td></tr><tr><td class="docs"><h2>Reporting</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>A generic map of levels that can be used for logging, reporting, etc.</p>
+
+<p>  Negative values represent some level of failure. Non-negative values indicate
+  some level of success, or just plain reporting.</p>
+</td><td class="codes"><pre class="brush: clojure">(def levels
+  {:success 2
+   :info 1
+   :debug 0
+   :warning -1
+   :error -2
+   :fatal -3})</pre></td></tr><tr><td class="docs"><p>A comma-delimited string of <code>level</code> names.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn level-names
+  []
+  (string/join &quot;, &quot; (map name (keys levels))))</pre></td></tr><tr><td class="docs"><p>A map representing the result of some operation, including the level of
+  success/failure, and an optional data item.</p>
+
+<ul>
+<li><code>level</code>
+<ul><li>A value specifying the success/failure level</li>
+<li>This should either be a key from <code>levels</code> (which map to numbers) or a
+number</li>
+<li>By convention, negative values are considered a level of failure, while
+non-negative values are considered informational or successful</li></ul></li>
+<li><code>msg</code>
+<ul><li>A message describing the result</li></ul></li>
+<li><code>data</code>
+<ul><li>An optional data item around which this result is wrapped</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn r
+  ([] (r :info))
+  ([level] (r level &quot;&quot;))
+  ([level msg] {:level level :message msg})
+  ([level msg data] {:level level :message msg :data data}))</pre></td></tr><tr><td class="docs"><p>Determine whether <code>obj</code> is a valid "result" map.</p>
+
+<p>  <code>obj</code> is considered a valid result map if it contains a key named <code>:level</code>
+  that is a number or keyword.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn is-result-map?
+  [obj]
+  (and (map? obj)
+       (or (keyword? (:level obj))
+           (number? (:level obj)))))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a successful outcome.</p>
+
+<p>  <code>obj</code> is considered successful in all cases except the following:</p>
+
+<ul>
+<li><code>nil</code></li>
+<li><code>false</code></li>
+<li>A "result" map with a key named <code>:level</code> where
+<ul><li><code>:level</code> is a keyword defined in <code>levels</code> which maps to a negative number</li>
+<li><code>:level</code> is a negative number</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn success?
+  [obj]
+  (cond
+    (nil? obj)
+    false
+    (false? obj)
+    false
+    (map? obj)
+    (let [level (:level obj)]
+      (cond
+        (number? level)
+        (&lt;= 0 level)
+        (keyword? level)
+        (&lt;= 0 (get levels level (:error levels)))))
+    :else
+    true))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a failure outcome.</p>
+
+<p>  This is basically the opposite of <code>success?</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn failed?
+  [obj]
+  (not (success? obj)))</pre></td></tr><tr><td class="docs"><h2>Logging</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>The current logging level, which should be a value from <code>levels</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(def log-level
+  :debug)</pre></td></tr><tr><td class="docs"><p>Determine whether given object should be logged.</p>
+
+<ul>
+<li><code>obj</code>
+<ul><li>Can be any object</li>
+<li><code>nil</code> is not considered loggable</li>
+<li>If this is a valid result map (see <code>is-result-map?</code>) we compare it's
+<code>:level</code> key to the current value of <code>log-level</code> to determine if it's
+loggable</li>
+<li>All other (non-<code>nil</code>) objects are considered always loggable</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn loggable?
+  [obj]
+  (cond
+    (nil? obj)
+    false
+    (is-result-map? obj)
+    (let [r-level-num (if (number? (:level obj))
+                        (:level obj)
+                        (get levels (:level obj) -10))
+          log-level-num (get levels log-level -10)]
+      ;; Log everything if the current log-level is 0/debug
+      (or (= :debug log-level)
+          (and (pos? log-level-num)
+               (or (&gt;= r-level-num log-level-num)
+                   (neg? r-level-num)))
+          (and (neg? log-level-num)
+               (&lt;= r-level-num log-level-num))))
+    :else
+    true))</pre></td></tr><tr><td class="docs"><p>Log to console.</p>
+
+<ul>
+<li><code>level</code>
+<ul><li>Should be a number or keyword from <code>levels</code></li></ul></li>
+<li><code>obj</code>
+<ul><li>Object to be printed</li>
+<li>If the 2-arity function is specified it is assumed that this is <strong>not</strong> a
+result map, since a result map already has a <code>:level</code> key making the
+2-arity call redundant</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn log
+  ([level obj] (log {:level level :message obj}))
+  ([obj]
+   (cond
+     (nil? obj)
+     nil
+     (and (is-result-map? obj))
+     (if (loggable? obj)
+      (let [r-level-num (if (number? (:level obj))
+                          (:level obj)
+                          (get levels (:level obj) -10))
+            colour (cond
+                     (&gt;= r-level-num 2)
+                     :green
+                     (= r-level-num 0)
+                     :magenta
+                     (= r-level-num -1)
+                     :yellow
+                     (&lt;= r-level-num -2)
+                     :red
+                     :else
+                     :default)]
+        (println (style (str (string/upper-case (name (:level obj)))
+                             &quot;: &quot;
+                             (:message obj))
+                  colour))))
+     :else
+     (do
+       (println obj)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.web">fileworthy.web</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li><li class="floating-toc-li" id="floating-toc_common.utils">common.utils</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

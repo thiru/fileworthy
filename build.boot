@@ -13,6 +13,9 @@
     ;; Command-line interface helper
     [org.clojure/tools.cli "0.3.5"]
 
+    ;; ANSI colours for terminal
+    [clansi "1.0.0"]
+
     ;; Web server back-end
     [io.pedestal/pedestal.service "0.5.1"]
     [io.pedestal/pedestal.route "0.5.1"]
@@ -25,6 +28,8 @@
   :resource-paths #{"src"}
   :dependencies deps)
 
+;; We need to refer to app info/metadata to specify task properties.
+;;
 (require '[fileworthy.app :as app])
 
 ;; Define project metadata, etc.
@@ -51,6 +56,7 @@
   doing here is dynamically generating a Leiningen project.clj file which the
   original Marginalia plugin then uses (via `lein marg`)."
   []
+  (log :info "Creating Leiningen project.clj...")
   (spit "project.clj"
         (format "(defproject asdbwebapi \"%s\"
                 :description \"%s\"
@@ -63,7 +69,9 @@
                 (:description app/info)
                 deps))
   (let [cmd "lein marg --file index.html"]
-    (shell/sh "sh" "-c" cmd)))
+    (log :info (str "Running '" cmd "'..."))
+    (shell/sh "sh" "-c" cmd)
+    (log :success "Doc generation complete!")))
 
 (deftask run
   "Run the project with default settings."

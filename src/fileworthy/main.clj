@@ -1,6 +1,6 @@
 ;; ## Summary
 ;;
-;; CLI and entry-point into the application.
+;; Command-line interface and entry-point into the application.
 ;;
 ;; Command-line arguments are parsed and displayed with the help of
 ;; [clojure.tools.cli](https://github.com/clojure/tools.cli).
@@ -18,16 +18,21 @@
    :version "Print app version"})
 
 (def cli-options
-  "A vector of CLI options. Each item follows the spec of a CLI option as
-  defined by `clojure.tools.cli`."
+  "A vector of CLI options.
+ 
+  Each item follows the spec of a CLI option as defined by
+  `clojure.tools.cli`."
   [["-p" "--port PORT" "Web server listen port"
     :default 8023
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Port must be a number between 0 and 65536"]]
+
    ["-l" "--log-level LEVEL" "Log verbosity level"
     :default 0
     :parse-fn #(Integer/parseInt %)]
+
    ["-v" "--version" "Show app version"]
+
    ["-h" "--help" "Show help"]])
 
 (defn usage [options-summary]
@@ -37,11 +42,16 @@
     *  A user-friendly _summary of CLI options_ to be injected into the full
        summary string returned
     *  The options summary is generated with `clojure.tools.cli/parsed-opts`"
-  (->> [(str "Fileworthy " (:version app/info))
+  (->> [(str (:name app/info) " " (:version app/info))
         ""
         (:description app/info)
         ""
-        "Usage: fileworthy [options] command"
+        (str "Usage: java -jar "
+             (string/lower-case (:name app/info))
+             "-"
+             (:version app/info)
+             ".jar"
+             " [options] command")
         options-summary
         ""
         "Commands:"

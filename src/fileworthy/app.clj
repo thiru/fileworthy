@@ -9,7 +9,8 @@
   "High-level app info/metadata. These properties are more on the descriptive
   side and do not affect the state or behaviour of the app in any meaningful
   way."
-  {:version "0.22.0"
+  {:name "Fileworthy"
+   :version "0.22.0"
    :description (str "Fileworthy is a simple website to manage your notes and "
                      "files across all your devices")})
 

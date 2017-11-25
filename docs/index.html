@@ -2868,7 +2868,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </script><title>asdbwebapi -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">asdbwebapi</h1><h2 class="project-version">0.22.0</h2><br /><p>Fileworthy is a simple website to manage your notes and files across all your devices</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.21</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.web">fileworthy.web</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
-<p>CLI and entry-point into the application.</p>
+<p>Command-line interface and entry-point into the application.</p>
 
 <p>Command-line arguments are parsed and displayed with the help of
 <a href="https://github.com/clojure/tools.cli">clojure.tools.cli</a>.</p>
@@ -2880,8 +2880,10 @@ net.brehaut.ClojureTools = (function (SH) {
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>A map of CLI (sub-)commands with a short description of each.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-commands
   {:start &quot;Start web server&quot;
-   :version &quot;Print app version&quot;})</pre></td></tr><tr><td class="docs"><p>A vector of CLI options. Each item follows the spec of a CLI option as
-  defined by <code>clojure.tools.cli</code>.</p>
+   :version &quot;Print app version&quot;})</pre></td></tr><tr><td class="docs"><p>A vector of CLI options.</p>
+
+<p>  Each item follows the spec of a CLI option as defined by
+  <code>clojure.tools.cli</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-options
   [[&quot;-p&quot; &quot;--port PORT&quot; &quot;Web server listen port&quot;
     :default 8023
@@ -2898,9 +2900,14 @@ net.brehaut.ClojureTools = (function (SH) {
     *  A user-friendly _summary of CLI options_ to be injected into the full
        summary string returned
     *  The options summary is generated with `clojure.tools.cli/parsed-opts`&quot;
-  (-&gt;&gt; [(str &quot;Fileworthy &quot; (:version app/info))
+  (-&gt;&gt; [(str (:name app/info) &quot; &quot; (:version app/info))
         (:description app/info)
-        &quot;Usage: fileworthy [options] command&quot;
+        (str &quot;Usage: java -jar &quot;
+             (string/lower-case (:name app/info))
+             &quot;-&quot;
+             (:version app/info)
+             &quot;.jar&quot;
+             &quot; [options] command&quot;)
         options-summary
         &quot;Commands:&quot;
         (apply str
@@ -3003,7 +3010,8 @@ server defaults, build definition, etc.</p>
   side and do not affect the state or behaviour of the app in any meaningful
   way.</p>
 </td><td class="codes"><pre class="brush: clojure">(def info
-  {:version &quot;0.22.0&quot;
+  {:name &quot;Fileworthy&quot;
+   :version &quot;0.22.0&quot;
    :description (str &quot;Fileworthy is a simple website to manage your notes and &quot;
                      &quot;files across all your devices&quot;)})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#common.utils" name="common.utils"><h1 class="project-name">common.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 

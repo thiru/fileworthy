@@ -32,6 +32,7 @@
    ["-l" "--log-level LEVEL"
     (str "Log verbosity level (" (level-names) ")")
     :default (:log-level-default app/config)
+    :default-desc (name (:log-level-default app/config))
     :parse-fn #(first (find levels (keyword %)))
     :validate [#(get levels %)
                (str "Log verbosity level must be one of: " (level-names))]]

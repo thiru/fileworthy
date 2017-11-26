@@ -10,7 +10,8 @@
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
             [common.utils :refer :all]
-            [fileworthy.app :as app])
+            [fileworthy.app :as app]
+            [fileworthy.web.server :as server])
   (:gen-class))
 
 (def cli-commands
@@ -24,13 +25,13 @@
   Each item follows the spec of a CLI option as defined by
   `clojure.tools.cli`."
   [["-p" "--port PORT" "Web server listen port"
-    :default 8023
+    :default (:port-default app/config)
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Port must be a number between 0 and 65536"]]
 
    ["-l" "--log-level LEVEL"
     (str "Log verbosity level (" (level-names) ")")
-    :default :info
+    :default (:log-level-default app/config)
     :parse-fn #(first (find levels (keyword %)))
     :validate [#(get levels %)
                (str "Log verbosity level must be one of: " (level-names))]]
@@ -142,5 +143,5 @@
       (with-redefs [log-level (:log-level options)]
         (log :debug (str "Log level set to '" (name log-level) "'"))
         (case command
-          :start (println "TODO: start web server")
+          :start (server/start (:port options))
           :version (println (:version app/info)))))))

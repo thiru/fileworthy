@@ -14,3 +14,7 @@
    :description (str "Fileworthy is a simple website to manage your notes and "
                      "files across all your devices")})
 
+(def config
+  "App configuration and defaults."
+  {:log-level-default :info
+   :port-default 8023})

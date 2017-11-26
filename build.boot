@@ -48,6 +48,8 @@
 ;;
 (require '[common.utils :refer :all]
          '[fileworthy.main :as cli]
+         '[fileworthy.web.server :as server]
+         '[fileworthy.web.service :as service]
          '[clojure.java.shell :as shell])
 
 (deftask docs

@@ -2866,7 +2866,194 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>asdbwebapi -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">asdbwebapi</h1><h2 class="project-version">0.22.0</h2><br /><p>Fileworthy is a simple website to manage your notes and files across all your devices</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">clansi</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.1</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.21</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.web">fileworthy.web</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">clansi</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.22</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.web.utils">fileworthy.web.utils</a></li><li><a href="#fileworthy.web.server">fileworthy.web.server</a></li><li><a href="#fileworthy.web.service">fileworthy.web.service</a></li><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.utils" name="fileworthy.web.utils"><h1 class="project-name">fileworthy.web.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>Common web-specific utilties.</p>
+
+<p>This namespace does not contain any domain-specific code.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.utils
+ (:require [io.pedestal.http :as http]
+           [io.pedestal.http.route :as route]
+           [io.pedestal.http.route.definition.table :refer [table-routes]]
+           [io.pedestal.test :refer [response-for]]))</pre></td></tr><tr><td class="docs"><h2>HTTP Responses</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>A map of names of common mime content types.</p>
+</td><td class="codes"><pre class="brush: clojure">(def content-types
+  {:html &quot;text/html&quot;
+   :json &quot;application/json&quot;
+   :text &quot;text/plain&quot;
+   :xml &quot;text/xml&quot;})</pre></td></tr><tr><td class="docs"><p>A map describing a generic HTTP response with status, body and headers.</p>
+
+<ul>
+<li><code>status</code>
+<ul><li>An integer HTTP status code</li></ul></li>
+<li><code>body</code>
+<ul><li>A string containing an HTTP response body</li></ul></li>
+<li><code>headers</code>
+<ul><li>An optional list of headers</li>
+<li>Values should be given in pairs</li>
+<li>E.g. <code>(response 200 "BODY" "Content-Type" "text/html")</code></li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn response
+  [status body &amp; {:as headers}]
+  {:status status :body body :headers headers})</pre></td></tr><tr><td class="docs"><p>Some helper functions for common HTTP responses.</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def http-ok (partial response 200))
+(def http-created (partial response 201))
+(def http-bad-request (partial response 400))
+(def http-unauthorised (partial response 401))
+(def http-forbidden (partial response 403))
+(def http-not-found (partial response 404))
+(def http-server-error (partial response 500))</pre></td></tr><tr><td class="docs"><p>Respond with a simple hello message, including an optional name if
+  specified as a query parameter named <code>name</code>.</p>
+
+<ul>
+<li><code>request</code>
+<ul><li>A map containing a (Pedestal) HTTP request</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn respond-hello
+ [request]
+ (let [nm (get-in request [:query-params :name])]
+   (http-ok (str &quot;Hello &quot; nm &quot;\n&quot;))))</pre></td></tr><tr><td class="docs"><h2>Testing/Inspection</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Print all HTTP routes.</p>
+
+<ul>
+<li><code>routes</code>
+<ul><li>A vector of all definied routes</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn print-routes
+ [routes]
+ (route/print-routes (table-routes routes)))</pre></td></tr><tr><td class="docs"><p>Get the response of a route without performing any actual HTTP requests.</p>
+
+<ul>
+<li><code>service</code>
+<ul><li>A Pedestal web service</li></ul></li>
+<li><code>verb</code>
+<ul><li>A keyword specifying an HTTP verb</li>
+<li>E.g. get, post, put, delete</li></ul></li>
+<li><code>url</code>
+<ul><li>The URL to test</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn test-route-response
+  [service verb url]
+  (response-for (::http/service-fn service) verb url))</pre></td></tr><tr><td class="docs"><p>Verify that the given verb and URL are recognised by the router.</p>
+
+<ul>
+<li><code>routes</code>
+<ul><li>A vector of all defined routes</li></ul></li>
+<li><code>verb</code>
+<ul><li>A keyword specifying an HTTP verb</li>
+<li>E.g. get, post, put, delete</li></ul></li>
+<li><code>url</code>
+<ul><li>The URL to test</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn verify-route
+  [routes verb url]
+  (route/try-routing-for (table-routes routes) :prefix-tree url verb))</pre></td></tr><tr><td class="docs"><p>Get the URL of the named route.</p>
+
+<ul>
+<li><code>routes</code>
+<ul><li>A vector of all defined routes</li></ul></li>
+<li><code>route-name</code>
+<ul><li>A keyword specifying a route name</li></ul></li>
+<li><code>opts</code>
+<ul><li>Options passed along to <code>route/url-for-routes</code></li>
+<li>See <a href="http://pedestal.io/api/pedestal.route/io.pedestal.http.route.html#var-url-for-routes">API docs</a></li>
+<li>E.g. <code>(url-for-route ::test :absolute? true)</code></li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn url-for-route
+  [routes route-name &amp; opts]
+  (let [f (route/url-for-routes (table-routes routes))
+        defaults   {:host &quot;localhost&quot; :scheme :http :port 8080}
+        route-opts (flatten (seq (merge defaults (apply hash-map opts))))]
+    (apply f route-name route-opts)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.server" name="fileworthy.web.server"><h1 class="project-name">fileworthy.web.server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>General and high-level web server functionality, mostly around web server
+life-cycle management.</p>
+
+<p>This namespace does not contain any domain-specific code.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.server
+  (:require [common.utils :refer :all]
+            [fileworthy.app :as app]
+            [fileworthy.web.service :as service]
+            [io.pedestal.http :as http]
+            [io.pedestal.http.route :as route]))</pre></td></tr><tr><td class="docs"><p><code>runnable-service</code> will hold an instance of the web server.</p>
+
+<p>It is stored in a global variable so we can easily stop and restart it.</p>
+</td><td class="codes"><pre class="brush: clojure">(defonce runnable-service (atom nil))</pre></td></tr><tr><td class="docs"><p>Start a new web server at the specified port.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn start
+  ([] (start (:port-default app/config)))
+  ([port]
+   (log :info (str &quot;Starting web server on port &quot; port))
+   (reset! runnable-service
+     (http/start
+       (http/create-server
+         (assoc service/service-config ::http/port port))))))</pre></td></tr><tr><td class="docs"><p>Start a new web server at the specified port, in development mode.</p>
+
+<p>  Development mode facilitates</p>
+
+<ul>
+<li>Restarting the service</li>
+<li>Less strict security protocols</li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn start-dev
+  ([] (start-dev (:port-default app/config)))
+  ([port]
+   (log :info (str &quot;Starting web server on port &quot; port &quot; (DEV MODE)&quot;))
+   (reset! runnable-service
+    (-&gt; service/service-config
+        (merge {:env :dev
+                ::http/port port
+                ::http/join? false
+                ;; All origins are allowed in dev mode
+                ::http/allowed-origins {:creds true
+                                        :allowed-origins (constantly true)}
+                ;; Content Security Policy (CSP) is mostly turned off in dev
+                ;; mode
+                ::http/secure-headers {:content-security-policy-settings
+                                        {:object-src &quot;none&quot;}}})
+         ;; Wire up interceptor chains
+        http/default-interceptors
+        http/dev-interceptors
+        http/create-server
+        http/start))))</pre></td></tr><tr><td class="docs"><p>Stop the running web server.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn stop
+  []
+  (log :info &quot;Stopping web server on port &quot; (::http/port @runnable-service))
+  (http/stop @runnable-service))</pre></td></tr><tr><td class="docs"><p>Restart the running web server.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn restart
+  []
+  (stop)
+  (start-dev))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.service" name="fileworthy.web.service"><h1 class="project-name">fileworthy.web.service</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>Domain-specific web service.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.service
+  (:require [common.utils :refer :all]
+            [fileworthy.app :as app]
+            [fileworthy.web.utils :refer :all]
+            [io.pedestal.http :as http]
+            [io.pedestal.http.route :as route]))</pre></td></tr><tr><td class="docs"><h2>API End-Points</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>TODO</p>
+</td><td class="codes"></td></tr><tr><td class="docs"><h2>Routing</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>Definition of all HTTP routes.</p>
+</td><td class="codes"><pre class="brush: clojure">(def routes
+  #{[&quot;/test&quot; :get respond-hello :route-name :test]})</pre></td></tr><tr><td class="docs"><h2>Service Config</h2>
+</td><td class="codes"></td></tr><tr><td class="docs"><p>A map specifying the web service configuration.</p>
+
+<p>  The default values are configured for production mode.</p>
+
+<p>  If <code>::http/join?</code> is false, Pedestal will not block the thread that starts
+  the web server. This essentially facilitates starting and stopping the server
+  inside the process.</p>
+
+<p>  Jetty is the underlying web server implementation used. Alternatives include
+  Tomcat, immutant, etc.</p>
+</td><td class="codes"><pre class="brush: clojure">(def service-config
+  {:env :prod
+   ;; Allow routes to be reloadable
+   ::http/routes #(route/expand-routes (deref #'routes))
+   ::http/type   :jetty
+   ::http/port   (:port-default app/config)
+   ::http/join?  true})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>Command-line interface and entry-point into the application.</p>
 
@@ -2877,7 +3064,8 @@ net.brehaut.ClojureTools = (function (SH) {
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
             [common.utils :refer :all]
-            [fileworthy.app :as app])
+            [fileworthy.app :as app]
+            [fileworthy.web.server :as server])
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>A map of CLI (sub-)commands with a short description of each.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-commands
   {:start &quot;Start web server&quot;
@@ -2887,12 +3075,12 @@ net.brehaut.ClojureTools = (function (SH) {
   <code>clojure.tools.cli</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-options
   [[&quot;-p&quot; &quot;--port PORT&quot; &quot;Web server listen port&quot;
-    :default 8023
+    :default (:port-default app/config)
     :parse-fn #(Integer/parseInt %)
     :validate [#(&lt; 0 % 0x10000) &quot;Port must be a number between 0 and 65536&quot;]]
    [&quot;-l&quot; &quot;--log-level LEVEL&quot;
     (str &quot;Log verbosity level (&quot; (level-names) &quot;)&quot;)
-    :default :info
+    :default (:log-level-default app/config)
     :parse-fn #(first (find levels (keyword %)))
     :validate [#(get levels %)
                (str &quot;Log verbosity level must be one of: &quot; (level-names))]]
@@ -2988,28 +3176,8 @@ net.brehaut.ClojureTools = (function (SH) {
       (with-redefs [log-level (:log-level options)]
         (log :debug (str &quot;Log level set to '&quot; (name log-level) &quot;'&quot;))
         (case command
-          :start (println &quot;TODO: start web server&quot;)
-          :version (println (:version app/info)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web" name="fileworthy.web"><h1 class="project-name">fileworthy.web</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
-
-<p>High-level web server life-cycle management.</p>
-
-<p>This namespace does not contain any domain-specific code.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web
-  (:require [io.pedestal.http :as http]
-            [io.pedestal.http.route :as route]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn respond-hello [request]
-  (let [nm (get-in request [:query-params :name])]
-    {:status 200 :body (str &quot;Hello there &quot; nm &quot;\n&quot;)}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def routes
-  (route/expand-routes
-    #{[&quot;/greet&quot; :get respond-hello :route-name :greet]}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn create-server []
-  (http/create-server
-    {::http/routes routes
-     ::http/type   :jetty
-     ::http/port   8080}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn start []
-  (http/start (create-server)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.app" name="fileworthy.app"><h1 class="project-name">fileworthy.app</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+          :start (server/start (:port options))
+          :version (println (:version app/info)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.app" name="fileworthy.app"><h1 class="project-name">fileworthy.app</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>High-level properties of the project, used in places like the CLI, web
 server defaults, build definition, etc.</p>
@@ -3020,7 +3188,10 @@ server defaults, build definition, etc.</p>
   {:name &quot;Fileworthy&quot;
    :version &quot;0.22.0&quot;
    :description (str &quot;Fileworthy is a simple website to manage your notes and &quot;
-                     &quot;files across all your devices&quot;)})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#common.utils" name="common.utils"><h1 class="project-name">common.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+                     &quot;files across all your devices&quot;)})</pre></td></tr><tr><td class="docs"><p>App configuration and defaults.</p>
+</td><td class="codes"><pre class="brush: clojure">(def config
+  {:log-level-default :info
+   :port-default 8023})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#common.utils" name="common.utils"><h1 class="project-name">common.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>Common utilities used throughout the project.</p>
 
@@ -3173,7 +3344,7 @@ result map, since a result map already has a <code>:level</code> key making the
                   colour))))
      :else
      (do
-       (println obj)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.web">fileworthy.web</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li><li class="floating-toc-li" id="floating-toc_common.utils">common.utils</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+       (println obj)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_fileworthy.web.utils">fileworthy.web.utils</li><li class="floating-toc-li" id="floating-toc_fileworthy.web.server">fileworthy.web.server</li><li class="floating-toc-li" id="floating-toc_fileworthy.web.service">fileworthy.web.service</li><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li><li class="floating-toc-li" id="floating-toc_common.utils">common.utils</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

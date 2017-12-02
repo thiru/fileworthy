@@ -1,4 +1,5 @@
 .nrepl-history
 .nrepl-port
 project.clj
+static/
 target/

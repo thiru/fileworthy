@@ -25,14 +25,14 @@
   Each item follows the spec of a CLI option as defined by
   `clojure.tools.cli`."
   [["-p" "--port PORT" "Web server listen port"
-    :default (:port-default app/config)
+    :default (:port app/config)
     :parse-fn #(Integer/parseInt %)
     :validate [#(< 0 % 0x10000) "Port must be a number between 0 and 65536"]]
 
    ["-l" "--log-level LEVEL"
     (str "Log verbosity level (" (level-names) ")")
-    :default (:log-level-default app/config)
-    :default-desc (name (:log-level-default app/config))
+    :default (:log-level app/config)
+    :default-desc (name (:log-level app/config))
     :parse-fn #(first (find levels (keyword %)))
     :validate [#(get levels %)
                (str "Log verbosity level must be one of: " (level-names))]]

@@ -160,6 +160,9 @@
                      (>= r-level-num 2)
                      :green
 
+                     (= r-level-num 1)
+                     :bright
+
                      (= r-level-num 0)
                      :magenta
                     

@@ -1,0 +1,7 @@
+;; ## Summary
+;;
+;; Global app configuration.
+;;
+{:log-level :debug
+ :port 8023}
+

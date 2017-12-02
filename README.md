@@ -10,7 +10,7 @@ Download from http://example.com/FIXME.
 
 FIXME: explanation
 
-    $ java -jar fileworthy-0.22.0.jar [args]
+    $ java -jar fileworthy.jar [args]
 
 ## Options
 

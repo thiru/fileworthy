@@ -5,7 +5,6 @@
 ;; 
 (ns fileworthy.web.server
   (:require [common.utils :refer :all]
-            [fileworthy.app :as app]
             [yada.yada :refer [listener resource as-resource]]))
 
 ;; This will hold an instance of the web server.

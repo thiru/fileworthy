@@ -1,0 +1,10 @@
+;; ## Summary
+;;
+;; Global app configuration.
+;;
+{:name "Fileworthy"
+ :version "0.22.0"
+ :description "Fileworthy is a simple website to manage your notes and files across all your devices."
+ :log-level :debug
+ :port 8023}
+

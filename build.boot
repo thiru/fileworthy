@@ -68,20 +68,20 @@
   :asset-paths #{"assets"}
   :dependencies deps)
 
-(require '[fileworthy.config :refer [config]]
+(require '[fileworthy.app :as app]
          '[clojure.string :as string])
 
 ;; Define project metadata, etc.
 ;;
 (task-options!
-  pom {:project (symbol (string/lower-case (:name @config)))
-       :version (:version @config)
-       :description (:description @config)
+  pom {:project (symbol (string/lower-case (:name app/info)))
+       :version (:version app/info)
+       :description (:description app/info)
        :license {"GNU General Public License Version 3"
                  "https://www.gnu.org/licenses/gpl-3.0.en.html"}}
   aot {:namespace '#{fileworthy.main}}
   jar {:main 'fileworthy.main
-       :file (str (string/lower-case (:name @config)) ".jar")}
+       :file (str (string/lower-case (:name app/info)) ".jar")}
   sift {:include #{#"\.jar$"}})
 
 (require '[common.utils :refer :all]
@@ -104,8 +104,8 @@
                 :main ^:skip-aot asdbwebapi.main
                 :target-path \"target/%%s\"
                 :profiles {:uberjar {:aot :all}})\n"
-                (:version @config)
-                (:description @config)
+                (:version app/info)
+                (:description app/info)
                 deps))
   (let [cmd "lein marg --file index.html"]
     (log :info (str "Running '" cmd "'..."))

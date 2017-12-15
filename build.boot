@@ -11,7 +11,7 @@
 (def deps
   "Clojure library dependencies used by this project."
   '[;; #### Clojure Core
-    [org.clojure/clojure "1.9.0-RC2"]
+    [org.clojure/clojure "1.9.0"]
 
     ;; #### Core Libraries
 

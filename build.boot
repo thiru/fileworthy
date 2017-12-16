@@ -45,8 +45,8 @@
     [metosin/ring-swagger "0.24.0"]
 
     ;; #### Logging
-    ;; (test which of these are actually needed)]
-
+    [org.clojure/tools.trace "0.7.9"]
+    ;; (test which of these, brought in by Yada, are actually needed)]
     [org.clojure/tools.logging "0.4.0"]
     [org.slf4j/jcl-over-slf4j "1.7.25"]
     [org.slf4j/jul-to-slf4j "1.7.25"]
@@ -69,7 +69,8 @@
   :dependencies deps)
 
 (require '[fileworthy.app :as app]
-         '[clojure.string :as string])
+         '[clojure.string :as string]
+         '[clojure.tools.trace :as t])
 
 ;; Define project metadata, etc.
 ;;

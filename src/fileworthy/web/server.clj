@@ -5,6 +5,8 @@
 ;; 
 (ns fileworthy.web.server
   (:require [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]
             [yada.yada :refer [listener resource as-resource]]))
 
 ;; This will hold an instance of the web server.

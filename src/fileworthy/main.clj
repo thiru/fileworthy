@@ -10,6 +10,8 @@
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
             [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]
             [fileworthy.app :as app]
             [fileworthy.web.server :as server])
   (:gen-class))

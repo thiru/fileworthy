@@ -6,7 +6,9 @@
 (ns fileworthy.app
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [thiru.utils :refer :all]))
+            [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]))
 
 (def info
   "General app info.

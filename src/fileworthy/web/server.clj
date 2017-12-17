@@ -4,7 +4,7 @@
 ;; life-cycle management.
 ;; 
 (ns fileworthy.web.server
-  (:require [common.utils :refer :all]
+  (:require [thiru.utils :refer :all]
             [yada.yada :refer [listener resource as-resource]]))
 
 ;; This will hold an instance of the web server.

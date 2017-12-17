@@ -9,7 +9,7 @@
   (:require [clojure.set :refer [difference]]
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
-            [common.utils :refer :all]
+            [thiru.utils :refer :all]
             [fileworthy.app :as app]
             [fileworthy.web.server :as server])
   (:gen-class))

@@ -85,7 +85,7 @@
        :file (str (string/lower-case (:name app/info)) ".jar")}
   sift {:include #{#"\.jar$"}})
 
-(require '[common.utils :refer :all]
+(require '[thiru.utils :refer :all]
          '[clojure.java.shell :as shell]
          '[fileworthy.main :as cli]
          '[fileworthy.web.server :as server])

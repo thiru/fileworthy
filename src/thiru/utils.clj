@@ -5,7 +5,7 @@
 ;; This namespace does not contain any domain-specific code, and so should be
 ;; easy to use in other projects.
 ;;
-(ns common.utils
+(ns thiru.utils
   (:require [clojure.string :as string]
             [clansi :refer :all]))
 

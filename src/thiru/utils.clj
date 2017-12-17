@@ -108,7 +108,24 @@
   [obj]
   (not (success? obj)))
 
-;; ## Logging
+;; ## Debugging/Logging
+
+(defmacro condv
+  "Behaves just like `cond`, while also printing out the condition that was
+  chosen.
+  
+  This was taken from [Eli Bendersky's website](https://eli.thegreenplace.net/2017/notes-on-debugging-clojure-code/)."
+  [& clauses]
+  (when clauses
+    (list
+     'if
+     (first clauses)
+     (if (next clauses)
+       `(do (println (str "condv " '~(first clauses)))
+            ~(second clauses))
+       (throw (IllegalArgumentException.
+               "cond requires an even number of forms")))
+     (cons 'condv (next (next clauses))))))
 
 (def log-level
   "The current logging level, which should be a value from `levels`."

@@ -88,6 +88,7 @@
 (require '[thiru.utils :refer :all]
          '[thiru.debugnlog :refer :all]
          '[thiru.reporting :refer :all]
+         '[thiru.config :as cfg]
          '[clojure.java.shell :as shell]
          '[fileworthy.main :as cli]
          '[fileworthy.web.server :as server])

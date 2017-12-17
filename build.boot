@@ -101,11 +101,11 @@
   []
   (log :info "Creating Leiningen project.clj...")
   (spit "project.clj"
-        (format "(defproject asdbwebapi \"%s\"
+        (format "(defproject fileworthy \"%s\"
                 :description \"%s\"
                 :dependencies %s
-                :plugins [[lein-marginalia \"0.9.0\"]]
-                :main ^:skip-aot asdbwebapi.main
+                :plugins [[lein-marginalia \"0.9.1\"]]
+                :main ^:skip-aot fileworthy.main
                 :target-path \"target/%%s\"
                 :profiles {:uberjar {:aot :all}})\n"
                 (:version app/info)

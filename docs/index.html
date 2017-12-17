@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="Fileworthy is a simple website to manage your notes and files across all your devices" name="description" /><style type="text/css">/**
+<html><head><meta charset="utf-8" content="text/html" http-equiv="Content-Type" /><meta content="Fileworthy is a simple website to manage your notes and files across all your devices." name="description" /><style type="text/css">/**
  * SyntaxHighlighter
  * http://alexgorbatchev.com/SyntaxHighlighter
  *
@@ -2865,195 +2865,295 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>asdbwebapi -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">asdbwebapi</h1><h2 class="project-version">0.22.0</h2><br /><p>Fileworthy is a simple website to manage your notes and files across all your devices</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.8.0</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">clansi</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">io.pedestal/pedestal.service</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">io.pedestal/pedestal.route</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">io.pedestal/pedestal.jetty</td><td class="dotted"><hr /></td><td class="dep-version">0.5.3</td></tr><tr><td class="dep-name">org.slf4j/slf4j-simple</td><td class="dotted"><hr /></td><td class="dep-version">1.7.22</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#fileworthy.web.utils">fileworthy.web.utils</a></li><li><a href="#fileworthy.web.server">fileworthy.web.server</a></li><li><a href="#fileworthy.web.service">fileworthy.web.service</a></li><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li><li><a href="#common.utils">common.utils</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.utils" name="fileworthy.web.utils"><h1 class="project-name">fileworthy.web.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+</script><title>fileworthy -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">fileworthy</h1><h2 class="project-version">0.22.0</h2><br /><p>Fileworthy is a simple website to manage your notes and files across all your devices.</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.9.0</td></tr><tr><td class="dep-name">prismatic/schema</td><td class="dotted"><hr /></td><td class="dep-version">1.1.6</td></tr><tr><td class="dep-name">org.clojure/core.async</td><td class="dotted"><hr /></td><td class="dep-version">0.3.465</td></tr><tr><td class="dep-name">com.cognitect/transit-clj</td><td class="dotted"><hr /></td><td class="dep-version">0.8.300</td></tr><tr><td class="dep-name">bidi</td><td class="dotted"><hr /></td><td class="dep-version">2.1.1</td></tr><tr><td class="dep-name">hiccup</td><td class="dotted"><hr /></td><td class="dep-version">1.0.5</td></tr><tr><td class="dep-name">yada</td><td class="dotted"><hr /></td><td class="dep-version">1.2.9</td></tr><tr><td class="dep-name">aleph</td><td class="dotted"><hr /></td><td class="dep-version">0.4.3</td></tr><tr><td class="dep-name">metosin/ring-swagger</td><td class="dotted"><hr /></td><td class="dep-version">0.24.0</td></tr><tr><td class="dep-name">org.clojure/tools.trace</td><td class="dotted"><hr /></td><td class="dep-version">0.7.9</td></tr><tr><td class="dep-name">org.clojure/tools.logging</td><td class="dotted"><hr /></td><td class="dep-version">0.4.0</td></tr><tr><td class="dep-name">org.slf4j/jcl-over-slf4j</td><td class="dotted"><hr /></td><td class="dep-version">1.7.25</td></tr><tr><td class="dep-name">org.slf4j/jul-to-slf4j</td><td class="dotted"><hr /></td><td class="dep-version">1.7.25</td></tr><tr><td class="dep-name">org.slf4j/log4j-over-slf4j</td><td class="dotted"><hr /></td><td class="dep-version">1.7.25</td></tr><tr><td class="dep-name">ch.qos.logback/logback-classic</td><td class="dotted"><hr /></td><td class="dep-version">1.2.3</td></tr><tr><td class="dep-name">org.clojure/tools.cli</td><td class="dotted"><hr /></td><td class="dep-version">0.3.5</td></tr><tr><td class="dep-name">clansi</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#thiru.config">thiru.config</a></li><li><a href="#thiru.reporting">thiru.reporting</a></li><li><a href="#thiru.utils">thiru.utils</a></li><li><a href="#thiru.debugnlog">thiru.debugnlog</a></li><li><a href="#fileworthy.main">fileworthy.main</a></li><li><a href="#fileworthy.web.server">fileworthy.web.server</a></li><li><a href="#fileworthy.app">fileworthy.app</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#thiru.config" name="thiru.config"><h1 class="project-name">thiru.config</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
-<p>Common web-specific utilties.</p>
+<p>General config file management.</p>
 
-<p>This namespace does not contain any domain-specific code.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.utils
- (:require [io.pedestal.http :as http]
-           [io.pedestal.http.route :as route]
-           [io.pedestal.http.route.definition.table :refer [table-routes]]
-           [io.pedestal.test :refer [response-for]]))</pre></td></tr><tr><td class="docs"><h2>HTTP Responses</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>A map of names of common mime content types.</p>
-</td><td class="codes"><pre class="brush: clojure">(def content-types
-  {:html &quot;text/html&quot;
-   :json &quot;application/json&quot;
-   :text &quot;text/plain&quot;
-   :xml &quot;text/xml&quot;})</pre></td></tr><tr><td class="docs"><p>A map describing a generic HTTP response with status, body and headers.</p>
+<p>This namespace does not contain any domain-specific code, and so should be
+easy to use in other projects.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns thiru.config
+  (:require [clojure.string :as string]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]))</pre></td></tr><tr><td class="docs"><p>Load an EDN config file from the given path and return it's contents.</p>
 
-<ul>
-<li><code>status</code>
-<ul><li>An integer HTTP status code</li></ul></li>
-<li><code>body</code>
-<ul><li>A string containing an HTTP response body</li></ul></li>
-<li><code>headers</code>
-<ul><li>An optional list of headers</li>
-<li>Values should be given in pairs</li>
-<li>E.g. <code>(response 200 "BODY" "Content-Type" "text/html")</code></li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn response
-  [status body &amp; {:as headers}]
-  {:status status :body body :headers headers})</pre></td></tr><tr><td class="docs"><p>Some helper functions for common HTTP responses.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def http-ok (partial response 200))
-(def http-created (partial response 201))
-(def http-bad-request (partial response 400))
-(def http-unauthorised (partial response 401))
-(def http-forbidden (partial response 403))
-(def http-not-found (partial response 404))
-(def http-server-error (partial response 500))</pre></td></tr><tr><td class="docs"><p>Respond with a simple hello message, including an optional name if
-  specified as a query parameter named <code>name</code>.</p>
+<p>  If the config file doesn't exist at the given path <code>nil</code> is returned.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn load-config-from
+  [path]
+  (log :debug (str &quot;Attempting to load config at '&quot; path &quot;'...&quot;))
+  (let [file (io/as-file path)
+        file-exists (.exists file)
+        config (if file-exists
+                 (or (-&gt; path slurp edn/read-string)
+                     &quot;&quot;))]
+    (if file-exists
+      (log :success
+           (str &quot;Config found at '&quot; path &quot;'&quot;
+                (if (empty? config) &quot;, though it's empty&quot; &quot;&quot;)))
+      (log :debug (str &quot;Config not found at '&quot; path &quot;'&quot;)))
+    config))</pre></td></tr><tr><td class="docs"><p>Attempt to load an EDN config file.</p>
 
 <ul>
-<li><code>request</code>
-<ul><li>A map containing a (Pedestal) HTTP request</li></ul></li>
+<li><code>file-name</code>
+<ul><li>The name of the config file</li></ul></li>
+<li><p><code>config-defaults</code></p>
+
+<ul><li>A map specifying default/fallback values</li></ul>
+
+<p>The following directories are search (in order):</p></li>
+<li><p>Current working directory</p></li>
+<li>User's config directory
+<ul><li>Using the XDG<em>CONFIG</em>HOME environment variable</li>
+<li>E.g. <em>~/.config/fileworthy</em></li></ul></li>
+<li>User's home directory (*nix)
+<ul><li>Using the HOME environment variable</li>
+<li>This may also exist in Windows, e.g. Git Bash or WSL</li>
+<li>E.g. <em>~/fileworthy</em></li></ul></li>
+<li>User's home directory on Windows
+<ul><li>Using the USERPROFILE environment variable</li>
+<li>E.g. <em>C:\Users\Me\fileworthy</em></li></ul></li>
 </ul>
-</td><td class="codes"><pre class="brush: clojure">(defn respond-hello
- [request]
- (let [nm (get-in request [:query-params :name])]
-   (http-ok (str &quot;Hello &quot; nm &quot;\n&quot;))))</pre></td></tr><tr><td class="docs"><h2>Testing/Inspection</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Print all HTTP routes.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn load-config
+  &quot;Attempt to load an EDN config file.
+  * `file-name`
+    * The name of the config file
+  * `config-defaults`
+    * A map specifying default/fallback values
+  The following directories are search (in order):
+  * Current working directory
+  * User's config directory
+    * Using the XDG_CONFIG_HOME environment variable
+    * E.g. *~/.config/fileworthy*
+  * User's home directory (\\*nix)
+    * Using the HOME environment variable
+    * This may also exist in Windows, e.g. Git Bash or WSL
+    * E.g. *~/fileworthy*
+  * User's home directory on Windows
+    * Using the USERPROFILE environment variable
+    * E.g. *C:\\Users\\Me\\fileworthy*&quot;
+  [file-name config-defaults]
+  (merge
+    config-defaults
+    ;; First, try loading config from the current dir
+    (as-&gt; (load-config-from file-name) config
+       ;; If that fails we search through the following environment variables.
+       ;; Note that the order of the environment variables specified here is
+       ;; significant, as they will be searched in this order.
+       (if (nil? config)
+         (let [env-vars [&quot;XDG_CONFIG_HOME&quot; &quot;HOME&quot; &quot;USERPROFILE&quot;]]
+           (loop [i 0]
+             (let [env-var (nth env-vars i)
+                   env-var-path (System/getenv env-var)
+                   file-path (if (non-empty? env-var-path)
+                               (io/file env-var-path &quot;fileworthy&quot; file-name))
+                   config (if file-path
+                            (load-config-from file-path))]
+               ;; Environment variable doesn't exist
+               (if (empty? env-var-path)
+                 (log :debug
+                      (str &quot;Not looking for config within $&quot; env-var
+                           &quot; since the environment variable is not set&quot;)))
+               (if (and (nil? config)
+                        (has-more-items i env-vars))
+                 ;; Keep looking if config wasn't found we have more environment
+                 ;; variables to look through
+                 (recur (+ 1 i))
+                 ;; Otherwise return the config we found, even if it's empty
+                 config))))
+         config)
+       (if (nil? config)
+         (log :info &quot;No config file found - using defaults&quot;)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#thiru.reporting" name="thiru.reporting"><h1 class="project-name">thiru.reporting</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
-<ul>
-<li><code>routes</code>
-<ul><li>A vector of all definied routes</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn print-routes
- [routes]
- (route/print-routes (table-routes routes)))</pre></td></tr><tr><td class="docs"><p>Get the response of a route without performing any actual HTTP requests.</p>
+<p>Reporting utilities (mostly around errors/exceptions).</p>
 
-<ul>
-<li><code>service</code>
-<ul><li>A Pedestal web service</li></ul></li>
-<li><code>verb</code>
-<ul><li>A keyword specifying an HTTP verb</li>
-<li>E.g. get, post, put, delete</li></ul></li>
-<li><code>url</code>
-<ul><li>The URL to test</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn test-route-response
-  [service verb url]
-  (response-for (::http/service-fn service) verb url))</pre></td></tr><tr><td class="docs"><p>Verify that the given verb and URL are recognised by the router.</p>
+<p>This namespace does not contain any domain-specific code, and so should be
+easy to use in other projects.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns thiru.reporting
+  (:require [clojure.string :as string]))</pre></td></tr><tr><td class="docs"><p>A generic map of levels that can be used for logging, reporting, etc.</p>
 
-<ul>
-<li><code>routes</code>
-<ul><li>A vector of all defined routes</li></ul></li>
-<li><code>verb</code>
-<ul><li>A keyword specifying an HTTP verb</li>
-<li>E.g. get, post, put, delete</li></ul></li>
-<li><code>url</code>
-<ul><li>The URL to test</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn verify-route
-  [routes verb url]
-  (route/try-routing-for (table-routes routes) :prefix-tree url verb))</pre></td></tr><tr><td class="docs"><p>Get the URL of the named route.</p>
-
-<ul>
-<li><code>routes</code>
-<ul><li>A vector of all defined routes</li></ul></li>
-<li><code>route-name</code>
-<ul><li>A keyword specifying a route name</li></ul></li>
-<li><code>opts</code>
-<ul><li>Options passed along to <code>route/url-for-routes</code></li>
-<li>See <a href="http://pedestal.io/api/pedestal.route/io.pedestal.http.route.html#var-url-for-routes">API docs</a></li>
-<li>E.g. <code>(url-for-route ::test :absolute? true)</code></li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn url-for-route
-  [routes route-name &amp; opts]
-  (let [f (route/url-for-routes (table-routes routes))
-        defaults   {:host &quot;localhost&quot; :scheme :http :port 8080}
-        route-opts (flatten (seq (merge defaults (apply hash-map opts))))]
-    (apply f route-name route-opts)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.server" name="fileworthy.web.server"><h1 class="project-name">fileworthy.web.server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
-
-<p>General and high-level web server functionality, mostly around web server
-life-cycle management.</p>
-
-<p>This namespace does not contain any domain-specific code.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.server
-  (:require [common.utils :refer :all]
-            [fileworthy.app :as app]
-            [fileworthy.web.service :as service]
-            [io.pedestal.http :as http]
-            [io.pedestal.http.route :as route]))</pre></td></tr><tr><td class="docs"><p><code>runnable-service</code> will hold an instance of the web server.</p>
-
-<p>It is stored in a global variable so we can easily stop and restart it.</p>
-</td><td class="codes"><pre class="brush: clojure">(defonce runnable-service (atom nil))</pre></td></tr><tr><td class="docs"><p>Start a new web server at the specified port.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn start
-  ([] (start (:port-default app/config)))
-  ([port]
-   (log :info (str &quot;Starting web server on port &quot; port))
-   (reset! runnable-service
-     (http/start
-       (http/create-server
-         (assoc service/service-config ::http/port port))))))</pre></td></tr><tr><td class="docs"><p>Start a new web server at the specified port, in development mode.</p>
-
-<p>  Development mode facilitates</p>
-
-<ul>
-<li>Restarting the service</li>
-<li>Less strict security protocols</li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn start-dev
-  ([] (start-dev (:port-default app/config)))
-  ([port]
-   (log :info (str &quot;Starting web server on port &quot; port &quot; (DEV MODE)&quot;))
-   (reset! runnable-service
-    (-&gt; service/service-config
-        (merge {:env :dev
-                ::http/port port
-                ::http/join? false
-                ;; All origins are allowed in dev mode
-                ::http/allowed-origins {:creds true
-                                        :allowed-origins (constantly true)}
-                ;; Content Security Policy (CSP) is mostly turned off in dev
-                ;; mode
-                ::http/secure-headers {:content-security-policy-settings
-                                        {:object-src &quot;none&quot;}}})
-         ;; Wire up interceptor chains
-        http/default-interceptors
-        http/dev-interceptors
-        http/create-server
-        http/start))))</pre></td></tr><tr><td class="docs"><p>Stop the running web server.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn stop
+<p>  Negative values represent some level of failure. Non-negative values indicate
+  some level of success, or just plain reporting.</p>
+</td><td class="codes"><pre class="brush: clojure">(def levels
+  {:success 2
+   :info 1
+   :debug 0
+   :warning -1
+   :error -2
+   :fatal -3})</pre></td></tr><tr><td class="docs"><p>A comma-delimited string of <code>level</code> names.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn level-names
   []
-  (log :info &quot;Stopping web server on port &quot; (::http/port @runnable-service))
-  (http/stop @runnable-service))</pre></td></tr><tr><td class="docs"><p>Restart the running web server.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn restart
-  []
-  (stop)
-  (start-dev))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.service" name="fileworthy.web.service"><h1 class="project-name">fileworthy.web.service</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+  (string/join &quot;, &quot; (map name (keys levels))))</pre></td></tr><tr><td class="docs"><p>A map representing the result of some operation, including the level of
+  success/failure, and an optional data item.</p>
 
-<p>Domain-specific web service.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.service
-  (:require [common.utils :refer :all]
-            [fileworthy.app :as app]
-            [fileworthy.web.utils :refer :all]
-            [io.pedestal.http :as http]
-            [io.pedestal.http.route :as route]))</pre></td></tr><tr><td class="docs"><h2>API End-Points</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>TODO</p>
-</td><td class="codes"></td></tr><tr><td class="docs"><h2>Routing</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>Definition of all HTTP routes.</p>
-</td><td class="codes"><pre class="brush: clojure">(def routes
-  #{[&quot;/test&quot; :get respond-hello :route-name :test]})</pre></td></tr><tr><td class="docs"><h2>Service Config</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>A map specifying the web service configuration.</p>
+<ul>
+<li><code>level</code>
+<ul><li>A value specifying the success/failure level</li>
+<li>This should either be a key from <code>levels</code> (which map to numbers) or a
+number</li>
+<li>By convention, negative values are considered a level of failure, while
+non-negative values are considered informational or successful</li></ul></li>
+<li><code>msg</code>
+<ul><li>A message describing the result</li></ul></li>
+<li><code>data</code>
+<ul><li>An optional data item around which this result is wrapped</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn r
+  ([] (r :info))
+  ([level] (r level &quot;&quot;))
+  ([level msg] {:level level :message msg})
+  ([level msg data] {:level level :message msg :data data}))</pre></td></tr><tr><td class="docs"><p>Determine whether <code>obj</code> is a valid "result" map.</p>
 
-<p>  The default values are configured for production mode.</p>
+<p>  <code>obj</code> is considered a valid result map if it contains a key named <code>:level</code>
+  that is a number or keyword.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn is-result-map?
+  [obj]
+  (and (map? obj)
+       (or (keyword? (:level obj))
+           (number? (:level obj)))))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a successful outcome.</p>
 
-<p>  If <code>::http/join?</code> is false, Pedestal will not block the thread that starts
-  the web server. This essentially facilitates starting and stopping the server
-  inside the process.</p>
+<p>  <code>obj</code> is considered successful in all cases except the following:</p>
 
-<p>  Jetty is the underlying web server implementation used. Alternatives include
-  Tomcat, immutant, etc.</p>
-</td><td class="codes"><pre class="brush: clojure">(def service-config
-  {:env :prod
-   ;; Allow routes to be reloadable
-   ::http/routes #(route/expand-routes (deref #'routes))
-   ::http/type   :jetty
-   ::http/port   (:port-default app/config)
-   ::http/join?  true})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+<ul>
+<li><code>nil</code></li>
+<li><code>false</code></li>
+<li>A "result" map with a key named <code>:level</code> where
+<ul><li><code>:level</code> is a keyword defined in <code>levels</code> which maps to a negative number</li>
+<li><code>:level</code> is a negative number</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn success?
+  [obj]
+  (cond
+    (nil? obj)
+    false
+    (false? obj)
+    false
+    (map? obj)
+    (let [level (:level obj)]
+      (cond
+        (number? level)
+        (&lt;= 0 level)
+        (keyword? level)
+        (&lt;= 0 (get levels level (:error levels)))))
+    :else
+    true))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a failure outcome.</p>
+
+<p>  This is basically the opposite of <code>success?</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn failed?
+  [obj]
+  (not (success? obj)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#thiru.utils" name="thiru.utils"><h1 class="project-name">thiru.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>Common utilities used throughout the project.</p>
+
+<p>This namespace does not contain any domain-specific code, and so should be
+easy to use in other projects.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns thiru.utils
+  (:require [clojure.string :as string]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def as-english-number (partial clojure.pprint/cl-format nil &quot;~@(~@[~R~]~^ ~A.~)&quot;))</pre></td></tr><tr><td class="docs"><p>Simply the negation of <code>empty?</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn non-empty?
+  [obj]
+  (not (empty? obj)))</pre></td></tr><tr><td class="docs"><p>Determine whether <code>items</code> has more items after the index <code>idx</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn has-more-items
+  [idx items]
+  (&lt; (+ 1 idx) (count items)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#thiru.debugnlog" name="thiru.debugnlog"><h1 class="project-name">thiru.debugnlog</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>Debugging and logging functionality.</p>
+
+<p>This namespace does not contain any domain-specific code, and so should be
+easy to use in other projects.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns thiru.debugnlog
+  (:require [clojure.string :as string]
+            [clansi :refer :all]
+            [thiru.reporting :refer :all]))</pre></td></tr><tr><td class="docs"><p>Behaves just like <code>cond</code>, while also printing out the condition that was
+  chosen.</p>
+
+<p>  This was taken from <a href="https://eli.thegreenplace.net/2017/notes-on-debugging-clojure-code/">Eli Bendersky's website</a>.</p>
+</td><td class="codes"><pre class="brush: clojure">(defmacro condv
+  [&amp; clauses]
+  (when clauses
+    (list
+     'if
+     (first clauses)
+     (if (next clauses)
+       `(do (println (str &quot;condv &quot; '~(first clauses)))
+            ~(second clauses))
+       (throw (IllegalArgumentException.
+               &quot;cond requires an even number of forms&quot;)))
+     (cons 'condv (next (next clauses))))))</pre></td></tr><tr><td class="docs"><p>The current logging level, which should be a value from <code>levels</code>.</p>
+</td><td class="codes"><pre class="brush: clojure">(def log-level
+  :debug)</pre></td></tr><tr><td class="docs"><p>Determine whether given object should be logged.</p>
+
+<ul>
+<li><code>obj</code>
+<ul><li>Can be any object</li>
+<li><code>nil</code> is not considered loggable</li>
+<li>If this is a valid result map (see <code>is-result-map?</code>) we compare it's
+<code>:level</code> key to the current value of <code>log-level</code> to determine if it's
+loggable</li>
+<li>All other (non-<code>nil</code>) objects are considered always loggable</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn loggable?
+  [obj]
+  (cond
+    (nil? obj)
+    false
+    (is-result-map? obj)
+    (let [r-level-num (if (number? (:level obj))
+                        (:level obj)
+                        (get levels (:level obj) -10))
+          log-level-num (get levels log-level -10)]
+      ;; Log everything if the current log-level is 0/debug
+      (or (= :debug log-level)
+          (and (pos? log-level-num)
+               (or (&gt;= r-level-num log-level-num)
+                   (neg? r-level-num)))
+          (and (neg? log-level-num)
+               (&lt;= r-level-num log-level-num))))
+    :else
+    true))</pre></td></tr><tr><td class="docs"><p>Log to console.</p>
+
+<ul>
+<li><code>level</code>
+<ul><li>Should be a number or keyword from <code>levels</code></li></ul></li>
+<li><code>obj</code>
+<ul><li>Object to be printed</li>
+<li>If the 2-arity function is specified it is assumed that this is <strong>not</strong> a
+result map, since a result map already has a <code>:level</code> key making the
+2-arity call redundant</li></ul></li>
+</ul>
+</td><td class="codes"><pre class="brush: clojure">(defn log
+  ([level obj] (log {:level level :message obj}))
+  ([obj]
+   (cond
+     (nil? obj)
+     nil
+     (and (is-result-map? obj))
+     (if (loggable? obj)
+      (let [r-level-num (if (number? (:level obj))
+                          (:level obj)
+                          (get levels (:level obj) -10))
+            colour (cond
+                     (&gt;= r-level-num 2)
+                     :green
+                     (= r-level-num 1)
+                     :bright
+                     (= r-level-num 0)
+                     :magenta
+                     (= r-level-num -1)
+                     :yellow
+                     (&lt;= r-level-num -2)
+                     :red
+                     :else
+                     :default)]
+        (println (style (str (string/upper-case (name (:level obj)))
+                             &quot;: &quot;
+                             (:message obj))
+                  colour))))
+     :else
+     (do
+       (println obj)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.main" name="fileworthy.main"><h1 class="project-name">fileworthy.main</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
 <p>Command-line interface and entry-point into the application.</p>
 
@@ -3063,7 +3163,9 @@ life-cycle management.</p>
   (:require [clojure.set :refer [difference]]
             [clojure.string :as string]
             [clojure.tools.cli :refer [parse-opts]]
-            [common.utils :refer :all]
+            [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]
             [fileworthy.app :as app]
             [fileworthy.web.server :as server])
   (:gen-class))</pre></td></tr><tr><td class="docs"><p>A map of CLI (sub-)commands with a short description of each.</p>
@@ -3075,12 +3177,13 @@ life-cycle management.</p>
   <code>clojure.tools.cli</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(def cli-options
   [[&quot;-p&quot; &quot;--port PORT&quot; &quot;Web server listen port&quot;
-    :default (:port-default app/config)
+    :default (:port @app/config)
     :parse-fn #(Integer/parseInt %)
     :validate [#(&lt; 0 % 0x10000) &quot;Port must be a number between 0 and 65536&quot;]]
    [&quot;-l&quot; &quot;--log-level LEVEL&quot;
     (str &quot;Log verbosity level (&quot; (level-names) &quot;)&quot;)
-    :default (:log-level-default app/config)
+    :default (:log-level @app/config)
+    :default-desc (name (:log-level @app/config))
     :parse-fn #(first (find levels (keyword %)))
     :validate [#(get levels %)
                (str &quot;Log verbosity level must be one of: &quot; (level-names))]]
@@ -3096,8 +3199,6 @@ life-cycle management.</p>
         (:description app/info)
         (str &quot;Usage: java -jar &quot;
              (string/lower-case (:name app/info))
-             &quot;-&quot;
-             (:version app/info)
              &quot;.jar&quot;
              &quot; [options] command&quot;)
         &quot;Options:&quot;
@@ -3177,174 +3278,78 @@ life-cycle management.</p>
         (log :debug (str &quot;Log level set to '&quot; (name log-level) &quot;'&quot;))
         (case command
           :start (server/start (:port options))
-          :version (println (:version app/info)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.app" name="fileworthy.app"><h1 class="project-name">fileworthy.app</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+          :version (println (:version app/info)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.web.server" name="fileworthy.web.server"><h1 class="project-name">fileworthy.web.server</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
 
-<p>High-level properties of the project, used in places like the CLI, web
+<p>General and high-level web server functionality, mostly around web server
+life-cycle management.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.web.server
+  (:require [thiru.utils :refer :all]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]
+            [yada.yada :refer [listener resource as-resource]]))</pre></td></tr><tr><td class="docs"><p>This will hold an instance of the web server.</p>
+
+<p>It is stored in a global variable so we can easily stop and restart it.</p>
+</td><td class="codes"><pre class="brush: clojure">(defonce server (atom nil))</pre></td></tr><tr><td class="docs"><p>Start a new web server at the specified port.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn start
+  [port]
+  (log :info (str &quot;Starting web server on port &quot; port))
+  (reset! server
+          (listener
+           [&quot;/&quot;
+            [
+             [&quot;hello&quot; (as-resource &quot;Hello world!&quot;)]
+             [&quot;test&quot; (resource {:produces &quot;text/plain&quot;
+                                :response &quot;This is a test!&quot;})]
+             ;; This defines the 404 response
+             [true (as-resource nil)]]]
+           {:port port})))</pre></td></tr><tr><td class="docs"><p>Stop the running web server.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn stop
+  []
+  (log :info &quot;Stopping web server on port TODO&quot;)
+  ((:close @server)))</pre></td></tr><tr><td class="docs"><p>Restart the running web server.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn restart
+  []
+  (stop)
+  (start 8023))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#fileworthy.app" name="fileworthy.app"><h1 class="project-name">fileworthy.app</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
+
+<p>High-level app details and configuration, used in places like the CLI, web
 server defaults, build definition, etc.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.app)</pre></td></tr><tr><td class="docs"><p>High-level app info/metadata. These properties are more on the descriptive
-  side and do not affect the state or behaviour of the app in any meaningful
-  way.</p>
+</td><td class="codes"><pre class="brush: clojure">(ns fileworthy.app
+  (:require [clojure.edn :as edn]
+            [clojure.java.io :as io]
+            [thiru.utils :refer :all]
+            [thiru.config :as cfg]
+            [thiru.debugnlog :refer :all]
+            [thiru.reporting :refer :all]))</pre></td></tr><tr><td class="docs"><p>General app info.</p>
+
+<p>  These properties are not meant to be modified, unlike <code>config</code>.</p>
 </td><td class="codes"><pre class="brush: clojure">(def info
   {:name &quot;Fileworthy&quot;
    :version &quot;0.22.0&quot;
-   :description (str &quot;Fileworthy is a simple website to manage your notes and &quot;
-                     &quot;files across all your devices&quot;)})</pre></td></tr><tr><td class="docs"><p>App configuration and defaults.</p>
+   :description (str &quot;Fileworthy is a simple website to manage your notes &quot;
+                     &quot;and files across all your devices.&quot;)})</pre></td></tr><tr><td class="docs"><p>Default configuration values.</p>
+
+<p>  This will be used if a user supplied config doesn't exist or can't be found.</p>
+</td><td class="codes"><pre class="brush: clojure">(def config-defaults
+  {:log-level :debug
+   :port 8023})</pre></td></tr><tr><td class="docs"><p>Contains the global app configuration map.</p>
+
+<p>  We store it in an atom so it can be live-reloaded.</p>
 </td><td class="codes"><pre class="brush: clojure">(def config
-  {:log-level-default :info
-   :port-default 8023})</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#common.utils" name="common.utils"><h1 class="project-name">common.utils</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><h2>Summary</h2>
-
-<p>Common utilities used throughout the project.</p>
-
-<p>This namespace does not contain any domain-specific code, and so should be
-easy to use in other projects.</p>
-</td><td class="codes"><pre class="brush: clojure">(ns common.utils
-  (:require [clojure.string :as string]
-            [clansi :refer :all]))</pre></td></tr><tr><td class="docs"><h2>General</h2>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def as-english-number (partial clojure.pprint/cl-format nil &quot;~@(~@[~R~]~^ ~A.~)&quot;))</pre></td></tr><tr><td class="docs"><h2>Reporting</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>A generic map of levels that can be used for logging, reporting, etc.</p>
-
-<p>  Negative values represent some level of failure. Non-negative values indicate
-  some level of success, or just plain reporting.</p>
-</td><td class="codes"><pre class="brush: clojure">(def levels
-  {:success 2
-   :info 1
-   :debug 0
-   :warning -1
-   :error -2
-   :fatal -3})</pre></td></tr><tr><td class="docs"><p>A comma-delimited string of <code>level</code> names.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn level-names
-  []
-  (string/join &quot;, &quot; (map name (keys levels))))</pre></td></tr><tr><td class="docs"><p>A map representing the result of some operation, including the level of
-  success/failure, and an optional data item.</p>
+  (atom
+    (let [c (cfg/load-config &quot;config.edn&quot; config-defaults)]
+      (log :info (str &quot;App config loaded: &quot; c))
+      c)))</pre></td></tr><tr><td class="docs"><p>Reload config from one of the predefined user directories.</p>
 
 <ul>
-<li><code>level</code>
-<ul><li>A value specifying the success/failure level</li>
-<li>This should either be a key from <code>levels</code> (which map to numbers) or a
-number</li>
-<li>By convention, negative values are considered a level of failure, while
-non-negative values are considered informational or successful</li></ul></li>
-<li><code>msg</code>
-<ul><li>A message describing the result</li></ul></li>
-<li><code>data</code>
-<ul><li>An optional data item around which this result is wrapped</li></ul></li>
+<li><code>file-name</code>
+<ul><li>If specified, it is will be used as the config file name</li>
+<li>Otherwise 'config.edn' is used</li></ul></li>
 </ul>
-</td><td class="codes"><pre class="brush: clojure">(defn r
-  ([] (r :info))
-  ([level] (r level &quot;&quot;))
-  ([level msg] {:level level :message msg})
-  ([level msg data] {:level level :message msg :data data}))</pre></td></tr><tr><td class="docs"><p>Determine whether <code>obj</code> is a valid "result" map.</p>
-
-<p>  <code>obj</code> is considered a valid result map if it contains a key named <code>:level</code>
-  that is a number or keyword.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn is-result-map?
-  [obj]
-  (and (map? obj)
-       (or (keyword? (:level obj))
-           (number? (:level obj)))))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a successful outcome.</p>
-
-<p>  <code>obj</code> is considered successful in all cases except the following:</p>
-
-<ul>
-<li><code>nil</code></li>
-<li><code>false</code></li>
-<li>A "result" map with a key named <code>:level</code> where
-<ul><li><code>:level</code> is a keyword defined in <code>levels</code> which maps to a negative number</li>
-<li><code>:level</code> is a negative number</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn success?
-  [obj]
-  (cond
-    (nil? obj)
-    false
-    (false? obj)
-    false
-    (map? obj)
-    (let [level (:level obj)]
-      (cond
-        (number? level)
-        (&lt;= 0 level)
-        (keyword? level)
-        (&lt;= 0 (get levels level (:error levels)))))
-    :else
-    true))</pre></td></tr><tr><td class="docs"><p>Determine whether the given object represents a failure outcome.</p>
-
-<p>  This is basically the opposite of <code>success?</code>.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn failed?
-  [obj]
-  (not (success? obj)))</pre></td></tr><tr><td class="docs"><h2>Logging</h2>
-</td><td class="codes"></td></tr><tr><td class="docs"><p>The current logging level, which should be a value from <code>levels</code>.</p>
-</td><td class="codes"><pre class="brush: clojure">(def log-level
-  :debug)</pre></td></tr><tr><td class="docs"><p>Determine whether given object should be logged.</p>
-
-<ul>
-<li><code>obj</code>
-<ul><li>Can be any object</li>
-<li><code>nil</code> is not considered loggable</li>
-<li>If this is a valid result map (see <code>is-result-map?</code>) we compare it's
-<code>:level</code> key to the current value of <code>log-level</code> to determine if it's
-loggable</li>
-<li>All other (non-<code>nil</code>) objects are considered always loggable</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn loggable?
-  [obj]
-  (cond
-    (nil? obj)
-    false
-    (is-result-map? obj)
-    (let [r-level-num (if (number? (:level obj))
-                        (:level obj)
-                        (get levels (:level obj) -10))
-          log-level-num (get levels log-level -10)]
-      ;; Log everything if the current log-level is 0/debug
-      (or (= :debug log-level)
-          (and (pos? log-level-num)
-               (or (&gt;= r-level-num log-level-num)
-                   (neg? r-level-num)))
-          (and (neg? log-level-num)
-               (&lt;= r-level-num log-level-num))))
-    :else
-    true))</pre></td></tr><tr><td class="docs"><p>Log to console.</p>
-
-<ul>
-<li><code>level</code>
-<ul><li>Should be a number or keyword from <code>levels</code></li></ul></li>
-<li><code>obj</code>
-<ul><li>Object to be printed</li>
-<li>If the 2-arity function is specified it is assumed that this is <strong>not</strong> a
-result map, since a result map already has a <code>:level</code> key making the
-2-arity call redundant</li></ul></li>
-</ul>
-</td><td class="codes"><pre class="brush: clojure">(defn log
-  ([level obj] (log {:level level :message obj}))
-  ([obj]
-   (cond
-     (nil? obj)
-     nil
-     (and (is-result-map? obj))
-     (if (loggable? obj)
-      (let [r-level-num (if (number? (:level obj))
-                          (:level obj)
-                          (get levels (:level obj) -10))
-            colour (cond
-                     (&gt;= r-level-num 2)
-                     :green
-                     (= r-level-num 0)
-                     :magenta
-                     (= r-level-num -1)
-                     :yellow
-                     (&lt;= r-level-num -2)
-                     :red
-                     :else
-                     :default)]
-        (println (style (str (string/upper-case (name (:level obj)))
-                             &quot;: &quot;
-                             (:message obj))
-                  colour))))
-     :else
-     (do
-       (println obj)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_fileworthy.web.utils">fileworthy.web.utils</li><li class="floating-toc-li" id="floating-toc_fileworthy.web.server">fileworthy.web.server</li><li class="floating-toc-li" id="floating-toc_fileworthy.web.service">fileworthy.web.service</li><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li><li class="floating-toc-li" id="floating-toc_common.utils">common.utils</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+</td><td class="codes"><pre class="brush: clojure">(defn reload-config
+  ([] (reload-config &quot;config.edn&quot;))
+  ([file-name]
+   (reset! config (cfg/load-config file-name config-defaults))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/gdeer81/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_thiru.config">thiru.config</li><li class="floating-toc-li" id="floating-toc_thiru.reporting">thiru.reporting</li><li class="floating-toc-li" id="floating-toc_thiru.utils">thiru.utils</li><li class="floating-toc-li" id="floating-toc_thiru.debugnlog">thiru.debugnlog</li><li class="floating-toc-li" id="floating-toc_fileworthy.main">fileworthy.main</li><li class="floating-toc-li" id="floating-toc_fileworthy.web.server">fileworthy.web.server</li><li class="floating-toc-li" id="floating-toc_fileworthy.app">fileworthy.app</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
 SyntaxHighlighter.all();
 
 // hackity hack

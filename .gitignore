@@ -1,5 +1,5 @@
-.lein-repl-history
-.nrepl-history
+.*history
+.cpcache
 .nrepl-port
 project.clj
 static/

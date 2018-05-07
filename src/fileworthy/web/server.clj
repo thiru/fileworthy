@@ -2,41 +2,93 @@
 ;;
 ;; General and high-level web server functionality, mostly around web server
 ;; life-cycle management.
-;; 
-(ns fileworthy.web.server
-  (:require [thiru.utils :refer :all]
-            [thiru.debugnlog :refer :all]
-            [thiru.reporting :refer :all]
-            [yada.yada :refer [listener resource as-resource]]))
-
-;; This will hold an instance of the web server.
 ;;
-;; It is stored in a global variable so we can easily stop and restart it.
-(defonce server (atom nil))
+;; This namespace does not contain any domain-specific code, and so should be
+;; easy to use in other projects.
+;;
+(ns fileworthy.web.server
+  (:require
+            [clojure.java.io :as io]
+
+            [ring.adapter.jetty :refer [run-jetty]]
+
+            [thiru.logging :refer :all]
+            [thiru.utils :refer :all]
+
+            [fileworthy.app :as app]
+            [fileworthy.web.handler :as handler]))
+
+;;; Contains the web server instance, the main handler (`site`) and other
+;;; properties to support restarting."
+;;;
+(defonce instance
+  (atom {:dev? true
+         :site nil
+         :port (:web-server-port @app/config)
+         :server nil}))
+
+(defn start-web-server!
+  "Start the web server.
+
+  This updates the `instance` atom.
+
+  * `dev?`
+    * Whether to run the server in development mode
+  * `port`
+    * The web server port
+  * `handler`
+    * The handler function containing the site routes"
+  [dev? port handler]
+  (reset! instance
+          {:dev? dev?
+           :site handler
+           :port port
+           :server (run-jetty handler {:port port :join? false})}))
 
 (defn start
-  "Start a new web server at the specified port."
-  [port]
-  (log :info (str "Starting web server on port " port))
-  (reset! server
-          (listener
-           ["/"
-            [
-             ["hello" (as-resource "Hello world!")]
-             ["test" (resource {:produces "text/plain"
-                                :response "This is a test!"})]
-             ;; This defines the 404 response
-             [true (as-resource nil)]]]
-           {:port port})))
+  "Start web server.
+
+  If a web server is already the function is aborted and an error is logged.
+
+  * `dev?`
+    * Whether to run the server in development mode
+    * If true, `wrap-reload` is used to dynamically reload source code when
+      routes, etc. change
+  * `port`
+    * The port of the web server
+    * The default is to use the value specified in the config file"
+  ([] (start true (:web-server-port @app/config)))
+  ([dev? port]
+   (if (not (nil? (:server @instance)))
+     (log :warning
+          (str "Web server already running on port "
+               (:port @instance)
+               " in "
+               (if (:dev? @instance) "development" "production")
+               " mode. Start aborted."))
+     (do
+       (log :debug
+            (str "Starting web server on port " port " in "
+                 (if dev? "development" "production")
+                 " mode..."))
+       (start-web-server! dev? port (handler/get-handler dev?))
+       (log :success
+            (str "Web server started on port " port " in "
+                 (if dev? "development " "production ") "mode"))))))
 
 (defn stop
-  "Stop the running web server."
+  "Stop the running web server (if any)."
   []
-  (log :info "Stopping web server on port TODO")
-  ((:close @server)))
+  (if (nil? (:server @instance))
+    (log :warning "Web server doesn't appear to be running")
+    (do
+      (log :debug "Stopping web server...")
+      (.stop (:server @instance))
+      (swap! instance assoc :server nil)
+      (log :info "Web server stopped"))))
 
 (defn restart
-  "Restart the running web server."
+  "Restart the running web server (if any)."
   []
   (stop)
-  (start 8023))
+  (start (:dev? @instance) (:port @instance)))

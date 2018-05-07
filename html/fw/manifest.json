@@ -1,0 +1,16 @@
+{
+    "name": "Fileworthy",
+    "short_name": "Fileworthy",
+    "start_url": "/",
+    "scope:": "/",
+    "display": "standalone",
+    "theme_color": "#0F83BC",
+    "background_color": "#EEE",
+    "icons": [
+        {
+            "src": "/images/favicon.ico",
+            "sizes": "256x256",
+            "type": "image/x-icon"
+        }
+    ]
+}

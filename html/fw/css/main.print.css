@@ -1,0 +1,11 @@
+@media print
+{
+  #top-bar,
+  nav,
+  #search-group,
+  #fs-path-page #file-names-nav,
+  #fs-path-page #path-trail
+  {
+    display: none !important;
+  }
+}

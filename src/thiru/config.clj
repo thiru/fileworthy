@@ -10,12 +10,12 @@
             [clojure.edn :as edn]
             [clojure.java.io :as io]
             [thiru.utils :refer :all]
-            [thiru.debugnlog :refer :all]
+            [thiru.logging :refer :all]
             [thiru.reporting :refer :all]))
 
 (defn load-config-from
   "Load an EDN config file from the given path and return it's contents.
-  
+
   If the config file doesn't exist at the given path `nil` is returned."
   [path]
   (log :debug (str "Attempting to load config at '" path "'..."))
@@ -38,20 +38,20 @@
     * The name of the config file
   * `config-defaults`
     * A map specifying default/fallback values
- 
+
   The following directories are search (in order):
-  
+
   * Current working directory
   * User's config directory
     * Using the XDG_CONFIG_HOME environment variable
-    * E.g. *~/.config/fileworthy*
+    * E.g. *~/.config/mflows*
   * User's home directory (\\*nix)
     * Using the HOME environment variable
     * This may also exist in Windows, e.g. Git Bash or WSL
-    * E.g. *~/fileworthy*
+    * E.g. *~/mflows*
   * User's home directory on Windows
     * Using the USERPROFILE environment variable
-    * E.g. *C:\\Users\\Me\\fileworthy*"
+    * E.g. *C:\\Users\\Me\\mflows*"
   [file-name config-defaults]
   (merge
     config-defaults
@@ -67,7 +67,7 @@
              (let [env-var (nth env-vars i)
                    env-var-path (System/getenv env-var)
                    file-path (if (non-empty? env-var-path)
-                               (io/file env-var-path "fileworthy" file-name))
+                               (io/file env-var-path "mflows" file-name))
                    config (if file-path
                             (load-config-from file-path))]
 

@@ -10,64 +10,83 @@
 ;;
 (def deps
   "Clojure library dependencies used by this project."
-  '[;; #### Clojure Core
-    [org.clojure/clojure "1.9.0"]
+  '[;; #### Core Domain
 
-    ;; #### Core Libraries
+    ;; Date/time library:
+    [clojure.java-time "0.3.1"]
 
-    ;; Soon to be obsolete library for schema validation (replaced by Spec)
-    ;; (test if needed)
-    [prismatic/schema "1.1.6"]
-
-    ;; Async programming/communication
-    [org.clojure/core.async "0.3.465"]
-
-    ;; Data format & libraries for conveying values between apps across langs
-    ;; (not sure what it's being used for)
-    ;; (test if needed)
-    [com.cognitect/transit-clj "0.8.300"]
+    ;; Converts between different string case conventions:
+    [camel-snake-kebab "0.4.0"]
 
     ;; #### Web Server
 
-    ;; Bidirectional web routing
-    [bidi "2.1.1"]
-
-    ;; Generate HTML from clojure data structures
+    ;; Web server abstraction based on middleware:
+    [ring/ring-core "1.6.3"]
+    ;; Development middleware (e.g. middleware to auto-reload handlers):
+    [ring/ring-devel "1.6.3"]
+    ;; In-process web server:
+    [ring/ring-jetty-adapter "1.6.3"]
+    ;; Sensible middleware defaults for Ring:
+    [ring/ring-defaults "0.3.1"]
+    ;; Simpler HTTP response handling (replaces `ring.util.response`):
+    [metosin/ring-http-response "0.9.0"]
+    ;; Routing library for Ring
+    [compojure "1.6.0"]
+    ;; Generate HTML from clojure data structures:
     [hiccup "1.0.5"]
+    ;; JSON encoding/decoding:
+    [cheshire "5.8.0"]
+    ;; Better exception reporting middleware:
+    [prone "1.1.4"]
+    ;; Security library:
+    [buddy "2.0.0"]
 
-    ;; Web framework
-    [yada "1.2.9" :exclusions [ring-swagger]]
+    ;; #### Logging & Debugging
 
-    ;; Async communication (HTTP, TCP, UDP, etc.)
-    [aleph "0.4.3"]
-
-    ;; Swagger spec (web apps)
-    [metosin/ring-swagger "0.24.0"]
-
-    ;; #### Logging
+    ;; Tracing tools during development:
     [org.clojure/tools.trace "0.7.9"]
-    ;; (test which of these, brought in by Yada, are actually needed)]
-    [org.clojure/tools.logging "0.4.0"]
+
+    ;; The following libraries revolve around SLF4J (Simple Logging Facade for
+    ;; Java). SLF4J serves as a simple facade or abstraction for various
+    ;; logging frameworks (e.g. log4j, java.util.logging, logback, etc.),
+    ;; allowing the user to plug in the desired logging framework at
+    ;; *deployment* time.
+    ;;
+    ;; These are needed in order to get logs from Jetty.
+
+    ;; SLF4J binding for Jakarta Commons Logging:
     [org.slf4j/jcl-over-slf4j "1.7.25"]
+    ;; SLF4J binding for java.util.logging:
     [org.slf4j/jul-to-slf4j "1.7.25"]
+    ;; SLF4J binding for log4j:
     [org.slf4j/log4j-over-slf4j "1.7.25"]
+    ;; SLF4J native binding:
     [ch.qos.logback/logback-classic "1.2.3" :exclusions [org.slf4j/slf4j-api]]
 
     ;; #### Tooling
 
-    ;; Command-line interface helper
+    ;; Clojure *network* REPL server/client:
+    [org.clojure/tools.nrepl "0.2.13"]
+    ;; nREPL middleware for CIDER. This is used by Vim's Fireplace plugin:
+    [cider/cider-nrepl "0.16.0"]
+    ;; Command-line interface helper:
     [org.clojure/tools.cli "0.3.5"]
-
-    ;; ANSI colours for terminal
-    [clansi "1.0.0"]])
+    ;; ANSI colours for terminal:
+    [clansi "1.0.0"]
+    ;; Literate programming-ish documentation
+    [lein-marginalia "0.9.1"]
+    ;; Namespace change tracker:
+    [ns-tracker "0.3.1"]
+    ;; File-system watcher:
+    [hawk "0.2.11"]])
 
 ;; ### Boot Environment
 ;;
 (set-env!
-  :source-paths #{"src"}
-  :asset-paths #{"assets"}
+  :source-paths #{"src" "resources"}
   :dependencies deps)
 
+;; Require namespaces needed before calling `task-options!`
 (require '[fileworthy.app :as app]
          '[clojure.string :as string]
          '[clojure.tools.trace :as t])
@@ -75,23 +94,25 @@
 ;; Define project metadata, etc.
 ;;
 (task-options!
-  pom {:project (symbol (string/lower-case (:name app/info)))
-       :version (:version app/info)
-       :description (:description app/info)
-       :license {"GNU General Public License Version 3"
-                 "https://www.gnu.org/licenses/gpl-3.0.en.html"}}
+  pom {:project 'fileworthy
+       :version (:version @app/config)
+       :description (:description @app/config)}
   aot {:namespace '#{fileworthy.main}}
-  jar {:main 'fileworthy.main
-       :file (str (string/lower-case (:name app/info)) ".jar")}
+  jar {:main 'fileworthy.main :file "fileworthy.jar"}
   sift {:include #{#"\.jar$"}})
 
-(require '[thiru.utils :refer :all]
-         '[thiru.debugnlog :refer :all]
-         '[thiru.reporting :refer :all]
-         '[thiru.config :as cfg]
+;; Require namespaces that'll be used in the REPL and needed by some of the
+;; following Boot tasks
+(require
          '[clojure.java.shell :as shell]
-         '[fileworthy.main :as cli]
+         '[clojure.pprint :refer :all]
+         '[java-time :as jt]
+         '[thiru.logging :refer :all]
+         '[thiru.reporting :refer :all]
+         '[thiru.utils :refer :all]
          '[fileworthy.web.server :as server])
+
+;; ### Boot Tasks
 
 (deftask docs
   "Generate (Literate Programming) documentation using Marginalia.
@@ -108,8 +129,8 @@
                 :main ^:skip-aot fileworthy.main
                 :target-path \"target/%%s\"
                 :profiles {:uberjar {:aot :all}})\n"
-                (:version app/info)
-                (:description app/info)
+                (:version @app/config)
+                (:description @app/config)
                 deps))
   (let [cmd "lein marg --file index.html"]
     (log :info (str "Running '" cmd "'..."))
@@ -121,7 +142,7 @@
   []
   (comp
     (with-pass-thru _
-      (cli/-main))))
+      (server/start))))
 
 (deftask build
   "Build project and generate stand-alone jar."
@@ -133,4 +154,3 @@
     (jar)
     (sift)
     (target)))
-

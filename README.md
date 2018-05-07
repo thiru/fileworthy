@@ -1,26 +1,22 @@
 # Fileworthy
 
-FIXME: description
+A simple website to manage your notes and files across all your devices.
 
 ## Installation
 
-Download from http://example.com/FIXME.
+TODO
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar fileworthy.jar [args]
+TODO
 
 ## Options
 
-FIXME: listing of options this app accepts.
+TODO
 
 ## Examples
 
-...
-
-### Bugs
+TODO
 
 ...
 

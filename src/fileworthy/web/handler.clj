@@ -13,9 +13,9 @@
             [ring.middleware.stacktrace :refer [wrap-stacktrace-log]]
             [ring.util.http-response :as hr]
 
-            [thiru.logging :refer :all]
-            [thiru.reporting :refer :all]
-            [thiru.utils :refer :all]
+            [glu.logging :refer :all]
+            [glu.reporting :refer :all]
+            [glu.utils :refer :all]
 
             [fileworthy.web.routes.about :refer :all]
             [fileworthy.web.routes.error-404 :refer :all]
@@ -80,6 +80,6 @@
                             (assoc-in [:static :files] "html")))
     true (wrap-stacktrace-log {:color? true})
     dev? (prone/wrap-exceptions
-           {:app-namespaces ["fileworthy" "thiru"]
+           {:app-namespaces ["fileworthy" "glu"]
             :print-stacktraces? false})
     (not dev?) (wrap-exception-friendly)))

@@ -5,14 +5,14 @@
 ;;
 ;; This namespace does not contain any domain-specific code.
 ;;
-(ns thiru.fsreload
+(ns glu.fsreload
   (:require
             [clojure.string :as string]
 
             [hawk.core :as hawk]
             [ns-tracker.core :as nst]
 
-            [thiru.logging :refer :all]))
+            [glu.logging :refer :all]))
 
 (def modified-namespaces
   "Contains modified namespaces."

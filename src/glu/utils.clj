@@ -4,7 +4,7 @@
 ;;
 ;; This namespace does not contain any domain-specific code.
 ;;
-(ns thiru.utils
+(ns glu.utils
   (:require
             [clojure.edn :as edn]
             [clojure.java.io :as io]
@@ -12,7 +12,7 @@
             [clojure.string :as string]
             [java-time :as jt]
 
-            [thiru.reporting :refer :all]))
+            [glu.reporting :refer :all]))
 
 (defn as-english-number
   "Print the given number in English words.

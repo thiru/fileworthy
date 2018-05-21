@@ -12,12 +12,12 @@
 
             [cheshire.core :as json]
 
-            [thiru.filedb :as filedb]
-            [thiru.fsreload :as reload]
-            [thiru.logging :refer :all]
-            [thiru.repl :as repl]
-            [thiru.reporting :refer :all]
-            [thiru.utils :refer :all]
+            [glu.filedb :as filedb]
+            [glu.fsreload :as reload]
+            [glu.logging :refer :all]
+            [glu.repl :as repl]
+            [glu.reporting :refer :all]
+            [glu.utils :refer :all]
 
             [fileworthy.app :as app]
             [fileworthy.core.users :as users]

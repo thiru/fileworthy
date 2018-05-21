@@ -5,7 +5,7 @@
 ;; This namespace does not contain any domain-specific code, and so should be
 ;; easy to use in other projects.
 ;;
-(ns thiru.reporting
+(ns glu.reporting
   (:require [clojure.string :as string]))
 
 (def app-modes

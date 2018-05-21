@@ -5,13 +5,13 @@
 ;; This namespace does not contain any domain-specific code, and so should be
 ;; easy to use in other projects.
 ;;
-(ns thiru.config
+(ns glu.config
   (:require [clojure.string :as string]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [thiru.utils :refer :all]
-            [thiru.logging :refer :all]
-            [thiru.reporting :refer :all]))
+            [glu.utils :refer :all]
+            [glu.logging :refer :all]
+            [glu.reporting :refer :all]))
 
 (defn load-config-from
   "Load an EDN config file from the given path and return it's contents.

@@ -5,8 +5,8 @@
 ;;
 (ns fileworthy.app
   (:require
-            [thiru.logging :refer :all]
-            [thiru.utils :refer :all]))
+            [glu.logging :refer :all]
+            [glu.utils :refer :all]))
 
 (def config-defaults
   "Default configuration values.

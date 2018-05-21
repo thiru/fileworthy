@@ -4,13 +4,13 @@
 ;;
 ;; This namespace does not contain any domain-specific code.
 ;;
-(ns thiru.filedb
+(ns glu.filedb
   (:require
             [clojure.java.io :as io]
             [clojure.pprint :refer :all]
             [clojure.string :as string]
 
-            [thiru.logging :refer :all]))
+            [glu.logging :refer :all]))
 
 (def lock-file-suffix
   "File suffix used for the lock file created when saving a database-type

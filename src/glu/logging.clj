@@ -5,11 +5,11 @@
 ;; This namespace does not contain any domain-specific code, and so should be
 ;; easy to use in other projects.
 ;;
-(ns thiru.logging
+(ns glu.logging
   (:require [clojure.string :as string]
             [clansi :refer :all]
-            [thiru.utils :refer :all]
-            [thiru.reporting :refer :all]))
+            [glu.utils :refer :all]
+            [glu.reporting :refer :all]))
 
 (defmacro condv
   "Behaves just like `cond`, while also printing out the condition that was

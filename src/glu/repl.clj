@@ -5,12 +5,12 @@
 ;; This namespace does not contain any domain-specific code, and so should be
 ;; easy to use in other projects.
 ;;
-(ns thiru.repl
+(ns glu.repl
   (:require [clojure.tools.nrepl.server :as nrepl]
             [cider.nrepl :refer (cider-nrepl-handler)]
-            [thiru.utils :refer :all]
-            [thiru.reporting :refer :all]
-            [thiru.logging :refer :all]))
+            [glu.utils :refer :all]
+            [glu.reporting :refer :all]
+            [glu.logging :refer :all]))
 
 (def instance
   "Contains the nREPL server object and related config parameters.

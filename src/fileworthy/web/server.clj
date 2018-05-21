@@ -12,8 +12,8 @@
 
             [ring.adapter.jetty :refer [run-jetty]]
 
-            [thiru.logging :refer :all]
-            [thiru.utils :refer :all]
+            [glu.logging :refer :all]
+            [glu.utils :refer :all]
 
             [fileworthy.app :as app]
             [fileworthy.web.handler :as handler]))

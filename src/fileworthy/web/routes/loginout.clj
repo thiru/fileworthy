@@ -12,9 +12,9 @@
             [prone.debug :refer [debug]]
             [ring.util.http-response :as hr]
 
-            [thiru.logging :refer :all]
-            [thiru.reporting :refer :all]
-            [thiru.utils :refer :all]
+            [glu.logging :refer :all]
+            [glu.reporting :refer :all]
+            [glu.utils :refer :all]
 
             [fileworthy.app :as app]
             [fileworthy.core.users :as users]

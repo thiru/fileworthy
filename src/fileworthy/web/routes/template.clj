@@ -10,9 +10,9 @@
             [hiccup.core :refer :all]
             [hiccup.page :refer :all]
 
-            [thiru.utils :refer :all]
-            [thiru.logging :refer :all]
-            [thiru.reporting :refer :all]
+            [glu.utils :refer :all]
+            [glu.logging :refer :all]
+            [glu.reporting :refer :all]
 
             [fileworthy.app :as app]))
 

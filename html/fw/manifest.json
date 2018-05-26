@@ -8,9 +8,13 @@
     "background_color": "#EEE",
     "icons": [
         {
-            "src": "/images/favicon.ico",
-            "sizes": "256x256",
-            "type": "image/x-icon"
+            "src": "/fw/images/logo.svg",
+            "sizes": "640x640"
+        },
+        {
+            "src": "/fw/images/logo.png",
+            "sizes": "640x640",
+            "type": "image/png"
         }
     ]
 }

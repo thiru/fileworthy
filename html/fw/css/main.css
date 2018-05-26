@@ -5,6 +5,7 @@
  * Heavenly Hues (image via @arctic_stories)
  * https://www.design-seeds.com/in-nature/heavens/heavenly-hues-8/
  *
+ * VAR BLUE = #409FE2
  * VAR CREAM = #F7EDE9
  * VAR PINK = #FBDBD8
  * VAR PURPLE-LIGHT = #C8BAD2
@@ -416,7 +417,7 @@ nav a
 
 #gen-file-content table
 {
-  border-collapse: collapse; 
+  border-collapse: collapse;
 }
 #gen-file-content table th,
 #gen-file-content table td

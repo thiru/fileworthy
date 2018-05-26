@@ -101,7 +101,9 @@
        [:link {:href "/fw/manifest.json" :rel "manifest"}]
 
        ;; Fav Icon
-       [:link {:href "/fw/images/favicon.ico" :rel "icon"}]
+       [:link {:href (str "/fw/images/logo.png?v=" :version @app/config)
+               :rel "icon"
+               :type "image/png"}]
 
        ;; CSS (dependencies)
        [:link {:href "/fw/deps/fira/fira.css" :rel "stylesheet"}]

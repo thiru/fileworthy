@@ -1,5 +1,4 @@
-{
- :allow-anonymous-read true
+{:allow-anonymous-read true
  :app-mode :dev
  :bin-files-glob "*.{doc,docx,odt,pdf,ppt,pptx}"
  :log-level :debug

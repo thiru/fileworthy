@@ -8,18 +8,23 @@
   (:require
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.pprint]
+            [clojure.pprint :refer :all]
             [clojure.string :as string]
+
             [java-time :as jt]
 
             [glu.reporting :refer :all]))
+
+(def fmt
+  "Basically an alias for `cl-format` that returns a string."
+  (partial cl-format nil))
 
 (defn as-english-number
   "Print the given number in English words.
 
   E.g. `(as-english-number 23) ;=> \"Twenty-three\"`."
   [num]
-  (clojure.pprint/cl-format nil "~@(~@[~R~]~^ ~A.~)" num))
+  (cl-format nil "~@(~@[~R~]~^ ~A.~)" num))
 
 (defn trim-version
   "Trims version strings of trailing segments containing only zeroes.
@@ -32,6 +37,22 @@
   "Simply the negation of `empty?`."
   [obj]
   (not (empty? obj)))
+
+(defn file-exists?
+  "Determine whether the file exists.
+
+  * `file-path`
+    * A string specifying the file path
+
+  Returns:
+  * A `java.io.File` if the file exists
+  * `false` if the file doesn't exist/was not found"
+
+  [file-path]
+
+  (let [file (io/as-file file-path)]
+    (if file
+      (.exists file))))
 
 (defn config-updated
   "Get the last modified time of the specified config file.

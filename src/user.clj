@@ -4,6 +4,7 @@
 ;;
 (ns user
   (:require
+            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.pprint :refer :all]
             [clojure.reflect :as reflect]
@@ -12,7 +13,7 @@
 
             [cheshire.core :as json]
 
-            [glu.filedb :as filedb]
+            [glu.ednfilestore :as efs]
             [glu.fsreload :as reload]
             [glu.logging :refer :all]
             [glu.repl :as repl]

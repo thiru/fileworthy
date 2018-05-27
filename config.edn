@@ -1,4 +1,6 @@
-{:allow-anonymous-read true
+{:name "Fileworthy"
+ :version "2.0-alpha"
+ :allow-anonymous-read true
  :app-mode :dev
  :bin-files-glob "*.{doc,docx,odt,pdf,ppt,pptx}"
  :log-level :debug

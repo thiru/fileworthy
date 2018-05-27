@@ -23,7 +23,7 @@
 (defn get-login-page
   "The login page."
   [req & {:keys [failed-attempt? username password]}]
-  (let [user (users/get-all {:id (-> req :session :user-id)})]
+  (let [user (users/get-one {:username (-> req :session :username)})]
     (template-page
       req
       "Login"
@@ -60,8 +60,8 @@
             [:p
               [:button.button.full-width "Login"]]]])
       :user user
-      :script-files ["/js/pages/loginout.js"]
-      :css-files ["/css/pages/loginout.css"])))
+      :script-files ["pages/loginout.js"]
+      :css-files ["pages/loginout.css"])))
 
 (defn post-login-page
   "Handle user login attempt."
@@ -69,7 +69,7 @@
   (let [go-back-to-url (-> req :params :go-back-to)
         username (get-in req [:form-params "username"])
         password (get-in req [:form-params "password"])
-        user (users/get-all {:name username})
+        user (users/get-one {:username username})
         valid? (and (non-empty? user)
                     (= password (:password user)))]
     (if valid?
@@ -84,11 +84,11 @@
                  [:i.fas.fa-cog.fa-spin]
                  " We're logging you in now..."]]
               :user user
-              :script-files ["/js/pages/loginout.js"]
-              :css-files ["/css/pages/loginout.css"])
+              :script-files ["pages/loginout.js"]
+              :css-files ["pages/loginout.css"])
             (hr/ok)
             (hr/content-type "text/html")
-            (assoc :session {:user-id (-> user :id)})))
+            (assoc :session {:username (-> user :username)})))
       (do
         (log :warning (str "User '" username "' failed login"))
         (-> (get-login-page
@@ -101,7 +101,7 @@
 
 (defn get-logout-page
   [req]
-  (if-let [user (users/get-all {:id (-> req :session :user-id)})]
+  (if-let [user (users/get-one {:username (-> req :session :username)})]
     (log :info (str "User '" (:name user) "' logged out")))
   (-> (template-page
         ;; Pre-emptively nullify the session so the template page doesn't show

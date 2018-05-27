@@ -4,6 +4,8 @@
 ;;
 (ns fileworthy.web.handler
   (:require
+            [clojure.string :as string]
+
             [compojure.core :refer [context defroutes GET POST]]
             [compojure.route :as route]
             [prone.middleware :as prone]
@@ -29,7 +31,7 @@
   (GET "/about" req (get-about-page req))
   (GET "/login" req (get-login-page req))
   (POST "/login" req (post-login-page req))
-  (GET "/logout" req (get-logout-page req))
+  (GET "/fw/logout" req (get-logout-page req))
   (context "/test" req
     (GET "/" [] (get-test-root-page req))
     (GET "/req-map" [] template)
@@ -44,12 +46,11 @@
   Basically, all pages require authentication except the about page and
   log in/out pages."
   [req]
-  ; TODO:
-  true
-  #_(or (pos-int? (-> req :session :user-id))
-        (= "/about" (-> req :uri))
-        (= "/login" (-> req :uri))
-        (= "/logout" (-> req :uri))))
+  (or (not (string/blank? (-> req :session :username)))
+      (= "/login" (-> req :uri))
+      (= "/fw/logout" (-> req :uri))
+      (string/starts-with? (-> req :uri) "/fw")))
+;; TODO: handle disallowing admin pages
 
 (defn wrap-auth
   "Authentication middleware."

@@ -14,7 +14,8 @@
             [glu.logging :refer :all]
             [glu.reporting :refer :all]
 
-            [fileworthy.app :as app]))
+            [fileworthy.app :as app]
+            [fileworthy.core.users :as users]))
 
 (defn gen-main-id
   "Generate a safe string to be used as the `main` HTML element's id.
@@ -77,8 +78,7 @@
     * An optional list of Javascript files to include"
   [req title content & {:keys [user css-files script-files]}]
   (let [user (if (empty? user)
-               {:id 1 :name "Thiru"} ; TODO
-               #_(db/get-all {:id (-> req :session :user-id)})
+               (users/get-one {:username (-> req :session :username)})
                user)]
     (html5 {:lang "en"}
       [:head
@@ -129,6 +129,7 @@
           :src "/fw/deps/font-awesome/svg-with-js/js/fontawesome-all.min.js"}]
        [:script {:src "/fw/deps/lodash/lodash.min.js"}]
        [:script {:src "/fw/deps/momentjs/moment.min.js"}]
+       [:script {:src "/fw/deps/jquery/jquery-2.1.3.min.js"}]
        [:script {:src "/fw/deps/rxjs/rx.all.min.js"}]
        [:script {:src "/fw/deps/markedjs/marked.min.js"}]
 

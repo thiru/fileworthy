@@ -12,8 +12,7 @@
             [glu.reporting :refer :all]
             [glu.utils :refer :all]
 
-            [fileworthy.app :as app]
-            [fileworthy.web.routes.template :refer :all]))
+            [fileworthy.app :as app]))
 
 (def file "data/users.edn")
 

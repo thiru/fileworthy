@@ -66,7 +66,7 @@ page.initSettingsPage = function() {
 
     // Send request
     utils.post(
-      '/fw/api/settings/',
+      '/api/settings/',
       formData,
       function (result) {
         ui.showResult(els.saveRes, result);
@@ -126,7 +126,7 @@ page.initUserDetailPage = function() {
 
     // Send request
     utils.post(
-        '/fw/api/users/' + user.id,
+        '/api/users/' + user.id,
         formData,
         function (result) {
           ui.showResult(els.saveRes, result);
@@ -193,7 +193,7 @@ page.initFileSystemPathPage = function() {
     var msgObj = {
       code: codeEl.textContent
     };
-    var worker = new Worker('/fw/js/highlight-worker.js');
+    var worker = new Worker('/js/highlight-worker.js');
     worker.onmessage = function(event) { codeEl.innerHTML = event.data; }
     worker.postMessage(msgObj);
   }
@@ -231,7 +231,7 @@ page.initFileSystemPathPage = function() {
 
     // Send request
     utils.post(
-        '/fw/api/search',
+        '/api/search',
         formData,
         function (result) {
           page.searchInfoEl.innerHTML = '';

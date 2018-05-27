@@ -8,11 +8,11 @@
     "background_color": "#EEE",
     "icons": [
         {
-            "src": "/fw/images/logo.svg",
+            "src": "/images/logo.svg",
             "sizes": "640x640"
         },
         {
-            "src": "/fw/images/logo.png",
+            "src": "/images/logo.png",
             "sizes": "640x640",
             "type": "image/png"
         }

@@ -33,7 +33,7 @@
   (html
     [:header#top-bar
       ;; Info/Settings Icon
-      [:a {:href "/fw" :title "Info/Settings"}
+      [:a {:href "/settings" :title "Info/Settings"}
         [:i.fas.fa-bars]]
       [:span " "]
       ;; Site Name
@@ -43,15 +43,15 @@
       [:div#user-info
         (if (empty? user)
           ;; Logged Out
-          [:a {:href "/fw/login"}
+          [:a {:href "/login"}
             [:i.fas.fa-sign-in-alt]
             " Log In"]
           ;; Logged In
           (list
-            [:a {:href "/fw/users" :title "Account Info"}
+            [:a {:href "/users" :title "Account Info"}
               (:name user)]
             [:span " "]
-            [:a {:href "/fw/logout" :title "Log Out"}
+            [:a {:href "/logout" :title "Log Out"}
               [:i.fas.fa-sign-out-alt]]))]
       [:div.clear-fix]]))
 
@@ -98,47 +98,47 @@
                  (str title " - " (:site-name @app/config)))]
 
        ;; Manifest (for smart phone icon)
-       [:link {:href "/fw/manifest.json" :rel "manifest"}]
+       [:link {:href "/manifest.json" :rel "manifest"}]
 
        ;; Fav Icon
-       [:link {:href (str "/fw/images/logo.png?v=" :version @app/config)
+       [:link {:href (str "/images/logo.png?v=" :version @app/config)
                :rel "icon"
                :type "image/png"}]
 
        ;; CSS (dependencies)
-       [:link {:href "/fw/deps/fira/fira.css" :rel "stylesheet"}]
-       [:link {:href "/fw/deps/highlightjs/styles/monokai.css" :rel "stylesheet"}]
+       [:link {:href "/deps/fira/fira.css" :rel "stylesheet"}]
+       [:link {:href "/deps/highlightjs/styles/monokai.css" :rel "stylesheet"}]
 
        ;; CSS (global domain)
-       [:link {:href (str "/fw/css/main.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.css?v=" (:version @app/config))
                :rel "stylesheet"}]
-       [:link {:href (str "/fw/css/main.mobile.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.mobile.css?v=" (:version @app/config))
                :rel "stylesheet"}]
-       [:link {:href (str "/fw/css/main.mobile.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.mobile.css?v=" (:version @app/config))
                :rel "stylesheet"}]
 
        ;; CSS (page-specific domain)
        (if (non-empty? css-files)
          (for [cf css-files]
-           [:link {:href (str "/fw/css/" cf "?v=" (:version @app/config))
+           [:link {:href (str "/css/" cf "?v=" (:version @app/config))
                    :rel "stylesheet"}]))
 
        ;; Scripts (dependencies)
        [:script
          {:defer ""
-          :src "/fw/deps/font-awesome/svg-with-js/js/fontawesome-all.min.js"}]
-       [:script {:src "/fw/deps/lodash/lodash.min.js"}]
-       [:script {:src "/fw/deps/momentjs/moment.min.js"}]
-       [:script {:src "/fw/deps/jquery/jquery-2.1.3.min.js"}]
-       [:script {:src "/fw/deps/rxjs/rx.all.min.js"}]
-       [:script {:src "/fw/deps/markedjs/marked.min.js"}]
+          :src "/deps/font-awesome/svg-with-js/js/fontawesome-all.min.js"}]
+       [:script {:src "/deps/lodash/lodash.min.js"}]
+       [:script {:src "/deps/momentjs/moment.min.js"}]
+       [:script {:src "/deps/jquery/jquery-2.1.3.min.js"}]
+       [:script {:src "/deps/rxjs/rx.all.min.js"}]
+       [:script {:src "/deps/markedjs/marked.min.js"}]
 
        ;; Scripts (domain)
-       [:script {:src (str "/fw/js/utils.js?v=" (:version @app/config))}]
-       [:script {:src (str "/fw/js/main.js?v=" (:version @app/config))}]
+       [:script {:src (str "/js/utils.js?v=" (:version @app/config))}]
+       [:script {:src (str "/js/main.js?v=" (:version @app/config))}]
        (if (non-empty? script-files)
          (for [sf script-files]
-           [:script {:src (str "/fw/js/" sf "?v=" (:version @app/config))}]))]
+           [:script {:src (str "/js/" sf "?v=" (:version @app/config))}]))]
 
       [:body
         ;; Used for modal dialogs

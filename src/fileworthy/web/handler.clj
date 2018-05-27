@@ -31,7 +31,7 @@
   (GET "/about" req (get-about-page req))
   (GET "/login" req (get-login-page req))
   (POST "/login" req (post-login-page req))
-  (GET "/fw/logout" req (get-logout-page req))
+  (GET "/logout" req (get-logout-page req))
   (context "/test" req
     (GET "/" [] (get-test-root-page req))
     (GET "/req-map" [] template)
@@ -43,14 +43,13 @@
 (defn authorized?
   "Determine whether the current request is authenticated.
 
-  Basically, all pages require authentication except the about page and
-  log in/out pages."
+  Basically, all pages require authentication except the about page, log in/out
+  pages, and static content."
   [req]
   (or (not (string/blank? (-> req :session :username)))
-      (= "/login" (-> req :uri))
-      (= "/fw/logout" (-> req :uri))
-      (string/starts-with? (-> req :uri) "/fw")))
-;; TODO: handle disallowing admin pages
+      (re-matches
+        #"^/(about|css/|deps/|images/|js/|login|logout|manifest.json)$"
+        (-> req :uri))))
 
 (defn wrap-auth
   "Authentication middleware."

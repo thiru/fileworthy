@@ -1,4 +1,4 @@
-ui.ready(function() {
+$(document).ready(function() {
   if (ui.get('user-detail-page'))
     page.initUserDetailPage();
   else if (ui.get('fs-path-page'))

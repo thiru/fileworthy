@@ -1,35 +1,48 @@
-;; ## Summary
-;;
-;; High-level app details and configuration, used in places like the CLI, web
-;; server defaults, build definition, etc.
-;;
 (ns fileworthy.app
+  "High-level app details and configuration, used in places like the CLI, web
+   server defaults, build definition, etc."
   (:require
+            [aero.core :as cfg]
+
+            [glu.core :refer :all]
+            [glu.fsreload :as fsreload]
             [glu.logging :refer :all]
-            [glu.utils :refer :all]))
+            [glu.repl :as repl]
+            [glu.results :refer :all]
 
-(def config-defaults
-  "Default configuration values.
+            [fileworthy.web.server :as server]))
 
-  This will be used if a user supplied config can't be found."
-  {:name "Fileworthy"
-   :version "0.0.1"})
+(defonce
+  ^{:doc "Track whether we started the file-system watcher (code changes)."}
+  fs-watch-started?
+  (atom nil))
 
-(def config
-  "Contains the global app configuration map.
+(defn start
+  "Start the application (nREPL server and web server).
 
-  We store it in an atom so it can be live-reloaded."
-  (atom
-    (let [config-res (load-config "config.edn" config-defaults)]
-      (log nil config-res)
-      (:data config-res))))
+   * `environment`
+     * The profile in which to load the config
+     * See `aero.core` for more info"
 
-(defn reload-config
-  "Reload config from one of the predefined user directories.
+  [& {:keys [environment]}]
 
-  * `file-name`
-    * If specified, it is will be used as the config file name
-    * Otherwise 'config.edn' is used"
-  ([] (reload-config "config.edn"))
-  ([file-name]
-   (reset! config (load-config file-name config-defaults))))
+  (when (empty? @config)
+    (load-config! :profile environment)
+    (log :info (fmt "Loaded config: ~A" @config)))
+  (when (not @fs-watch-started?)
+    (fsreload/start-watch!)
+    (reset! fs-watch-started? true))
+  (repl/start! (:nrepl-port @config))
+  (server/start! false (:web-server-port @config)))
+
+(defn stop
+  "Stop the application (nREPL server and web server)."
+  []
+  (server/stop!)
+  (repl/stop!))
+
+(defn restart
+  "Restart the application (nREPL server and web server)."
+  []
+  (server/restart!)
+  (repl/restart!))

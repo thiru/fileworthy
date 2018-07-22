@@ -1,18 +1,13 @@
-;; ## Summary
-;;
-;; Contains functionality around registered users.
-;;
 (ns fileworthy.core.users
+  "Contains functionality around registered users."
   (:require
             [clojure.string :as str]
             [clojure.pprint :refer :all]
 
             [glu.ednfilestore :as efs]
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
-            [glu.utils :refer :all]
-
-            [fileworthy.app :as app]))
+            [glu.results :refer :all]
+            [glu.core :refer :all]))
 
 (def file "data/users.edn")
 
@@ -23,7 +18,10 @@
   * A map of users keyed by their unique username or,
   * `nil` if there are no registered users"
   []
-  (efs/load file))
+  (let [all-users (efs/load-edn file)]
+    (if (failed? all-users)
+      (log :error (meta all-users)))
+    all-users))
 
 (defn get-one
   "Get the first user matching the specified criteria.

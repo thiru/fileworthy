@@ -1,8 +1,5 @@
-;; ## Summary
-;;
-;; Web server route handling.
-;;
 (ns fileworthy.web.handler
+  "Web server route handling."
   (:require
             [clojure.string :as string]
 
@@ -16,8 +13,8 @@
             [ring.util.http-response :as hr]
 
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
-            [glu.utils :refer :all]
+            [glu.results :refer :all]
+            [glu.core :refer :all]
 
             [fileworthy.web.routes.about :refer :all]
             [fileworthy.web.routes.error-404 :refer :all]

@@ -1,6 +1,5 @@
 .*history
 .cpcache
 .nrepl-port
-project.clj
 static/
 target/

@@ -1,7 +1,3 @@
-;; ## Summary
-;;
-;; The about page.
-;;
 (ns fileworthy.web.routes.about
   (:require
             [clojure.string :as string]
@@ -10,10 +6,9 @@
             [java-time :as jt]
 
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
-            [glu.utils :refer :all]
+            [glu.results :refer :all]
+            [glu.core :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.web.routes.template :refer :all]))
 
 (defn get-about-page
@@ -29,10 +24,10 @@
       [:table.brief-table
         [:tr
           [:td "Version"]
-          [:td (:version @app/config)]]
+          [:td (:version @config)]]
         [:tr
           [:td "Last Updated"]
-          [:td.utc-time (:updated @app/config)]]
+          [:td.utc-time (:updated @config)]]
         [:tr
           [:td "Source Code"]
           [:td [:a {:href "https://github.com/thiru/fileworthy"}

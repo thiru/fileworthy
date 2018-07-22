@@ -1,8 +1,5 @@
-;; ## Summary
-;;
-;; Common template page for all pages.
-;;
 (ns fileworthy.web.routes.template
+  "Common template page for all pages."
   (:require
             [clojure.string :as string]
             [clojure.pprint :refer :all]
@@ -10,11 +7,10 @@
             [hiccup.core :refer :all]
             [hiccup.page :refer :all]
 
-            [glu.utils :refer :all]
+            [glu.core :refer :all]
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
+            [glu.results :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.core.users :as users]))
 
 (defn gen-main-id
@@ -38,7 +34,7 @@
       [:span " "]
       ;; Site Name
       [:a#app-name {:href "/" :title "Home"}
-        (:site-name @app/config)]
+        (:site-name @config)]
       ;; User Info
       [:div#user-info
         (if (empty? user)
@@ -93,15 +89,15 @@
                :content "width=device-width, initial-scale=1"}]
 
        ;; Title
-       [:title (if (string/blank? (:site-name @app/config))
+       [:title (if (string/blank? (:site-name @config))
                  title
-                 (str title " - " (:site-name @app/config)))]
+                 (str title " - " (:site-name @config)))]
 
        ;; Manifest (for smart phone icon)
        [:link {:href "/manifest.json" :rel "manifest"}]
 
        ;; Fav Icon
-       [:link {:href (str "/images/logo.png?v=" :version @app/config)
+       [:link {:href (str "/images/logo.png?v=" :version @config)
                :rel "icon"
                :type "image/png"}]
 
@@ -110,17 +106,17 @@
        [:link {:href "/deps/highlightjs/styles/monokai.css" :rel "stylesheet"}]
 
        ;; CSS (global domain)
-       [:link {:href (str "/css/main.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.css?v=" (:version @config))
                :rel "stylesheet"}]
-       [:link {:href (str "/css/main.mobile.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.mobile.css?v=" (:version @config))
                :rel "stylesheet"}]
-       [:link {:href (str "/css/main.mobile.css?v=" (:version @app/config))
+       [:link {:href (str "/css/main.mobile.css?v=" (:version @config))
                :rel "stylesheet"}]
 
        ;; CSS (page-specific domain)
        (if (non-empty? css-files)
          (for [cf css-files]
-           [:link {:href (str "/css/" cf "?v=" (:version @app/config))
+           [:link {:href (str "/css/" cf "?v=" (:version @config))
                    :rel "stylesheet"}]))
 
        ;; Scripts (dependencies)
@@ -134,11 +130,11 @@
        [:script {:src "/deps/markedjs/marked.min.js"}]
 
        ;; Scripts (domain)
-       [:script {:src (str "/js/utils.js?v=" (:version @app/config))}]
-       [:script {:src (str "/js/main.js?v=" (:version @app/config))}]
+       [:script {:src (str "/js/utils.js?v=" (:version @config))}]
+       [:script {:src (str "/js/main.js?v=" (:version @config))}]
        (if (non-empty? script-files)
          (for [sf script-files]
-           [:script {:src (str "/js/" sf "?v=" (:version @app/config))}]))]
+           [:script {:src (str "/js/" sf "?v=" (:version @config))}]))]
 
       [:body
         ;; Used for modal dialogs

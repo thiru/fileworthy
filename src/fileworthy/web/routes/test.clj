@@ -1,18 +1,14 @@
-;; ## Summary
-;;
-;; Test page used during development.
-;;
 (ns fileworthy.web.routes.test
+  "Test page used during development."
   (:require
             [hiccup.core :refer :all]
             [hiccup.page :refer :all]
             [prone.debug :refer [debug]]
 
-            [glu.utils :refer :all]
+            [glu.core :refer :all]
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
+            [glu.results :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.web.routes.template :refer :all]))
 
 (defn get-test-root-page

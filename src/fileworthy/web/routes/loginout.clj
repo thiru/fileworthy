@@ -1,8 +1,5 @@
-;; ## Summary
-;;
-;; The login and logout resources.
-;;
 (ns fileworthy.web.routes.loginout
+  "Log in/out pages and APIs."
   (:require
             [clojure.string :as str]
             [clojure.pprint :refer :all]
@@ -13,10 +10,9 @@
             [ring.util.http-response :as hr]
 
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
-            [glu.utils :refer :all]
+            [glu.results :refer :all]
+            [glu.core :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.core.users :as users]
             [fileworthy.web.routes.template :refer :all]))
 

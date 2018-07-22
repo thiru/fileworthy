@@ -1,10 +1,12 @@
 {:name "Fileworthy"
  :version "2.0-alpha"
+ :description "A simple website to manage your notes and files across all your devices."
  :allow-anonymous-read true
- :app-mode :dev
  :bin-files-glob "*.{doc,docx,odt,pdf,ppt,pptx}"
- :log-level :debug
- :nrepl-port 8024
+ :log-level #profile {:default :info
+                      :development :debug
+                      :production :info}
+ :nrepl-port 9023
  :root-dir ""
  :site-name "Fileworthy"
  :web-server-port 8023}

@@ -16,18 +16,24 @@
             [clojure.string :as string]
 
             [glu.logging :refer :all]
-            [glu.utils :refer :all]))
+            [glu.results :refer :all]
+            [glu.core :refer :all]))
 
-(defn load
+(defn load-edn
   "Load EDN data at the given path.
 
   Returns:
   * The EDN data if successfull
-  * `nil` if the file couldn't be found
+  * An empty map if the file couldn't be found
+    * In this case a result map is contained in the metadata describing this
+    * This also includes a key named `file-not-found` set to `true`
   * An exception may occur if the file doesn't contain valid EDN"
   [path]
   (if (file-exists? path)
-    (-> path slurp edn/read-string)))
+    (-> path slurp edn/read-string)
+    (mr :error
+        (fmt "File '~A' not found" path) {:file-not-found true}
+        {})))
 
 (def lock-file-extension
   "File extension for lock files."
@@ -76,7 +82,7 @@
       (io/delete-file lock-file-path true)
       false)))
 
-(defn save
+(defn save-edn
   "Save (update/create) a file with the given data.
 
   * `file-path`

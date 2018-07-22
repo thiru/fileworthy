@@ -1,17 +1,12 @@
-;; ## Summary
-;;
-;; The "not authorized" (403) page.
-;;
 (ns fileworthy.web.routes.error-403
   (:require
             [hiccup.core :refer :all]
             [hiccup.page :refer :all]
 
             [glu.logging :refer :all]
-            [glu.reporting :refer :all]
-            [glu.utils :refer :all]
+            [glu.results :refer :all]
+            [glu.core :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.web.routes.template :refer :all]))
 
 (defn get-error-403-page

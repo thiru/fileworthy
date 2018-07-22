@@ -1,21 +1,14 @@
-;; ## Summary
-;;
-;; General and high-level web server functionality, mostly around web server
-;; life-cycle management.
-;;
-;; This namespace does not contain any domain-specific code, and so should be
-;; easy to use in other projects.
-;;
 (ns fileworthy.web.server
+  "General and high-level web server functionality, mostly around web server
+   life-cycle management."
   (:require
             [clojure.java.io :as io]
 
             [ring.adapter.jetty :refer [run-jetty]]
 
             [glu.logging :refer :all]
-            [glu.utils :refer :all]
+            [glu.core :refer :all]
 
-            [fileworthy.app :as app]
             [fileworthy.web.handler :as handler]))
 
 ;;; Contains the web server instance, the main handler (`site`) and other
@@ -24,7 +17,7 @@
 (defonce instance
   (atom {:dev? true
          :site nil
-         :port (:web-server-port @app/config)
+         :port (:web-server-port @config)
          :server nil}))
 
 (defn start-web-server!
@@ -45,7 +38,7 @@
            :port port
            :server (run-jetty handler {:port port :join? false})}))
 
-(defn start
+(defn start!
   "Start web server.
 
   If a web server is already the function is aborted and an error is logged.
@@ -57,7 +50,7 @@
   * `port`
     * The port of the web server
     * The default is to use the value specified in the config file"
-  ([] (start true (:web-server-port @app/config)))
+  ([] (start! true (:web-server-port @config)))
   ([dev? port]
    (if (not (nil? (:server @instance)))
      (log :warning
@@ -76,7 +69,7 @@
             (str "Web server started on port " port " in "
                  (if dev? "development " "production ") "mode"))))))
 
-(defn stop
+(defn stop!
   "Stop the running web server (if any)."
   []
   (if (nil? (:server @instance))
@@ -87,8 +80,8 @@
       (swap! instance assoc :server nil)
       (log :info "Web server stopped"))))
 
-(defn restart
+(defn restart!
   "Restart the running web server (if any)."
   []
-  (stop)
-  (start (:dev? @instance) (:port @instance)))
+  (stop!)
+  (start! (:dev? @instance) (:port @instance)))

@@ -1,5 +1,5 @@
 (defproject fileworthy "2.0-alpha"
-  :description "A media workflow management system"
+  :description "A simple website to manage your notes and files across all your devices."
   :dependencies
   [[org.clojure/clojure "1.9.0"]
 

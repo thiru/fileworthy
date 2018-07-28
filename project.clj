@@ -4,12 +4,10 @@
   :license {:name "GPLv3"
             :url "https://www.gnu.org/licenses/gpl-3.0.en.html"}
   :dependencies
-  [[org.clojure/clojure "1.9.0"]
+  [;; ## Core Domain
 
-   ;; Configuration loader
-   [aero "1.1.3"]
-
-   ;; ## Database
+    ;; Clojure on JVM:
+   [org.clojure/clojure "1.9.0"]
 
    ;; Date/time library:
    [clojure.java-time "0.3.1"]
@@ -40,7 +38,10 @@
    ;; Security library:
    [buddy "2.0.0"]
 
-   ;; ## Logging & Debugging
+   ;; ## Domain-agnostic Infrastructure (config, debugging, logging, etc.)
+
+   ;; Config loader:
+   [aero "1.1.3"]
 
    ;; Tracing tools during development:
    [org.clojure/tools.trace "0.7.9"]
@@ -70,6 +71,8 @@
    [cider/cider-nrepl "0.16.0"]
    ;; Command-line interface helper:
    [org.clojure/tools.cli "0.3.5"]
+   ;; Nicer REPL:
+   [com.bhauman/rebel-readline "0.1.4"]
    ;; ANSI colours for terminal:
    [clansi "1.0.0"]
    ;; Literate programming-ish documentation

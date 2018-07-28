@@ -1,5 +1,8 @@
 (defproject fileworthy "2.0-alpha"
   :description "A simple website to manage your notes and files across all your devices."
+  :url "https://github.com/thiru/fileworthy"
+  :license {:name "GPLv3"
+            :url "https://www.gnu.org/licenses/gpl-3.0.en.html"}
   :dependencies
   [[org.clojure/clojure "1.9.0"]
 

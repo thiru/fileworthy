@@ -1,0 +1,4 @@
+{:css-dirs ["html/css"]
+ :open-url false
+ :reload-clj-files #{:cljc}
+ :watch-dirs ["src"]}

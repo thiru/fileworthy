@@ -45,7 +45,7 @@
   [req]
   (or (not (string/blank? (-> req :session :username)))
       (re-matches
-        #"^/(about|css/|deps/|images/|js/|login|logout|manifest.json)$"
+        #"^/(about|cljs/|css/|deps/|images/|js/|login|logout|manifest.json)$"
         (-> req :uri))))
 
 (defn wrap-auth

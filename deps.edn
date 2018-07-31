@@ -1,12 +1,26 @@
 {:aliases
-  {:rebel {:extra-deps {com.bhauman/rebel-readline {:mvn/version "0.1.4"}}
-           :main-opts  ["-m" "rebel-readline.main"]}}
+  {;; Starts a Clojure REPL using rebel-readline
+   :clj-repl {:main-opts ["-m" "rebel-readline.main"]}
+   ;; Starts a ClojureScript REPL using Figwheel and rebel-readline
+   :cljs-repl {:main-opts ["-m" "figwheel.main"
+                           "--build" "dev"
+                           "--repl"]}
+   ;; Compiles production-quality Javascript from ClojureScript
+   :cljs-min {:main-opts ["-m" "figwheel.main"
+                          "--optimizations" "advanced"
+                          "--build-once" "dev"]}}
  :paths ["src" "resources"]
  :deps
  {;; ## Core Domain
 
-  ;; Clojure on JVM:
+  ;; Clojure (on Java VM):
   org.clojure/clojure {:mvn/version "1.9.0"}
+
+  ;; ClojureScript (on JavaScript VM):
+  org.clojure/clojurescript {:mvn/version "1.10.339"}
+
+  ;; Live ClojureScript, CSS code reloading:
+  com.bhauman/figwheel-main {:mvn/version "0.1.4"}
 
   ;; Date/time library:
   clojure.java-time {:mvn/version "0.3.1"}
@@ -70,8 +84,10 @@
   cider/cider-nrepl {:mvn/version "0.17.0"}
   ;; Command-line interface helper:
   org.clojure/tools.cli {:mvn/version "0.3.5"}
-  ;; Nicer REPL:
+  ;; Nicer REPL (Clojure):
   com.bhauman/rebel-readline {:mvn/version "0.1.4"}
+  ;; Nicer REPL (ClojureScript):
+  com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}
   ;; ANSI colours for terminal:
   clansi {:mvn/version "1.0.0"}
   ;; Literate programming-ish documentation:

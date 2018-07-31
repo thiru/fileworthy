@@ -23,7 +23,7 @@
   com.bhauman/figwheel-main {:mvn/version "0.1.4"}
 
   ;; Date/time library:
-  clojure.java-time {:mvn/version "0.3.1"}
+  clojure.java-time {:mvn/version "0.3.2"}
 
   ;; Converts between different string case conventions:
   camel-snake-kebab {:mvn/version "0.4.0"}
@@ -41,13 +41,13 @@
   ;; Simpler HTTP response handling (replaces `ring.util.response`):
   metosin/ring-http-response {:mvn/version "0.9.0"}
   ;; Routing library for Ring
-  compojure {:mvn/version "1.6.0"}
+  compojure {:mvn/version "1.6.1"}
   ;; Generate HTML from clojure data structures:
   hiccup {:mvn/version "1.0.5"}
   ;; JSON encoding/decoding:
   cheshire {:mvn/version "5.8.0"}
   ;; Better exception reporting middleware:
-  prone {:mvn/version "1.1.4"}
+  prone {:mvn/version "1.6.0"}
   ;; Security library:
   buddy {:mvn/version "2.0.0"}
 
@@ -83,7 +83,7 @@
   ;; nREPL middleware for CIDER. This is used by Vim's Fireplace plugin:
   cider/cider-nrepl {:mvn/version "0.17.0"}
   ;; Command-line interface helper:
-  org.clojure/tools.cli {:mvn/version "0.3.5"}
+  org.clojure/tools.cli {:mvn/version "0.3.7"}
   ;; Nicer REPL (Clojure):
   com.bhauman/rebel-readline {:mvn/version "0.1.4"}
   ;; Nicer REPL (ClojureScript):

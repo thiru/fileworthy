@@ -145,7 +145,8 @@
         (build-main-nav user)
 
         ;; Page content
-        [:main {:id (gen-main-id title)} content]
+        [:main#app
+          [:div {:id (gen-main-id title)} content]]
 
         ;; ClojureScript
         [:script {:src "/cljs/main.js"}]])))

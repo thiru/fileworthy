@@ -51,6 +51,11 @@
   ;; Security library:
   buddy {:mvn/version "2.0.0"}
 
+  ;; ## Web Client
+
+  ;; React wrapper:
+  reagent {:mvn/version "0.8.1"}
+
   ;; ## Domain-agnostic Infrastructure (config, debugging, logging, etc.)
 
   ;; Config loader:

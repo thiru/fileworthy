@@ -38,6 +38,11 @@
    ;; Security library:
    [buddy "2.0.0"]
 
+   ;; ## Web Client
+
+   ;; React wrapper:
+   [reagent "0.8.1"]
+
    ;; ## Domain-agnostic Infrastructure (config, debugging, logging, etc.)
 
    ;; Config loader:

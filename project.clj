@@ -69,10 +69,14 @@
    [org.clojure/tools.nrepl "0.2.13"]
    ;; nREPL middleware for CIDER. This is used by Vim's Fireplace plugin:
    [cider/cider-nrepl "0.16.0"]
+   ;; nREPL middleware needed to communicate with vim-fireplace:
+   [cider/piggieback "0.3.6"]
    ;; Command-line interface helper:
    [org.clojure/tools.cli "0.3.5"]
-   ;; Nicer REPL:
+   ;; Nicer REPL (Clojure):
    [com.bhauman/rebel-readline "0.1.4"]
+   ;; Nicer REPL (ClojureScript):
+   [com.bhauman/rebel-readline-cljs "0.1.4"]
    ;; ANSI colours for terminal:
    [clansi "1.0.0"]
    ;; Literate programming-ish documentation

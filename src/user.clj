@@ -11,6 +11,7 @@
             [clojure.string :as string]
 
             [cheshire.core :as json]
+            [figwheel.main :as fig]
 
             [glu.core :refer :all]
             [glu.fsreload :as fsreload]
@@ -22,3 +23,10 @@
             [fileworthy.main :as cli]
             [fileworthy.core.users :as users]
             [fileworthy.web.server :as server]))
+
+(defonce _
+  (log :info "To start figwheel run `(start-figwheel)`"))
+
+(defn start-figwheel
+  []
+  (fig/start "dev"))

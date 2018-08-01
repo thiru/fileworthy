@@ -80,8 +80,10 @@
 
   ;; Clojure *network* REPL server/client:
   org.clojure/tools.nrepl {:mvn/version "0.2.13"}
-  ;; nREPL middleware for CIDER. This is used by Vim's Fireplace plugin:
+  ;; nREPL middleware for CIDER (used by vim-fireplace):
   cider/cider-nrepl {:mvn/version "0.17.0"}
+  ;; nREPL middleware needed to communicate with vim-fireplace:
+  cider/piggieback {:mvn/version "0.3.6"}
   ;; Command-line interface helper:
   org.clojure/tools.cli {:mvn/version "0.3.7"}
   ;; Nicer REPL (Clojure):

@@ -10,16 +10,27 @@ TODO
 
 TODO
 
-## Options
+## Develop
 
-TODO
+The following will:
 
-## Examples
+* start the website
+* launch a REPL
+* start an nREPL server
+* use rebel-readline
 
-TODO
+```shell
+$ fileworthy.sh repl
+```
 
-...
+Inside this REPL launch figwheel like so:
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+```clojure
+user=> (start-figwheel)
+```
+
+In another terminal run the following to connect to the existing nREPL server:
+
+```shell
+$ lein repl :connect 
+```

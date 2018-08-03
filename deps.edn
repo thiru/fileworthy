@@ -1,14 +1,11 @@
 {:aliases
-  {;; Starts a Clojure REPL using rebel-readline
-   :clj-repl {:main-opts ["-m" "rebel-readline.main"]}
-   ;; Starts a ClojureScript REPL using Figwheel and rebel-readline
-   :cljs-repl {:main-opts ["-m" "figwheel.main"
-                           "--build" "dev"
-                           "--repl"]}
-   ;; Compiles production-quality Javascript from ClojureScript
-   :cljs-min {:main-opts ["-m" "figwheel.main"
-                          "--optimizations" "advanced"
-                          "--build-once" "dev"]}}
+  {:rebel {:main-opts ["-m" "rebel-readline.main"]}
+   :fig {:main-opts ["-m" "figwheel.main"
+                     "--build" "dev"
+                     "--repl"]}
+   :build {:main-opts ["-m" "figwheel.main"
+                       "--optimizations" "advanced"
+                       "--build-once" "dev"]}}
  :paths ["src" "resources"]
  :deps
  {;; ## Core Domain

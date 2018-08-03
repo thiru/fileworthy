@@ -17,7 +17,7 @@
   org.clojure/clojurescript {:mvn/version "1.10.339"}
 
   ;; Live ClojureScript, CSS code reloading:
-  com.bhauman/figwheel-main {:mvn/version "0.1.4"}
+  com.bhauman/figwheel-main {:mvn/version "0.1.5-SNAPSHOT"}
 
   ;; Date/time library:
   clojure.java-time {:mvn/version "0.3.2"}

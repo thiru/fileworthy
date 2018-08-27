@@ -11,7 +11,7 @@
             [clojure.string :as string]
 
             [cheshire.core :as json]
-            [figwheel.main :as fig]
+            [figwheel.main.api :as fig]
 
             [glu.core :refer :all]
             [glu.fsreload :as fsreload]
@@ -24,9 +24,9 @@
             [fileworthy.core.users :as users]
             [fileworthy.web.server :as server]))
 
-(defonce _
-  (log :info "To start figwheel run `(start-figwheel)`"))
-
 (defn start-figwheel
   []
-  (fig/start "dev"))
+  ;; Start figwheel build in dev mode:
+  (fig/start {:mode :serve :open-url false} "dev")
+  ;; Start a ClojureScript REPL:
+  (fig/cljs-repl "dev"))

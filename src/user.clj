@@ -23,10 +23,3 @@
             [fileworthy.main :as cli]
             [fileworthy.core.users :as users]
             [fileworthy.web.server :as server]))
-
-(defn start-figwheel
-  []
-  ;; Start figwheel build in dev mode:
-  (fig/start {:mode :serve :open-url false} "dev")
-  ;; Start a ClojureScript REPL:
-  (fig/cljs-repl "dev"))

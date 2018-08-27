@@ -289,7 +289,8 @@
         (case (:command parsed-cli-r)
           :start (app/start :environment (:environment @config))
           :repl (do (app/start :environment (:environment @config))
-                    (rebel/-main)
+                    (app/start-figwheel)
+                    (rebel/-main) ; Blocking call
                     (repl/stop!)
                     (System/exit 0))
           :version (do (println (:version @config))

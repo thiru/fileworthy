@@ -3,6 +3,7 @@
    server defaults, build definition, etc."
   (:require
             [aero.core :as cfg]
+            [figwheel.main.api :as fig]
 
             [glu.core :refer :all]
             [glu.fsreload :as fsreload]
@@ -16,6 +17,16 @@
   ^{:doc "Track whether we started the file-system watcher (code changes)."}
   fs-watch-started?
   (atom nil))
+
+(defn start-figwheel
+  "Start figwheel in a script-friendly mode."
+  []
+  ;; Start figwheel build in dev mode:
+  (fig/start {:mode :serve
+              :open-url (str "localhost:" (:web-server-port @config))}
+             "dev")
+  ;; Start a ClojureScript REPL:
+  (fig/cljs-repl "dev"))
 
 (defn start
   "Start the application (nREPL server and web server).

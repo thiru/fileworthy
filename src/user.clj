@@ -14,7 +14,6 @@
             [figwheel.main.api :as fig]
 
             [glu.core :refer :all]
-            [glu.fsreload :as fsreload]
             [glu.logging :refer :all]
             [glu.repl :as repl]
             [glu.results :refer :all]

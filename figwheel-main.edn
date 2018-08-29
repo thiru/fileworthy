@@ -1,3 +1,2 @@
 {:css-dirs ["html/css"]
- :reload-clj-files #{:cljc}
  :watch-dirs ["src"]}

@@ -6,17 +6,11 @@
             [figwheel.main.api :as fig]
 
             [glu.core :refer :all]
-            [glu.fsreload :as fsreload]
             [glu.logging :refer :all]
             [glu.repl :as repl]
             [glu.results :refer :all]
 
             [fileworthy.web.server :as server]))
-
-(defonce
-  ^{:doc "Track whether we started the file-system watcher (code changes)."}
-  fs-watch-started?
-  (atom nil))
 
 (defn start-figwheel
   "Start figwheel in a script-friendly mode."
@@ -40,9 +34,6 @@
   (when (empty? @config)
     (load-config! :profile environment)
     (log :info (fmt "Loaded config: ~A" @config)))
-  (when (not @fs-watch-started?)
-    (fsreload/start-watch!)
-    (reset! fs-watch-started? true))
   (repl/start! (:nrepl-port @config))
   (server/start! false (:web-server-port @config)))
 

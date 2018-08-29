@@ -96,6 +96,7 @@
             (hr/content-type "text/html"))))))
 
 (defn get-logout-page
+  "The logout page."
   [req]
   (if-let [user (users/get-one {:username (-> req :session :username)})]
     (log :info (str "User '" (:name user) "' logged out")))
@@ -108,7 +109,7 @@
         "Logged Out"
         [:div
           [:h2 "You were successfully logged out"]
-          [:a.button {:href "/"} "Go back to the home page"]])
+          [:a.button {:href "/login"} "Log in again"]])
       (hr/ok)
       (hr/content-type "text/html")
       (assoc :session nil)))

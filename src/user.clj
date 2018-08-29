@@ -22,3 +22,8 @@
             [fileworthy.main :as cli]
             [fileworthy.core.users :as users]
             [fileworthy.web.server :as server]))
+
+(defn cljs
+  "Quickly jump into the ClojureScript REPL."
+  []
+  (fig/cljs-repl "dev"))

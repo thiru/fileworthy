@@ -1,2 +1,0 @@
-{:css-dirs ["html/css"]
- :watch-dirs ["src"]}

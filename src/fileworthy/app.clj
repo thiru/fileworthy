@@ -16,9 +16,15 @@
   "Start figwheel in a script-friendly mode."
   []
   ;; Start figwheel build in dev mode:
-  (fig/start {:mode :serve
-              :open-url (str "localhost:" (:web-server-port @config))}
-             "dev")
+  (fig/start {:id "dev"
+              :options {:main 'fileworthy.main
+                        :output-to "html/cljs/main.js"
+                        :output-dir "html/cljs/dev"
+                        :asset-path "cljs/dev"}
+              :config {:css-dirs ["html/css"]
+                       :open-url (str "localhost:" (:web-server-port @config))
+                       :mode :serve
+                       :watch-dirs ["src"]}})
   ;; Start a ClojureScript REPL:
   (fig/cljs-repl "dev"))
 

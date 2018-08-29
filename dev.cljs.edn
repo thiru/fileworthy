@@ -1,4 +1,0 @@
-{:main fileworthy.main
- :output-to "html/cljs/main.js"
- :output-dir "html/cljs/dev"
- :asset-path "cljs/dev"}

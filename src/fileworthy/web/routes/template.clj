@@ -125,6 +125,7 @@
 
        ;; CSS (dependencies)
        [:link {:href "/deps/fira/fira.css" :rel "stylesheet"}]
+       [:link {:href "/deps/font-awesome/css/all.css" :rel "stylesheet"}]
        [:link {:href "/deps/highlightjs/styles/monokai.css" :rel "stylesheet"}]
 
        ;; CSS (global domain)
@@ -142,9 +143,6 @@
                    :rel "stylesheet"}]))
 
        ;; Scripts (dependencies)
-       [:script
-         {:defer ""
-          :src "/deps/font-awesome/svg-with-js/js/fontawesome-all.min.js"}]
        [:script {:src "/deps/lodash/lodash.min.js"}]
        [:script {:src "/deps/momentjs/moment.min.js"}]
        [:script {:src "/deps/jquery/jquery-2.1.3.min.js"}]

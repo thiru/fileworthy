@@ -41,3 +41,8 @@
       (cond
         (:username filters)
         (get all-users (:username filters))))))
+
+(defn is-admin?
+  "Determine whether the given user is an administrator."
+  [user]
+  (and user (some #(case-insensitive= % "admin") (:roles user))))

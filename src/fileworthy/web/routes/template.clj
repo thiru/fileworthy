@@ -28,8 +28,10 @@
   [user]
   (html
     [:header#top-bar
-      ;; Info/Settings Icon
-      [:a {:href "/settings" :title "Info/Settings"}
+      ;; Info/Settings Icon (hamburger menu)
+      [:span#ham-menu
+        {:onclick "document.getElementById('info-menu').classList.toggle('hidden')"
+         :title "Info/Settings"}
         [:i.fas.fa-bars]]
       [:span " "]
       ;; Site Name
@@ -55,7 +57,27 @@
   "Build HTML fragment for info/settings navigation."
   [user]
   (html
-    [:b "TODO: main nav"]))
+    [:nav
+      [:ul#info-menu.flat-list.hidden
+        (if (users/is-admin? user)
+          [:li
+            [:a {:href "/settings"}
+              [:i.fas.fa-cog]
+              " Settings"]])
+        (if (non-empty? user)
+          [:li
+            [:a {:href "/users/me"}
+              [:i.fas.fa-user]
+              " Account"]])
+        (if (users/is-admin? user)
+          [:li
+            [:a {:href "/users"}
+              [:i.fas.fa-users]
+              " Users"]])
+        [:li
+          [:a {:href "/about"}
+            [:i.fas.fa-info-circle]
+            " About"]]]]))
 
 (defn template-page
   "Common template used by all pages on the site.

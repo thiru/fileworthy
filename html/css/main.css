@@ -256,6 +256,10 @@ nav a
 {
   float: right;
 }
+#ham-menu
+{
+  cursor: pointer;
+}
 
 #main-menu-items, .sub-menu-items
 {

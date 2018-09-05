@@ -8,6 +8,7 @@
             [prone.middleware :as prone]
             [ring.handler.dump :refer [template]]
             [ring.middleware.defaults :refer :all]
+            [ring.middleware.format :refer [wrap-restful-format]]
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.stacktrace :refer [wrap-stacktrace-log]]
             [ring.util.http-response :as hr]
@@ -16,23 +17,19 @@
             [glu.results :refer :all]
             [glu.core :refer :all]
 
-            [fileworthy.web.routes.about :refer :all]
+            [fileworthy.web.routes.template :refer [template-page]]
             [fileworthy.web.routes.error-404 :refer :all]
             [fileworthy.web.routes.error-500 :refer :all]
-            [fileworthy.web.routes.home :refer :all]
-            [fileworthy.web.routes.loginout :refer :all]
-            [fileworthy.web.routes.test :refer :all]))
+            [fileworthy.web.routes.loginout :refer :all]))
 
 (defroutes all-routes
-  (GET "/" req (get-home-page req))
-  (GET "/about" req (get-about-page req))
-  (GET "/login" req (get-login-page req))
-  (POST "/login" req (post-login-page req))
+  (GET "/" req (template-page req "Home" :home-page nil))
+  (GET "/about" req (template-page req "About" :about-page nil))
+  (GET "/login" req (template-page req "Login" :login-page nil))
+  (POST "/login" req (post-login-api req))
   (GET "/logout" req (get-logout-page req))
   (context "/test" req
-    (GET "/" [] (get-test-root-page req))
     (GET "/req-map" [] template)
-    (GET "/debug" req (get-test-debug-page req))
     (GET "/500" []
          (throw (Exception. "This is an intentional error test page."))))
   (route/not-found get-error-404-page))
@@ -75,6 +72,7 @@
                             (assoc-in [:security :anti-forgery] false)
                             (update-in [:static] dissoc :resources)
                             (assoc-in [:static :files] "html")))
+    true (wrap-restful-format :formats [:edn :json])
     true (wrap-stacktrace-log {:color? true})
     dev? (prone/wrap-exceptions
            {:app-namespaces ["fileworthy" "glu"]

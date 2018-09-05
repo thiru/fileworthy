@@ -25,6 +25,9 @@
   ;; Converts between different string case conventions:
   camel-snake-kebab {:mvn/version "0.4.0"}
 
+  ;; ClojureScript HTTP library:
+  cljs-http {:mvn/version "0.1.45"}
+
   ;; ## Web Server
 
   ;; Web server abstraction based on middleware:
@@ -35,6 +38,8 @@
   ring/ring-jetty-adapter {:mvn/version "1.6.3"}
   ;; Sensible middleware defaults for Ring:
   ring/ring-defaults {:mvn/version "0.3.2"}
+  ;; JSON, YAML, EDN request/response parsing:
+  ring-middleware-format {:mvn/version "0.7.2"}
   ;; Simpler HTTP response handling (replaces `ring.util.response`):
   metosin/ring-http-response {:mvn/version "0.9.0"}
   ;; Routing library for Ring

@@ -15,6 +15,7 @@
   (template-page
     req
     "Not Found"
+    "not-found-page"
     [:div
       [:h1 "Not Found"]
       [:p "Sorry, the requested page or resource was not found."]

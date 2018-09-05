@@ -258,7 +258,8 @@ nav a
 }
 #ham-menu
 {
-  cursor: pointer;
+  background-color: initial;
+  user-select: none;
 }
 
 #main-menu-items, .sub-menu-items

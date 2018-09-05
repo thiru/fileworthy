@@ -13,72 +13,6 @@
 
             [fileworthy.core.users :as users]))
 
-(defn gen-main-id
-  "Generate a safe string to be used as the `main` HTML element's id.
-
-  The primary intention is to use the id to target page-specific CSS styles."
-  [page-title]
-  (-> page-title
-      (string/replace #"[^\w\d\s']+" "-")
-      (string/lower-case)
-      (str "-page")))
-
-(defn build-top-header
-  "Build HTML fragment for site-wide top header."
-  [user]
-  (html
-    [:header#top-bar
-      ;; Info/Settings Icon (hamburger menu)
-      [:span#ham-menu
-        {:onclick "document.getElementById('info-menu').classList.toggle('hidden')"
-         :title "Info/Settings"}
-        [:i.fas.fa-bars]]
-      [:span " "]
-      ;; Site Name
-      [:a#app-name {:href "/" :title "Home"}
-        (:site-name @config)]
-      ;; User Info
-      [:div#user-info
-        (if (empty? user)
-          ;; Logged Out
-          [:a {:href "/login"}
-            [:i.fas.fa-sign-in-alt]
-            " Log In"]
-          ;; Logged In
-          (list
-            [:a {:href "/users" :title "Account Info"}
-              (:name user)]
-            [:span " "]
-            [:a {:href "/logout" :title "Log Out"}
-              [:i.fas.fa-sign-out-alt]]))]
-      [:div.clear-fix]]))
-
-(defn build-main-nav
-  "Build HTML fragment for info/settings navigation."
-  [user]
-  (html
-    [:nav
-      [:ul#info-menu.flat-list.hidden
-        (if (users/is-admin? user)
-          [:li
-            [:a {:href "/settings"}
-              [:i.fas.fa-cog]
-              " Settings"]])
-        (if (non-empty? user)
-          [:li
-            [:a {:href "/users/me"}
-              [:i.fas.fa-user]
-              " Account"]])
-        (if (users/is-admin? user)
-          [:li
-            [:a {:href "/users"}
-              [:i.fas.fa-users]
-              " Users"]])
-        [:li
-          [:a {:href "/about"}
-            [:i.fas.fa-info-circle]
-            " About"]]]]))
-
 (defn template-page
   "Common template used by all pages on the site.
 
@@ -86,6 +20,8 @@
     * The ring request map
   * `title`
     * The title of the page
+  * `page-id`
+    * A unique id for the page
   * `content`
     * Hiccup structure containing the body of the page
   * `user`
@@ -94,7 +30,7 @@
     * An optional list of CSS files to include
   * `script-files`
     * An optional list of Javascript files to include"
-  [req title content & {:keys [user css-files script-files]}]
+  [req title page-id content & {:keys [user css-files script-files]}]
   (let [user (if (empty? user)
                (users/get-one {:username (-> req :session :username)})
                user)]
@@ -142,14 +78,26 @@
            [:link {:href (str "/css/" cf "?v=" (:version @config))
                    :rel "stylesheet"}]))
 
-       ;; Scripts (dependencies)
+       ;; Scripts (external dependencies)
        [:script {:src "/deps/lodash/lodash.min.js"}]
        [:script {:src "/deps/momentjs/moment.min.js"}]
        [:script {:src "/deps/jquery/jquery-2.1.3.min.js"}]
        [:script {:src "/deps/rxjs/rx.all.min.js"}]
        [:script {:src "/deps/markedjs/marked.min.js"}]
 
-       ;; Scripts (domain)
+       ;; This global variable contains general info about the page/website.
+       ;; It's stored as and EDN string so we can leverage it easily from
+       ;; ClojureScript.
+       [:script (fmt "fwSiteInfo = '~A'"
+                     (pr-str
+                       {:site-info {:site-name (:site-name @config)
+                                    :description (:description @config)
+                                    :version (:version @config)
+                                    :updated (.toString (:updated @config))}
+                        :page {:id (keyword page-id)}
+                        :user (select-keys user [:name :roles :username])}))]
+
+       ;; Scripts (domain-specific)
        [:script {:src (str "/js/utils.js?v=" (:version @config))}]
        [:script {:src (str "/js/main.js?v=" (:version @config))}]
        (if (non-empty? script-files)
@@ -157,16 +105,12 @@
            [:script {:src (str "/js/" sf "?v=" (:version @config))}]))]
 
       [:body
-        ;; Used for modal dialogs
-        [:div#overlay.hidden]
+        [:div#app
+          ;; Used for modal dialogs
+          [:div#overlay.hidden]
 
-        (build-top-header user)
-
-        (build-main-nav user)
-
-        ;; Page content
-        [:main#app
-          [:div {:id (gen-main-id title)} content]]
+          ;; Page content
+          [:main #_ content]]
 
         ;; ClojureScript
         [:script {:src "/cljs/main.js"}]])))

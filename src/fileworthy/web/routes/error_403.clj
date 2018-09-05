@@ -15,6 +15,7 @@
   (template-page
     req
     "Not Authorized"
+    "not-authorized-page"
     [:div
       [:h1 "Not Authorized"]
       [:p "Sorry, you don't have access to this page or resource."

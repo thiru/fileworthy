@@ -15,6 +15,7 @@
   (template-page
     req
     "Error"
+    "error-page"
     [:div
       [:h1 "Error"]
       [:p "Sorry, an unexpected error occurred on the server."]

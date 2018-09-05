@@ -20,7 +20,7 @@
               :options {:main 'fileworthy.main
                         :output-to "html/cljs/main.js"
                         :output-dir "html/cljs/dev"
-                        :asset-path "cljs/dev"}
+                        :asset-path "/cljs/dev"}
               :config {:css-dirs ["html/css"]
                        :open-url (str "localhost:" (:web-server-port @config))
                        :mode :serve

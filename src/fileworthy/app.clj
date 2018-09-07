@@ -22,7 +22,8 @@
                         :output-dir "html/cljs/dev"
                         :asset-path "/cljs/dev"}
               :config {:css-dirs ["html/css"]
-                       :open-url (str "localhost:" (:web-server-port @config))
+                       ;; Let's not auto-open the website in the browser
+                       :open-url false
                        :mode :serve
                        :watch-dirs ["src"]}})
   ;; Start a ClojureScript REPL:

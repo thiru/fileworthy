@@ -12,8 +12,7 @@
             [glu.results :refer :all]
             [glu.core :refer :all]
 
-            [fileworthy.core.users :as users]
-            [fileworthy.web.routes.template :refer :all]))
+            [fileworthy.core.users :as users]))
 
 (defn post-login-api
   "Handle user login attempt."

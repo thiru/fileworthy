@@ -15,11 +15,12 @@
             [glu.results :refer :all]
             [glu.core :refer :all]
 
-            [fileworthy.web.routes.template :refer [template-page]]
+            [fileworthy.web.routes.site-info :refer :all]
             [fileworthy.web.routes.loginout :refer :all]))
 
 (defroutes all-routes
   (context "/api" req
+    (GET  "/site-info" req (get-site-info-api req))
     (POST "/login" req (post-login-api req))
     (GET  "/logout" req (get-logout-api req))
     ;; Unlike with non-API GET requests we'll return a 404 if the route isn't
@@ -30,7 +31,9 @@
   ;; If the (non-API) GET request isn't defined return a 200 response with the
   ;; base page. The actual routing/rendering happens on the client-side
   ;; afterall since this is a SPA.
-  (GET "*" req (template-page req))
+  (GET "*" req (-> (slurp "html/home.html")
+                   hr/ok
+                   (hr/content-type "text/html")))
   ;; Non-GET requests should response with a client error. These may also by
   ;; potentially malicious.
   (ANY "*" req (-> "Invalid request"

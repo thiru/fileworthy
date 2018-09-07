@@ -17,9 +17,11 @@
             [fileworthy.web.pages.login :as login-page]
             [fileworthy.web.pages.logout :as logout-page]
             [fileworthy.web.pages.not-found :as not-found-page]
-            [fileworthy.web.state :refer [state reset-state!]]))
+            [fileworthy.web.state :refer [state]]))
 
 (routes/init!)
 
 (r/render [routes/page]
           (js/document.getElementById "app"))
+
+(utils/load-site-info state)

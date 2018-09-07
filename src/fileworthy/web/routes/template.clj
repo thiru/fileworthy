@@ -94,7 +94,6 @@
                                     :description (:description @config)
                                     :version (:version @config)
                                     :updated (.toString (:updated @config))}
-                        :page {:id (keyword page-id)}
                         :user (select-keys user [:name :roles :username])}))]
 
        ;; Scripts (domain-specific)

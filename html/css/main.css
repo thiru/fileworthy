@@ -244,6 +244,7 @@ nav a
 }
 #top-bar a
 {
+  background-color: initial;
   display: inline-block;
   padding: 0;
   text-decoration: none;
@@ -255,11 +256,6 @@ nav a
 #user-info
 {
   float: right;
-}
-#ham-menu
-{
-  background-color: initial;
-  user-select: none;
 }
 
 #main-menu-items, .sub-menu-items

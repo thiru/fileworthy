@@ -2,13 +2,14 @@
   (:require
             [clojure.string :as string]
 
+            [reagent.session :as session]
+
             [fileworthy.core.users :as users]
             [fileworthy.web.pages.about :as about-page]
             [fileworthy.web.pages.home :as home-page]
             [fileworthy.web.pages.login :as login-page]
             [fileworthy.web.pages.logout :as logout-page]
             [fileworthy.web.pages.not-found :as not-found-page]
-            [fileworthy.web.routes :as routes]
             [fileworthy.web.state :refer [state]]))
 
 (defn modal-dialog-ui
@@ -23,7 +24,7 @@
     [:header#top-bar
       ;; Info/Settings Icon (hamburger menu)
       [:a#ham-menu
-        {:href "/toggle-menu"
+        {:href "javascript:void(0)"
          :on-click (fn [e]
                      (.preventDefault e)
                      (swap! state
@@ -47,7 +48,9 @@
             [:a {:href "/users" :title "Account Info"}
               (-> @state :user :name)]
             [:span " "]
-            [:a {:href "/logout" :title "Log Out"}
+            [:a {:on-click logout-page/do-logout
+                 :href "javascript:void(0)"
+                 :title "Log Out"}
               [:i.fas.fa-sign-out-alt]]])]
       [:div.clear-fix]]])
 
@@ -78,15 +81,15 @@
             [:i.fas.fa-info-circle]
             " About"]]]]))
 
-(defn layout-ui
+(defn page-ui
   "Common layout of all pages on the site."
-  []
-  (let [page-id (-> @state :page :id)]
+  [page-contents]
+  (let [page (-> @state :current-route :page)]
     [:div
       (modal-dialog-ui)
       (top-header-ui)
       (settings-nav-ui)
-
-      ;; Page content
-      [:main {:id (name page-id)}
-        [routes/get-component page-id]]]))
+      ;; An id is attached to the main element primarly to target page-specific
+      ;; styles to it.
+      [:main {:id (name page)}
+       ^{:key page} [page-contents page]]]))

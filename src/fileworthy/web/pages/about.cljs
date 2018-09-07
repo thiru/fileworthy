@@ -2,10 +2,9 @@
   (:require
             [clojure.string :as string]
 
-            [fileworthy.web.routes :as routes]
             [fileworthy.web.state :refer [state]]))
 
-(defn about-page []
+(defn page-ui []
   [:div
     [:p "Fileworthy is a simple website to manage your notes and files "
         "across all your devices."]
@@ -36,4 +35,3 @@
           [:td "2016-"
                (.getFullYear (js/Date.))
                " Thirushanth Thirunavukarasu"]]]]])
-(routes/add :about-page about-page)

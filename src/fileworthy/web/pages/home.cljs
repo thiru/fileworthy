@@ -2,9 +2,7 @@
   (:require
             [clojure.string :as string]
 
-            [fileworthy.web.routes :as routes]
             [fileworthy.web.state :refer [state]]))
 
-(defn home-page []
+(defn page-ui []
   [:h1 "Welcome to " (-> @state :site-info :site-name)])
-(routes/add :home-page home-page)

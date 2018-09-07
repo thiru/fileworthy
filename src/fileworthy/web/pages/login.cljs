@@ -3,11 +3,11 @@
   (:require
             [clojure.string :as string]
 
+            [accountant.core :as accountant]
             [cljs-http.client :as http]
             [cljs.core.async :refer [<!]]
             [reagent.core :as r]
 
-            [fileworthy.web.routes :as routes]
             [fileworthy.web.state :refer [state]]))
 
 (defn already-logged-in-ui []
@@ -27,8 +27,14 @@
         ;(prn response) ; DEBUG
         (swap! form-state assoc :submitting false)
         (swap! form-state assoc :login-result (:body response))
-        (if (:success response)
-          (. js/location assign "/"))))) ; Go to the home page (TODO: fix)
+        (when (:success response)
+          ;; Wait a second so user sees login was successful
+          (js/setTimeout
+            (fn []
+              (swap! state assoc :user (-> response :body :user))
+              (accountant/navigate! "/")
+              (reset! form-state nil))
+            1000)))))
 
 (defn login-form-ui []
   (if (empty? (-> @state :page :form))
@@ -69,7 +75,8 @@
           (if (not (empty? (:login-result @s)))
             [:p {:class (-> @s :login-result :level)}
               (-> @s :login-result :message)])
-          [:p
+          [:p {:class (if (= :success (-> @s :login-result :level))
+                        "hidden")}
             [:button.button.full-width
               {:disabled (:submitting @s)}
               (if (:submitting @s)
@@ -78,7 +85,7 @@
                   "Logging in..."]
                 "Login")]]]])))
 
-(defn login-page []
+(defn page-ui []
   [:div
     {:style {:max-width "30em"
              :margin-left "auto"
@@ -86,4 +93,3 @@
     (if (not (empty? (-> @state :user)))
       [already-logged-in-ui]
       [login-form-ui])])
-(routes/add :login-page login-page)

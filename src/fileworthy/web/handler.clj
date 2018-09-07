@@ -27,7 +27,7 @@
   (GET "/about" req (template-page req "About" :about-page nil))
   (GET "/login" req (template-page req "Login" :login-page nil))
   (POST "/login" req (post-login-api req))
-  (GET "/logout" req (get-logout-page req))
+  (GET "/logout" req (get-logout-api req))
   (context "/test" req
     (GET "/req-map" [] template)
     (GET "/500" []

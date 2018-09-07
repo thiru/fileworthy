@@ -41,7 +41,7 @@
     (load-config! :profile environment)
     (log :info (fmt "Loaded config: ~A" @config)))
   (repl/start! (:nrepl-port @config))
-  (server/start! false (:web-server-port @config)))
+  (server/start! (= :development environment) (:web-server-port @config)))
 
 (defn stop
   "Stop the application (nREPL server and web server)."

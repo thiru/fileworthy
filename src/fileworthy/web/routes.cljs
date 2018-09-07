@@ -17,14 +17,14 @@
             [fileworthy.web.state :refer [state]]))
 
 (def app-routes
-  ["/" {"" :home-page
-        "about" :about-page
-        "error" :error-page
-        "home" :home-page
-        "login" :login-page
-        "logout" :logout-page
-        "missing-route" :missing-route
-        true :not-found-page}])
+  ["/" [["" :home-page]
+        ["about" :about-page]
+        ["error" :error-page]
+        ["home" :home-page]
+        ["login" :login-page]
+        ["logout" :logout-page]
+        ["missing-route" :missing-route]
+        [true :not-found-page]]])
 
 (swap! state assoc :routes app-routes)
 

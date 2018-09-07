@@ -23,7 +23,7 @@
   (swap! form-state assoc :submitting true)
   (swap! form-state assoc :login-result nil)
   (go (let [creds (select-keys @form-state [:username :password])
-            response (<! (http/post "/login" {:edn-params creds}))]
+            response (<! (http/post "/api/login" {:edn-params creds}))]
         ;(prn response) ; DEBUG
         (swap! form-state assoc :submitting false)
         (swap! form-state assoc :login-result (:body response))

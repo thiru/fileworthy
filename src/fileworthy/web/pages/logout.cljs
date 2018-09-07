@@ -11,7 +11,7 @@
             [fileworthy.web.state :refer [state]]))
 
 (defn do-logout []
-  (go (let [response (<! (http/get "/logout"))]
+  (go (let [response (<! (http/get "/api/logout"))]
         (if (:success response)
           (do
             (swap! state assoc :user nil)

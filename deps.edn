@@ -50,8 +50,6 @@
   metosin/ring-http-response {:mvn/version "0.9.0"}
   ;; Routing library for Ring
   compojure {:mvn/version "1.6.1"}
-  ;; Generate HTML from clojure data structures:
-  hiccup {:mvn/version "1.0.5"}
   ;; JSON encoding/decoding:
   cheshire {:mvn/version "5.8.0"}
 

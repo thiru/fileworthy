@@ -4,8 +4,6 @@
             [clojure.string :as str]
             [clojure.pprint :refer :all]
 
-            [hiccup.core :refer :all]
-            [hiccup.page :refer :all]
             [ring.util.http-response :as hr]
 
             [glu.logging :refer :all]

@@ -54,10 +54,6 @@
   hiccup {:mvn/version "1.0.5"}
   ;; JSON encoding/decoding:
   cheshire {:mvn/version "5.8.0"}
-  ;; Better exception reporting middleware:
-  prone {:mvn/version "1.6.0"}
-  ;; Security library:
-  buddy {:mvn/version "2.0.0"}
 
   ;; ## Web Client
 

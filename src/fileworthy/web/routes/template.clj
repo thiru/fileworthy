@@ -18,19 +18,9 @@
 
   * `req`
     * The ring request map
-  * `title`
-    * The title of the page
-  * `page-id`
-    * A unique id for the page
-  * `content`
-    * Hiccup structure containing the body of the page
   * `user`
-    * The currently logged in user (if any)
-  * `css-files`
-    * An optional list of CSS files to include
-  * `script-files`
-    * An optional list of Javascript files to include"
-  [req title page-id content & {:keys [user css-files script-files]}]
+    * The currently logged in user (if any)"
+  [req & {:keys [user]}]
   (let [user (if (empty? user)
                (users/get-one {:username (-> req :session :username)})
                user)]
@@ -47,9 +37,7 @@
                :content "width=device-width, initial-scale=1"}]
 
        ;; Title
-       [:title (if (string/blank? (:site-name @config))
-                 title
-                 (str title " - " (:site-name @config)))]
+       [:title (:site-name @config)]
 
        ;; Manifest (for smart phone icon)
        [:link {:href "/manifest.json" :rel "manifest"}]
@@ -72,12 +60,6 @@
        [:link {:href (str "/css/main.mobile.css?v=" (:version @config))
                :rel "stylesheet"}]
 
-       ;; CSS (page-specific domain)
-       (if (non-empty? css-files)
-         (for [cf css-files]
-           [:link {:href (str "/css/" cf "?v=" (:version @config))
-                   :rel "stylesheet"}]))
-
        ;; Scripts (external dependencies)
        [:script {:src "/deps/lodash/lodash.min.js"}]
        [:script {:src "/deps/momentjs/moment.min.js"}]
@@ -94,22 +76,9 @@
                                     :description (:description @config)
                                     :version (:version @config)
                                     :updated (.toString (:updated @config))}
-                        :user (select-keys user [:name :roles :username])}))]
-
-       ;; Scripts (domain-specific)
-       [:script {:src (str "/js/utils.js?v=" (:version @config))}]
-       [:script {:src (str "/js/main.js?v=" (:version @config))}]
-       (if (non-empty? script-files)
-         (for [sf script-files]
-           [:script {:src (str "/js/" sf "?v=" (:version @config))}]))]
+                        :user (select-keys user [:name :roles :username])}))]]
 
       [:body
-        [:div#app
-          ;; Used for modal dialogs
-          [:div#overlay.hidden]
-
-          ;; Page content
-          [:main #_ content]]
-
+        [:div#app]
         ;; ClojureScript
         [:script {:src "/cljs/main.js"}]])))

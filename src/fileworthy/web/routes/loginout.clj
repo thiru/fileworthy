@@ -6,7 +6,6 @@
 
             [hiccup.core :refer :all]
             [hiccup.page :refer :all]
-            [prone.debug :refer [debug]]
             [ring.util.http-response :as hr]
 
             [glu.logging :refer :all]

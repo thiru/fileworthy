@@ -5,8 +5,6 @@
 
             [compojure.core :refer [context defroutes GET POST]]
             [compojure.route :as route]
-            [prone.middleware :as prone]
-            [ring.handler.dump :refer [template]]
             [ring.middleware.defaults :refer :all]
             [ring.middleware.format :refer [wrap-restful-format]]
             [ring.middleware.reload :refer [wrap-reload]]
@@ -18,44 +16,12 @@
             [glu.core :refer :all]
 
             [fileworthy.web.routes.template :refer [template-page]]
-            [fileworthy.web.routes.error-404 :refer :all]
-            [fileworthy.web.routes.error-500 :refer :all]
             [fileworthy.web.routes.loginout :refer :all]))
 
 (defroutes all-routes
-  (GET "/" req (template-page req "Home" :home-page nil))
-  (GET "/about" req (template-page req "About" :about-page nil))
-  (GET "/login" req (template-page req "Login" :login-page nil))
   (POST "/login" req (post-login-api req))
   (GET "/logout" req (get-logout-api req))
-  (context "/test" req
-    (GET "/req-map" [] template)
-    (GET "/500" []
-         (throw (Exception. "This is an intentional error test page."))))
-  (route/not-found get-error-404-page))
-
-(defn authorized?
-  "Determine whether the current request is authenticated.
-
-  Basically, all pages require authentication except the about page, log in/out
-  pages, and static content."
-  [req]
-  (or (not (string/blank? (-> req :session :username)))
-      (re-matches
-        #"^/(about|cljs/|css/|deps/|images/|js/|login|logout|manifest.json)$"
-        (-> req :uri))))
-
-(defn wrap-auth
-  "Authentication middleware."
-  [handler]
-  (fn [req]
-    (if (authorized? req)
-      (handler req)
-      (hr/temporary-redirect
-        (str
-          "/login"
-          (if-not (contains? #{"/" "/login"} (-> req :uri))
-            (str "?go-back-to=" (-> req :uri))))))))
+  (GET "*" req (template-page req)))
 
 (defn get-handler
   "Get handler appropriate for development or production environment.
@@ -66,15 +32,10 @@
   [dev?]
   (cond-> (if dev? #'all-routes all-routes)
     dev? wrap-reload
-    true wrap-auth
     true (wrap-defaults (-> site-defaults
                             ;; TODO: review anti-forgery use in dev vs prod
                             (assoc-in [:security :anti-forgery] false)
                             (update-in [:static] dissoc :resources)
                             (assoc-in [:static :files] "html")))
     true (wrap-restful-format :formats [:edn :json])
-    true (wrap-stacktrace-log {:color? true})
-    dev? (prone/wrap-exceptions
-           {:app-namespaces ["fileworthy" "glu"]
-            :print-stacktraces? false})
-    (not dev?) (wrap-exception-friendly)))
+    true (wrap-stacktrace-log {:color? true})))

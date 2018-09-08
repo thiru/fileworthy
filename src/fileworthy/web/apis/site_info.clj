@@ -1,4 +1,4 @@
-(ns fileworthy.web.routes.site-info
+(ns fileworthy.web.apis.site-info
   "General info about the website."
   (:require
             [clojure.string :as str]

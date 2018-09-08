@@ -1,4 +1,4 @@
-(ns fileworthy.web.routes.logout
+(ns fileworthy.web.apis.logout
   "Log out API."
   (:require
             [clojure.string :as str]

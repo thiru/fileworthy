@@ -1,5 +1,5 @@
-(ns fileworthy.web.routes.loginout
-  "Log in/out pages and APIs."
+(ns fileworthy.web.routes.login
+  "Log in API."
   (:require
             [clojure.string :as str]
             [clojure.pprint :refer :all]
@@ -35,18 +35,3 @@
         (-> (r :error "Invalid username or password")
             hr/unauthorized
             (hr/content-type "application/edn"))))))
-
-(defn get-logout-api
-  "Expire user's session."
-  [req]
-  (if-let [user (users/get-one {:username (-> req :session :username)})]
-    (do
-      (log :info (str "User '" (:name user) "' logged out"))
-      (-> (r :success "You've been successfully logged out")
-          hr/ok
-          (hr/content-type "application/edn")
-          (assoc :session nil)))
-    (-> (r :info "You weren't logged in")
-        hr/ok
-        (hr/content-type "application/edn")
-        (assoc :session nil))))

@@ -16,7 +16,8 @@
             [glu.core :refer :all]
 
             [fileworthy.web.routes.site-info :refer :all]
-            [fileworthy.web.routes.loginout :refer :all]))
+            [fileworthy.web.routes.login :refer :all]
+            [fileworthy.web.routes.logout :refer :all]))
 
 (defroutes all-routes
   (context "/api" req

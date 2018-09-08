@@ -24,19 +24,19 @@
     (GET  "/site-info" req (get-site-info-api req))
     (POST "/login" req (post-login-api req))
     (GET  "/logout" req (get-logout-api req))
-    ;; Unlike with non-API GET requests we'll return a 404 if the route isn't
-    ;; defined
+    ;; Unlike with non-API requests we'll return a 404 if the route isn't
+    ;; defined, as these should all be handled completely by the server.
     (ANY  "*" req (-> "API not found"
                       hr/not-found
                       (hr/content-type "text/plain"))))
   ;; If the (non-API) GET request isn't defined return a 200 response with the
-  ;; base page. The actual routing/rendering happens on the client-side
-  ;; afterall since this is a SPA.
+  ;; base page. The actual routing/rendering and 404 detection happens on the
+  ;; client-side afterall since this is a SPA.
   (GET "*" req (-> (slurp "html/home.html")
                    hr/ok
                    (hr/content-type "text/html")))
-  ;; Non-GET requests should response with a client error. These may also by
-  ;; potentially malicious.
+  ;; Non-API requests that aren't GET should respond with a client error. I
+  ;; suppose these could be malicious.
   (ANY "*" req (-> "Invalid request"
                    hr/bad-request
                    (hr/content-type "text/plain"))))

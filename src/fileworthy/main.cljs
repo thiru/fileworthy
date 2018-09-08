@@ -1,4 +1,4 @@
-(ns fileworthy.main
+(ns ^:figwheel-hooks fileworthy.main
   (:require
             [clojure.string :as string]
 
@@ -19,8 +19,15 @@
             [fileworthy.web.pages.not-found :as not-found-page]
             [fileworthy.web.state :as state]))
 
-(state/init!)
-(routes/init!)
+(defn ^:export mount []
+  (r/render [routes/page]
+            (js/document.getElementById "app")))
 
-(r/render [routes/page]
-          (js/document.getElementById "app"))
+(defn ^:after-load re-render []
+  (mount))
+
+(defonce init!
+  (do
+    (state/init!)
+    (routes/init!)
+    (mount)))

@@ -2,8 +2,6 @@
   (:require
             [clojure.string :as string]
 
-            [reagent.session :as session]
-
             [fileworthy.core.users :as users]
             [fileworthy.web.pages.about :as about-page]
             [fileworthy.web.pages.home :as home-page]

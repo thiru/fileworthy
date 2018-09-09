@@ -57,7 +57,6 @@
 
   ;; React wrapper:
   reagent {:mvn/version "0.8.1"}
-  reagent-utils {:mvn/version "0.3.1"}
 
   ;; ## Domain-agnostic Infrastructure (config, debugging, logging, etc.)
 

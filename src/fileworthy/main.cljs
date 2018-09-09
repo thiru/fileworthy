@@ -8,7 +8,6 @@
             [accountant.core :as accountant]
             [bidi.bidi :as bidi]
             [reagent.core :as r]
-            [reagent.session :as session]
 
             [fileworthy.web.utils :as utils]
             [fileworthy.web.routes :as routes]

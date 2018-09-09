@@ -5,7 +5,6 @@
 
             [accountant.core :as accountant]
             [bidi.bidi :as bidi]
-            [reagent.session :as session]
 
             [fileworthy.web.pages.about :as about]
             [fileworthy.web.pages.error :as error]

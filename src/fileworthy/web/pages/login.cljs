@@ -85,7 +85,7 @@
                   "Logging in..."]
                 "Login")]]]])))
 
-(defn page-ui []
+(defn ^{:title "Login"} page-ui []
   [:div
     {:style {:max-width "30em"
              :margin-left "auto"

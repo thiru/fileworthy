@@ -4,5 +4,5 @@
 
             [fileworthy.web.state :refer [state]]))
 
-(defn page-ui []
+(defn ^{:title ""} page-ui []
   [:h1 "Welcome to " (-> @state :site-info :site-name)])

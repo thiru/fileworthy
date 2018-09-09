@@ -14,48 +14,41 @@
             [fileworthy.web.pages.login :as login]
             [fileworthy.web.pages.logout :as logout]
             [fileworthy.web.pages.not-found :as not-found]
-            [fileworthy.web.state :refer [state]]))
+            [fileworthy.web.state :refer [state]]
+            [fileworthy.web.utils :as utils]))
 
-(def app-routes
+(def pages
+  {:about-page #'about/page-ui
+   :error-page #'error/page-ui
+   :home-page #'home/page-ui
+   :login-page #'login/page-ui
+   :logout-page #'logout/page-ui
+   :not-found #'not-found/page-ui})
+
+(def routes
   ["/" [["" :home-page]
         ["about" :about-page]
         ["error" :error-page]
         ["home" :home-page]
         ["login" :login-page]
         ["logout" :logout-page]
-        ["missing-route" :missing-route]
         [true :not-found-page]]])
 
-(swap! state assoc :routes app-routes)
-
-(defmulti page-contents identity)
-
-(defmethod page-contents :about-page [] about/page-ui)
-(defmethod page-contents :error-page [] error/page-ui)
-(defmethod page-contents :home-page [] home/page-ui)
-(defmethod page-contents :login-page [] login/page-ui)
-(defmethod page-contents :logout-page [] logout/page-ui)
-(defmethod page-contents :not-found-page [] not-found/page-ui)
-(defmethod page-contents :default []
-  [:div
-   [:h1 "Not Found - Missing Route"]
-   [:p "It looks like the developer defined a route but didn't fully
-        implement it!"]])
-
-(defn page []
-  (fn []
-    (layout/page-ui page-contents)))
+(swap! state assoc :routes routes)
 
 (defn ^:export init! []
   (accountant/configure-navigation!
     {:nav-handler (fn [path]
-                    (let [match (bidi/match-route app-routes path)
-                          current-page (:handler match)
+                    (let [match (bidi/match-route routes path)
+                          current-page-id (:handler match)
+                          current-page-var (or (-> pages current-page-id)
+                                               #'not-found/page-ui)
                           route-params (:route-params match)]
                       (swap! state
                              assoc :current-route
-                             {:page current-page
+                             {:page-id current-page-id
+                              :page-var current-page-var
                               :route-params route-params})))
      :path-exists? (fn [path]
-                     (boolean (bidi/match-route app-routes path)))})
+                     (boolean (bidi/match-route routes path)))})
   (accountant/dispatch-current!))

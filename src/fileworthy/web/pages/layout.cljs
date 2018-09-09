@@ -10,7 +10,8 @@
             [fileworthy.web.pages.login :as login-page]
             [fileworthy.web.pages.logout :as logout-page]
             [fileworthy.web.pages.not-found :as not-found-page]
-            [fileworthy.web.state :refer [state]]))
+            [fileworthy.web.state :refer [state]]
+            [fileworthy.web.utils :as utils]))
 
 (defn modal-dialog-ui
   "HTML fragment for overlay element used for modal dialogs."
@@ -83,13 +84,16 @@
 
 (defn page-ui
   "Common layout of all pages on the site."
-  [page-contents]
-  (let [page (-> @state :current-route :page)]
+  []
+  (let [page-id (-> @state :current-route :page-id)
+        page-var (-> @state :current-route :page-var)
+        title (:title (meta page-var))]
+    (utils/set-page-title title)
     [:div
       (modal-dialog-ui)
       (top-header-ui)
       (settings-nav-ui)
       ;; An id is attached to the main element primarly to target page-specific
       ;; styles to it.
-      [:main {:id (name page)}
-       ^{:key page} [page-contents page]]]))
+      [:main {:id (name page-id)}
+       ^{:key page-id} [page-var]]]))

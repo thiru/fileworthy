@@ -18,7 +18,7 @@
             (accountant/navigate! "/logout"))
           (accountant/navigate! "/error?logout-failed")))))
 
-(defn page-ui []
+(defn ^{:title "Logout"} page-ui []
   [:div
    [:h2 "You were successfully logged out"]
    [:a.button {:href (bidi/path-for (:routes @state) :login-page)}

@@ -4,7 +4,7 @@
 
             [fileworthy.web.state :refer [state]]))
 
-(defn page-ui []
+(defn ^{:title "About"} page-ui []
   [:div
     [:p "Fileworthy is a simple website to manage your notes and files "
         "across all your devices."]

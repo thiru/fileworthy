@@ -14,13 +14,14 @@
             [fileworthy.web.routes :as routes]
             [fileworthy.web.pages.about :as about-page]
             [fileworthy.web.pages.home :as home-page]
+            [fileworthy.web.pages.layout :as layout-page]
             [fileworthy.web.pages.login :as login-page]
             [fileworthy.web.pages.logout :as logout-page]
             [fileworthy.web.pages.not-found :as not-found-page]
             [fileworthy.web.state :as state]))
 
 (defn ^:export mount []
-  (r/render [routes/page]
+  (r/render [layout-page/page-ui]
             (js/document.getElementById "app")))
 
 (defn ^:after-load re-render []

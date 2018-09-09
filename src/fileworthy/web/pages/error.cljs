@@ -6,7 +6,7 @@
 
             [fileworthy.web.state :refer [state]]))
 
-(defn page-ui []
+(defn ^{:title "Error"} page-ui []
   [:div
     [:h1 "Error"]
     [:p "Sorry, an unexpected error occcurred."]

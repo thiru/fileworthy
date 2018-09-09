@@ -44,9 +44,9 @@
 (defn get-handler
   "Get handler appropriate for development or production environment.
 
-  Note that public HTML resources are served from a local relative directory to
-  the application itself. I.e. the resources are not served from within the jar
-  file, though they may be there as well."
+   Note that public HTML resources are served from a local relative directory to
+   the application itself. I.e. the resources are not served from within the jar
+   file, though they may be there as well."
   [dev?]
   (cond-> (if dev? #'all-routes all-routes)
     dev? wrap-reload

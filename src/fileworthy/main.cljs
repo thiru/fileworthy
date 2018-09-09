@@ -23,7 +23,9 @@
   (r/render [layout-page/page-ui]
             (js/document.getElementById "app")))
 
-(defn ^:after-load re-render []
+(defn ^:after-load re-render
+  "This is used by figwheel to force a re-render when a file is saved to disk."
+  []
   (mount))
 
 (defonce init!

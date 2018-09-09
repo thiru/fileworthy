@@ -17,9 +17,10 @@
             [fileworthy.web.utils :as utils]))
 
 (def pages
-  "We associate the page ids with the function var, rather than the function
-   itself because we want to be able to access its metadata. E.g. this is
-   where the page's title is stored."
+  "Map of page ids with the function var that contains the UI.
+   We associate the page ids with the function var, rather than the function
+   itself, because we want to be able to access its metadata. E.g. this is
+   where the page title is stored."
   {:about-page #'about/page-ui
    :error-page #'error/page-ui
    :home-page #'home/page-ui
@@ -28,6 +29,7 @@
    :not-found #'not-found/page-ui})
 
 (def routes
+  "Bidi-compliant routes."
   ["/" [["" :home-page]
         ["about" :about-page]
         ["error" :error-page]
@@ -38,7 +40,9 @@
 
 (swap! state assoc :routes routes)
 
-(defn ^:export init! []
+(defn ^:export init!
+  "Initialize client-side (HTML5) router."
+  []
   (accountant/configure-navigation!
     {:nav-handler (fn [path]
                     (let [match (bidi/match-route routes path)

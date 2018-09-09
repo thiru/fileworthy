@@ -1,4 +1,5 @@
 (ns fileworthy.web.state
+  "Contains the client-side state in a single (Reagent) atom."
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
             [clojure.string :as string]

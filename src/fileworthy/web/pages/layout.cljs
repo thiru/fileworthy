@@ -1,4 +1,5 @@
 (ns fileworthy.web.pages.layout
+  "Contains the high-level layout of the site (base page)."
   (:require
             [clojure.string :as string]
 

@@ -1,5 +1,5 @@
 (ns fileworthy.web.routes
-  "Contains a registry of routes to React components."
+  "Client-side routing functionality."
   (:require
             [clojure.string :as string]
 
@@ -18,6 +18,9 @@
             [fileworthy.web.utils :as utils]))
 
 (def pages
+  "We associate the page ids with the function var, rather than the function
+   itself because we want to be able to access its metadata. E.g. this is
+   where the page's title is stored."
   {:about-page #'about/page-ui
    :error-page #'error/page-ui
    :home-page #'home/page-ui

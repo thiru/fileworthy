@@ -14,7 +14,7 @@
   "Gets general info about the website."
   [req]
   (let [user (users/get-one {:username (-> req :session :username)})]
-    (-> {:site-info {:site-name (:site-name @config)
+    (-> {:site-info {:name (:site-name @config)
                      :description (:description @config)
                      :version (:version @config)
                      :updated (.toString (:updated @config))}

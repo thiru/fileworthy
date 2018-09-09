@@ -36,7 +36,7 @@
       [:span " "]
       ;; Site Name
       [:a#app-name {:href "/" :title "Home"}
-        (-> @state :site-info :site-name)]
+        (-> @state :site-info :name)]
       ;; User Info
       [:div#user-info
         (if (empty? (:user @state))

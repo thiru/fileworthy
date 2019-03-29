@@ -32,15 +32,16 @@
     :succeeded?
     :failed?
     :*log-format-time*
-    :logm
-    ))
+    :logm))
+
 
 (defpackage :fileworthy
   (:use :cl :cl-who :glu :hunchentoot :local-time :split-sequence :uiop)
+  (:shadowing-import-from :local-time :timestamp<= :timestamp<)
+  (:shadowing-import-from :hunchentoot :parameter-error)
   (:documentation "A simple website to manage your *local* notes and files across all your devices")
   (:export
     :*app*
     :start-app
     :stop-app
-    :restart-app
-    ))
+    :restart-app))

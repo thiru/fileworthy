@@ -29,5 +29,4 @@
                (:file "src/web/page-logout")
                (:file "src/web/page-fs-search")
                (:file "src/web/page-fs-path")
-               (:file "src/main")
-               ))
+               (:file "src/main")))

@@ -226,6 +226,11 @@ main
   margin: 1rem;
 }
 
+nav ul:nth-child(odd)
+{
+  background-color: #EFEFEF; /* VAR GREY-LIGHT */
+}
+
 nav a
 {
   text-decoration: none;
@@ -416,7 +421,7 @@ nav a
 
 #gen-file-content table
 {
-  border-collapse: collapse; 
+  border-collapse: collapse;
 }
 #gen-file-content table th,
 #gen-file-content table td

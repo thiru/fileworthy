@@ -1,3 +1,3 @@
 # Fileworthy
 
-See [this page](https://thiru.github.io/fileworthy/) for **complete documentation**.
+Please refer to [this page](https://thiru.github.io/fileworthy/) for documentation in literate programming form.
